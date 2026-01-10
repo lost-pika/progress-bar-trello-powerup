@@ -2,16 +2,15 @@
 
 TrelloPowerUp.initialize({
 
-  'card-buttons': function(t, options) {
+  'card-buttons': function(t) {
     return [{
       icon: 'https://cdn-icons-png.flaticon.com/512/992/992651.png',
-      text: 'Add Progress',
+      text: 'Progress',
       callback: function(t){
-        return t.popup({
+        return t.boardBar({
           title: 'Progress Settings',
           url: 'https://eclectic-vacherin-e62270.netlify.app/index.html',
-          height: 750,
-          width: 900
+          height: 900  // adjust if needed
         });
       }
     }];
@@ -21,7 +20,6 @@ TrelloPowerUp.initialize({
     return t.get('card', 'shared', 'progress')
       .then(function(progress){
         if (!progress) return [];
-
         return [{
           text: progress + '%',
           color: progress >= 100 ? 'green' : 'blue'
