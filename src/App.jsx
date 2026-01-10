@@ -1,5 +1,16 @@
 import { useState } from "react";
 
+function saveProgressToTrello(progress) {
+  try {
+    const t = window.TrelloPowerUp?.iframe();
+    if (t) {
+      t.set("card", "shared", "progress", progress);
+    }
+  } catch (err) {
+    console.error("Trello save error:", err);
+  }
+}
+
 export default function App() {
   const [progress, setProgress] = useState(32);
   const [strokeWidth, setStrokeWidth] = useState(8);
@@ -8,10 +19,8 @@ export default function App() {
 
   return (
     <div className="w-screen bg-[#0e0f13] flex items-start justify-center py-10">
-
       {/* CARD */}
       <div className="w-[700px] bg-[#0e0f13] text-gray-300 p-6 rounded-xl border border-[#1f232b] space-y-6">
-
         {/* HEADER */}
         <div>
           <h2 className="text-xl font-semibold text-white mb-4">slack</h2>
@@ -61,7 +70,10 @@ export default function App() {
               min="0"
               max="100"
               value={progress}
-              onChange={(e) => setProgress(e.target.value)}
+              onChange={(e) => {
+                setProgress(e.target.value);
+                saveProgressToTrello(e.target.value); // 🔥 Saves to Trello
+              }}
               className="w-[85%] cursor-pointer"
               style={{ accentColor: "#2ec4b6" }}
             />
@@ -82,7 +94,6 @@ export default function App() {
 
         {/* ADVANCED PROGRESS PAGE (INSIDE SAME CARD) */}
         <div className="bg-[#121318] border border-[#1f232b] p-5 rounded-xl">
-
           {/* Top Row */}
           <div className="flex justify-between items-center">
             <h3 className="text-gray-200 text-sm">Progress</h3>
@@ -121,7 +132,9 @@ export default function App() {
 
           {/* CIRCULAR PROGRESS PREVIEW */}
           <div className="bg-[#0e0f13] border border-[#2a2f37] rounded-xl p-6 mb-6">
-            <h3 className="text-sm text-gray-300 mb-4">Circular Progress Preview</h3>
+            <h3 className="text-sm text-gray-300 mb-4">
+              Circular Progress Preview
+            </h3>
 
             <div className="flex justify-center items-center">
               <div className="w-28 h-28 rounded-full border-[8px] border-[#22262e] flex items-center justify-center text-xl font-semibold text-white">
@@ -130,7 +143,9 @@ export default function App() {
             </div>
 
             <div className="flex justify-between items-center text-sm mt-4">
-              <span className="text-gray-300 flex items-center gap-2">👁 Show on card front</span>
+              <span className="text-gray-300 flex items-center gap-2">
+                👁 Show on card front
+              </span>
               <input type="checkbox" className="accent-teal-400 h-4 w-4" />
             </div>
           </div>
@@ -198,19 +213,22 @@ export default function App() {
 
           {/* SMART SYNC */}
           <div className="mt-6 bg-[#0e0f13] border border-[#2a2f37] rounded-xl p-4">
-            <h3 className="text-sm text-gray-300 mb-2">🔄 Smart Progress Sync</h3>
+            <h3 className="text-sm text-gray-300 mb-2">
+              🔄 Smart Progress Sync
+            </h3>
             <p className="text-xs text-gray-400 mb-3">
-              Automatically update progress based on time spent and checklist completion.
+              Automatically update progress based on time spent and checklist
+              completion.
             </p>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-teal-300">Progress synced 2 minutes ago</span>
+              <span className="text-xs text-teal-300">
+                Progress synced 2 minutes ago
+              </span>
               <input type="checkbox" className="accent-teal-400 h-4 w-4" />
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
   );
 }
