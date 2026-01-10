@@ -2,15 +2,25 @@
 
 TrelloPowerUp.initialize({
 
+  'card-back-section': function(t, options) {
+    return {
+      title: 'Progress',
+      icon: 'https://cdn-icons-png.flaticon.com/512/992/992651.png',
+      content: {
+        type: 'iframe',
+        url: t.signUrl('https://eclectic-vacherin-e62270.netlify.app/index.html'),
+        height: 800
+      }
+    };
+  },
+
   'card-buttons': function(t) {
     return [{
       icon: 'https://cdn-icons-png.flaticon.com/512/992/992651.png',
       text: 'Progress',
       callback: function(t){
-        return t.boardBar({
-          title: 'Progress Settings',
-          url: 'https://eclectic-vacherin-e62270.netlify.app/index.html',
-          height: 900  // adjust if needed
+        return t.navigate({
+          panel: 'progress-panel'
         });
       }
     }];
