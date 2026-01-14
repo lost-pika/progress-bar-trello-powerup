@@ -4,7 +4,7 @@ var ICON = 'https://cdn-icons-png.flaticon.com/512/992/992651.png';
 
 TrelloPowerUp.initialize({
 
-  // 1️⃣ BOARD BUTTON → appears next to Automation, Power-Ups, etc.
+  // 1️⃣ BOARD BUTTON → Settings popup
   'board-buttons': function(t) {
     return [{
       icon: ICON,
@@ -12,7 +12,7 @@ TrelloPowerUp.initialize({
       callback: function(t) {
         return t.popup({
           title: 'Progress Settings',
-          url: './settings.html',  // settings UI
+          url: './settings.html',
           height: 600,
           width: 500
         });
@@ -20,22 +20,19 @@ TrelloPowerUp.initialize({
     }];
   },
 
-  // 2️⃣ CARD BUTTON → opens popup UI
-  'card-buttons': function(t) {
-    return [{
+  // 2️⃣ CARD BACK SECTION → Shows on card back (inline, not popup)
+  'card-back-section': function(t) {
+    return {
+      title: 'Progress',
       icon: ICON,
-      text: 'Progress',
-      callback: function(t){
-        return t.popup({
-          title: 'Progress Settings',
-          url: './index.html',   // popup UI
-          height: 600
-        });
+      content: {
+        type: 'iframe',
+        url: t.signUrl('./card-progress.html', { minutes: 30 })
       }
-    }];
+    };
   },
 
-  // 3️⃣ BADGE → shows saved progress
+  // 3️⃣ BADGE → shows saved progress on card front
   'card-badges': function(t){
     return t.get('card', 'shared', 'progress')
       .then(function(progress){
