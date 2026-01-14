@@ -20,7 +20,7 @@ TrelloPowerUp.initialize({
     }];
   },
 
-  // 2️⃣ CARD BACK SECTION → Shows on card back (inline, not popup)
+  // 2️⃣ CARD BACK SECTION → Shows ABOVE Description
   'card-back-section': function(t) {
     return {
       title: 'Progress',
