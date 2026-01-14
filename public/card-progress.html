@@ -5,268 +5,466 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Card Progress</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-  <div id="root"></div>
-
-  <script type="module">
-    import React, { useState, useEffect } from 'https://esm.sh/react@18';
-    import ReactDOM from 'https://esm.sh/react-dom@18/client';
-
-    function saveProgressToTrello(progress) {
-      try {
-        const t = window.TrelloPowerUp?.iframe();
-        if (t) {
-          t.set("card", "shared", "progress", progress);
-        }
-      } catch (err) {
-        console.error("Trello save error:", err);
-      }
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: transparent; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #e0e0e0;
     }
 
-    function App() {
-      const [progress, setProgress] = useState(32);
-      const [strokeWidth, setStrokeWidth] = useState(8);
-      const [progressSteps, setProgressSteps] = useState(12);
-      const [segmentGap, setSegmentGap] = useState(4);
-      const [showOnFront, setShowOnFront] = useState(true);
-      const [autoTracking, setAutoTracking] = useState(false);
-      const [selectedStyle, setSelectedStyle] = useState('chunked');
+    .container { padding: 0; }
 
-      // Load progress from Trello on mount
-      useEffect(() => {
-        const t = window.TrelloPowerUp?.iframe();
-        if (t) {
-          t.get('card', 'shared', 'progress').then(val => {
-            if (val !== undefined && val !== null) {
-              setProgress(parseInt(val));
-            }
-          });
-        }
-      }, []);
+    /* PROGRESS SECTION */
+    .progress-section {
+      background: #121318;
+      border: 1px solid #1f232b;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
 
-      return (
-        <div className="w-full bg-transparent text-gray-300 p-6 space-y-6">
-          {/* PROGRESS SECTION */}
-          <div className="bg-[#121318] border border-[#1f232b] p-5 rounded-xl">
-            <h3 className="text-gray-200 mb-4 flex items-center text-sm">
-              ⚡ <span className="ml-2">Progress</span>
-            </h3>
+    .section-header {
+      color: #e0e0e0;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-            {/* Progress Bar */}
-            <div className="relative mb-3">
-              <div className="w-full h-2 bg-[#22262e] rounded-full">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ background: "#2ec4b6", width: `${progress}%` }}
-                ></div>
-              </div>
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #22262e;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      position: relative;
+    }
 
-              <span
-                className="absolute right-0 -top-1 text-sm"
-                style={{ color: "#38e1d3" }}
-              >
-                {progress}%
-              </span>
-            </div>
+    .progress-bar {
+      height: 100%;
+      background: #2ec4b6;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
 
-            {/* Slider */}
-            <p className="text-xs text-gray-400 mb-1">Adjust progress manually</p>
+    .progress-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 8px;
+    }
 
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">0%</span>
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
 
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={progress}
-                onChange={(e) => {
-                  setProgress(parseInt(e.target.value));
-                  saveProgressToTrello(parseInt(e.target.value));
-                }}
-                className="w-[85%] cursor-pointer"
-                style={{ accentColor: "#2ec4b6" }}
-              />
+    input[type="range"] {
+      flex: 1;
+      accent-color: #2ec4b6;
+      height: 6px;
+      cursor: pointer;
+    }
 
-              <span className="text-xs text-gray-500">100%</span>
+    .range-label {
+      font-size: 11px;
+      color: #666;
+      min-width: 30px;
+    }
+
+    .percentage-display {
+      color: #38e1d3;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: right;
+    }
+
+    /* ELAPSED TIME SECTION */
+    .time-section {
+      background: #121318;
+      border: 1px solid #1f232b;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .time-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #e0e0e0;
+    }
+
+    .time-value {
+      color: #e0e0e0;
+    }
+
+    .status-badge {
+      background: #2a2f37;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #2ec4b6;
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #27b5a8;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 107, 107, 0.2);
+      border: 1px solid #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 107, 107, 0.3);
+    }
+
+    .checkbox-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    input[type="checkbox"] {
+      accent-color: #2ec4b6;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* CIRCULAR PREVIEW */
+    .circular-section {
+      background: #0e0f13;
+      border: 1px solid #2a2f37;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .circular-preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .circular-progress {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      background: conic-gradient(#2ec4b6 var(--progress-angle), #22262e 0deg);
+      position: relative;
+    }
+
+    .circular-progress::after {
+      content: '';
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: #121318;
+      border-radius: 50%;
+    }
+
+    .circular-progress span {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ADVANCED SETTINGS */
+    .settings-section {
+      background: #121318;
+      border: 1px solid #1f232b;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .settings-title {
+      color: #e0e0e0;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .setting-item {
+      margin-bottom: 16px;
+    }
+
+    .setting-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #e0e0e0;
+      margin-bottom: 6px;
+    }
+
+    .style-buttons {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .style-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #2a2f37;
+      background: #1a1d23;
+      color: #e0e0e0;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .style-btn.active {
+      background: rgba(46, 196, 182, 0.2);
+      border-color: #2ec4b6;
+      color: #38e1d3;
+    }
+
+    .style-btn:hover:not(.active) {
+      background: #272b33;
+    }
+
+    /* SMART SYNC */
+    .sync-section {
+      background: #0e0f13;
+      border: 1px solid #2a2f37;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .sync-title {
+      font-size: 12px;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+    }
+
+    .sync-desc {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .sync-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #38e1d3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="container"></div>
+
+  <script>
+    const t = TrelloPowerUp.iframe();
+    let state = {
+      progress: 32,
+      strokeWidth: 8,
+      progressSteps: 12,
+      segmentGap: 4,
+      showOnFront: true,
+      autoTracking: false,
+      selectedStyle: 'chunked'
+    };
+
+    // Load progress from Trello
+    t.get('card', 'shared', 'progress').then(val => {
+      if (val !== undefined && val !== null) {
+        state.progress = parseInt(val);
+        render();
+      }
+    });
+
+    function saveProgress(value) {
+      state.progress = value;
+      t.set('card', 'shared', 'progress', value);
+      render();
+    }
+
+    function updateState(key, value) {
+      state[key] = value;
+      render();
+    }
+
+    function render() {
+      const progressAngle = (state.progress / 100) * 360;
+      
+      document.getElementById('container').innerHTML = `
+        <!-- PROGRESS SECTION -->
+        <div class="progress-section">
+          <div class="section-header">⚡ Progress</div>
+          <div class="percentage-display">${state.progress}%</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" style="width: ${state.progress}%"></div>
+          </div>
+          <div class="progress-label">Adjust progress manually</div>
+          <div class="slider-wrapper">
+            <span class="range-label">0%</span>
+            <input type="range" id="progressSlider" min="0" max="100" value="${state.progress}" />
+            <span class="range-label">100%</span>
+          </div>
+        </div>
+
+        <!-- ELAPSED TIME SECTION -->
+        <div class="time-section">
+          <div class="section-header">⏱ Progress Details</div>
+          <div class="time-row">
+            <span class="time-label">⏱ Elapsed Time</span>
+            <span class="time-value">Estimated <strong>08:00:00</strong></span>
+          </div>
+          <div class="status-badge">⚠️ Behind schedule</div>
+          <div class="button-group">
+            <button class="btn btn-primary">▶️ Start Tracking</button>
+            <button class="btn btn-secondary">↻ Reset</button>
+          </div>
+          <div class="checkbox-row">
+            <span>Enable automatic tracking</span>
+            <input type="checkbox" id="autoTracking" ${state.autoTracking ? 'checked' : ''} />
+          </div>
+        </div>
+
+        <!-- CIRCULAR PREVIEW -->
+        <div class="circular-section">
+          <div class="section-header">Circular Progress Preview</div>
+          <div class="circular-preview">
+            <div class="circular-progress" style="--progress-angle: ${progressAngle}deg">
+              <span>${state.progress}%</span>
             </div>
           </div>
+          <div class="checkbox-row">
+            <span>👁 Show on card front</span>
+            <input type="checkbox" id="showOnFront" ${state.showOnFront ? 'checked' : ''} />
+          </div>
+        </div>
 
-          {/* ADVANCED PROGRESS SECTION */}
-          <div className="bg-[#121318] border border-[#1f232b] p-5 rounded-xl">
-            {/* Top Row */}
-            <div className="flex justify-between items-center">
-              <h3 className="text-gray-200 text-sm">Progress Details</h3>
-              <span className="text-teal-300 text-sm">{progress}%</span>
-            </div>
-
-            {/* Elapsed Time Section */}
-            <div className="mt-6 flex justify-between mb-2">
-              <div className="text-sm flex items-center gap-2">
-                <span className="text-teal-300">⏱</span>
-                Elapsed Time
-              </div>
-
-              <div className="text-sm text-gray-300">
-                Estimated <span className="font-semibold">08:00:00</span>
-              </div>
-            </div>
-
-            <div className="bg-[#2a2f37] text-white px-3 py-2 rounded-md text-center mb-3 text-xs">
-              ⚠️ Behind schedule
-            </div>
-
-            <div className="flex gap-3 mb-4">
-              <button className="flex-1 bg-teal-500 text-black py-2 rounded-md text-sm font-semibold hover:bg-teal-600">
-                ▶️ Start Tracking
-              </button>
-              <button className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-2 rounded-md text-sm hover:bg-red-500/30">
-                ↻ Reset
-              </button>
-            </div>
-
-            <div className="flex justify-between items-center text-sm mb-6">
-              <span className="text-gray-300">Enable automatic tracking</span>
-              <input 
-                type="checkbox" 
-                checked={autoTracking}
-                onChange={(e) => setAutoTracking(e.target.checked)}
-                className="accent-teal-400 h-4 w-4 cursor-pointer" 
-              />
-            </div>
-
-            {/* CIRCULAR PROGRESS PREVIEW */}
-            <div className="bg-[#0e0f13] border border-[#2a2f37] rounded-xl p-6 mb-6">
-              <h3 className="text-sm text-gray-300 mb-4">
-                Circular Progress Preview
-              </h3>
-
-              <div className="flex justify-center items-center">
-                <div className="w-28 h-28 rounded-full border-[8px] border-[#22262e] flex items-center justify-center text-xl font-semibold text-white" style={{ borderRightColor: '#2ec4b6', borderTopColor: '#2ec4b6' }}>
-                  {progress}%
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center text-sm mt-4">
-                <span className="text-gray-300 flex items-center gap-2">
-                  👁 Show on card front
-                </span>
-                <input 
-                  type="checkbox" 
-                  checked={showOnFront}
-                  onChange={(e) => setShowOnFront(e.target.checked)}
-                  className="accent-teal-400 h-4 w-4 cursor-pointer" 
-                />
-              </div>
-            </div>
-
-            {/* ADVANCED SETTINGS */}
-            <h3 className="text-sm text-gray-300 mb-4">Advanced Settings</h3>
-
-            {/* Stroke Width */}
-            <div className="flex justify-between text-sm mb-1">
+        <!-- ADVANCED SETTINGS -->
+        <div class="settings-section">
+          <div class="settings-title">Advanced Settings</div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
               <span>Stroke Width</span>
-              <span>{strokeWidth}px</span>
+              <span>${state.strokeWidth}px</span>
             </div>
-            <input
-              type="range"
-              min="1"
-              max="20"
-              value={strokeWidth}
-              onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
-              className="w-full mb-4"
-              style={{ accentColor: "#2ec4b6" }}
-            />
+            <input type="range" id="strokeWidth" min="1" max="20" value="${state.strokeWidth}" style="width: 100%; accent-color: #2ec4b6;" />
+          </div>
 
-            {/* Progress Steps */}
-            <div className="flex justify-between text-sm mb-1">
+          <div class="setting-item">
+            <div class="setting-label">
               <span>Progress Steps</span>
-              <span>{progressSteps}</span>
+              <span>${state.progressSteps}</span>
             </div>
-            <input
-              type="range"
-              min="1"
-              max="20"
-              value={progressSteps}
-              onChange={(e) => setProgressSteps(parseInt(e.target.value))}
-              className="w-full mb-4"
-              style={{ accentColor: "#2ec4b6" }}
-            />
+            <input type="range" id="progressSteps" min="1" max="20" value="${state.progressSteps}" style="width: 100%; accent-color: #2ec4b6;" />
+          </div>
 
-            {/* Segment Gap */}
-            <div className="flex justify-between text-sm mb-1">
+          <div class="setting-item">
+            <div class="setting-label">
               <span>Segment Gap</span>
-              <span>{segmentGap}px</span>
+              <span>${state.segmentGap}px</span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="20"
-              value={segmentGap}
-              onChange={(e) => setSegmentGap(parseInt(e.target.value))}
-              className="w-full mb-6"
-              style={{ accentColor: "#2ec4b6" }}
-            />
+            <input type="range" id="segmentGap" min="0" max="20" value="${state.segmentGap}" style="width: 100%; accent-color: #2ec4b6;" />
+          </div>
 
-            {/* STYLE SELECTOR */}
-            <div className="flex justify-between gap-2">
-              <button 
-                onClick={() => setSelectedStyle('minimal')}
-                className={`flex-1 py-2 rounded-md text-sm transition ${
-                  selectedStyle === 'minimal'
-                    ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                    : 'bg-[#1a1d23] border border-[#2a2f37] hover:bg-[#272b33]'
-                }`}
-              >
-                Minimal
-              </button>
-              <button 
-                onClick={() => setSelectedStyle('chunked')}
-                className={`flex-1 py-2 rounded-md text-sm transition ${
-                  selectedStyle === 'chunked'
-                    ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                    : 'bg-[#1a1d23] border border-[#2a2f37] hover:bg-[#272b33]'
-                }`}
-              >
-                Chunked
-              </button>
-              <button 
-                onClick={() => setSelectedStyle('bold')}
-                className={`flex-1 py-2 rounded-md text-sm transition ${
-                  selectedStyle === 'bold'
-                    ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                    : 'bg-[#1a1d23] border border-[#2a2f37] hover:bg-[#272b33]'
-                }`}
-              >
-                Bold
-              </button>
-            </div>
+          <div class="style-buttons">
+            <button class="style-btn ${state.selectedStyle === 'minimal' ? 'active' : ''}" data-style="minimal">Minimal</button>
+            <button class="style-btn ${state.selectedStyle === 'chunked' ? 'active' : ''}" data-style="chunked">Chunked</button>
+            <button class="style-btn ${state.selectedStyle === 'bold' ? 'active' : ''}" data-style="bold">Bold</button>
+          </div>
 
-            {/* SMART SYNC */}
-            <div className="mt-6 bg-[#0e0f13] border border-[#2a2f37] rounded-xl p-4">
-              <h3 className="text-sm text-gray-300 mb-2">
-                🔄 Smart Progress Sync
-              </h3>
-              <p className="text-xs text-gray-400 mb-3">
-                Automatically update progress based on time spent and checklist
-                completion.
-              </p>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-teal-300">
-                  Progress synced 2 minutes ago
-                </span>
-                <input type="checkbox" className="accent-teal-400 h-4 w-4 cursor-pointer" />
-              </div>
+          <div class="sync-section">
+            <div class="sync-title">🔄 Smart Progress Sync</div>
+            <div class="sync-desc">Automatically update progress based on time spent and checklist completion.</div>
+            <div class="sync-footer">
+              <span>Progress synced 2 minutes ago</span>
+              <input type="checkbox" style="accent-color: #2ec4b6;" />
             </div>
           </div>
         </div>
-      );
+      `;
+
+      // Attach event listeners
+      document.getElementById('progressSlider').addEventListener('input', (e) => {
+        saveProgress(parseInt(e.target.value));
+      });
+
+      document.getElementById('autoTracking').addEventListener('change', (e) => {
+        updateState('autoTracking', e.target.checked);
+      });
+
+      document.getElementById('showOnFront').addEventListener('change', (e) => {
+        updateState('showOnFront', e.target.checked);
+      });
+
+      document.getElementById('strokeWidth').addEventListener('input', (e) => {
+        updateState('strokeWidth', parseInt(e.target.value));
+      });
+
+      document.getElementById('progressSteps').addEventListener('input', (e) => {
+        updateState('progressSteps', parseInt(e.target.value));
+      });
+
+      document.getElementById('segmentGap').addEventListener('input', (e) => {
+        updateState('segmentGap', parseInt(e.target.value));
+      });
+
+      document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          updateState('selectedStyle', btn.dataset.style);
+        });
+      });
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    render();
   </script>
 </body>
 </html>
