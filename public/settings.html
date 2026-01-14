@@ -24,7 +24,6 @@
         margin: 0 auto;
         padding: 20px;
         background-color: #1a1a2e;
-        min-height: 100vh;
       }
 
       /* Header */
@@ -64,10 +63,6 @@
         text-transform: capitalize;
       }
 
-      .settings-section .setting-item:last-child {
-        margin-bottom: 0;
-      }
-
       /* Settings Items */
       .setting-item {
         display: flex;
@@ -75,7 +70,6 @@
         justify-content: space-between;
         padding: 16px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        transition: background-color 0.2s ease;
       }
 
       .setting-item:last-child {
@@ -161,12 +155,13 @@
         border-radius: 6px;
         margin-top: 12px;
         font-size: 13px;
-      }
-
-      .status-message.success {
         background-color: rgba(72, 219, 251, 0.1);
         color: #48dbfb;
         border-left: 3px solid #48dbfb;
+      }
+
+      .status-message.hidden {
+        display: none;
       }
 
       .status-icon {
@@ -300,37 +295,171 @@
       .meta-item {
         font-size: 12px;
         color: #4a5568;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      /* Responsive */
-      @media (max-width: 600px) {
-        .settings-container {
-          padding: 16px;
-        }
-
-        .setting-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-        }
-
-        .toggle {
-          margin-left: 0;
-        }
-
-        .preview-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
       }
     </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script src="./settings.js" type="module"></script>
+    <div class="settings-container">
+      <!-- Header -->
+      <div class="settings-header">
+        <div class="header-icon">⚙️</div>
+        <h1 class="header-title">Customize your task card display</h1>
+      </div>
+
+      <!-- Customize Section -->
+      <div class="settings-section">
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Hide card badges</span>
+            <span class="setting-desc">Remove all badges from cards</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hideBadges" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Hide card detail badges</span>
+            <span class="setting-desc">Remove badges from expanded view</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hideDetailBadges" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Progress Bar Setting with Status -->
+        <div class="setting-item highlight">
+          <div class="setting-content">
+            <span class="setting-label">Hide progress bar from card badges</span>
+            <span class="setting-desc">Remove progress bars from all cards</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hideProgressBars" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="status-message hidden" id="statusMessage">
+          <span class="status-icon">✓</span>
+          <span class="status-text">Progress bars hidden on all cards</span>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Auto-enable Focus Mode</span>
+            <span class="setting-desc">Start Focus Mode when timer begins</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="autoFocusMode" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Unauthorize Section -->
+      <div class="settings-section">
+        <h2 class="section-title unauthorized-title">Unauthorize Power-Up</h2>
+        <p class="unauthorized-desc">Remove this integration from workspace</p>
+        <button class="remove-btn" id="removeBtn">
+          <span class="remove-icon">⚠️</span>
+          Remove
+        </button>
+      </div>
+
+      <!-- Live Preview Section -->
+      <div class="preview-section">
+        <h2 class="section-title">Live Preview</h2>
+        <p class="preview-desc">See how your cards will look</p>
+        
+        <div class="preview-card">
+          <div class="preview-header">
+            <span class="preview-title">Sample Task</span>
+            <span class="focus-badge">🎯 Focus ON</span>
+          </div>
+          <div class="preview-content">
+            <p class="preview-message" id="previewMessage">Progress bars are currently hidden</p>
+            <div class="preview-progress hidden" id="previewProgress">
+              <div class="progress-bar"></div>
+            </div>
+            <div class="preview-meta">
+              <span class="meta-item">⏱️ 01:23:45</span>
+              <span class="meta-item">⏰ 02:00:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const t = TrelloPowerUp.iframe();
+
+      const hideBadgesCheckbox = document.getElementById('hideBadges');
+      const hideDetailBadgesCheckbox = document.getElementById('hideDetailBadges');
+      const hideProgressBarsCheckbox = document.getElementById('hideProgressBars');
+      const autoFocusModeCheckbox = document.getElementById('autoFocusMode');
+      const statusMessage = document.getElementById('statusMessage');
+      const previewMessage = document.getElementById('previewMessage');
+      const previewProgress = document.getElementById('previewProgress');
+      const removeBtn = document.getElementById('removeBtn');
+
+      // Load settings from board on load
+      Promise.all([
+        t.get('board', 'shared', 'hideBadges'),
+        t.get('board', 'shared', 'hideDetailBadges'),
+        t.get('board', 'shared', 'hideProgressBars'),
+        t.get('board', 'shared', 'autoFocus')
+      ]).then(([badges, detailBadges, progressBars, autoFocus]) => {
+        hideBadgesCheckbox.checked = badges || false;
+        hideDetailBadgesCheckbox.checked = detailBadges || false;
+        hideProgressBarsCheckbox.checked = progressBars || false;
+        autoFocusModeCheckbox.checked = autoFocus !== false;
+        updatePreview();
+      });
+
+      function save(key, value) {
+        t.set('board', 'shared', key, value);
+      }
+
+      function updatePreview() {
+        if (hideProgressBarsCheckbox.checked) {
+          statusMessage.classList.remove('hidden');
+          previewMessage.textContent = 'Progress bars are currently hidden';
+          previewProgress.classList.add('hidden');
+        } else {
+          statusMessage.classList.add('hidden');
+          previewMessage.textContent = '';
+          previewProgress.classList.remove('hidden');
+        }
+      }
+
+      hideBadgesCheckbox.addEventListener('change', (e) => {
+        save('hideBadges', e.target.checked);
+      });
+
+      hideDetailBadgesCheckbox.addEventListener('change', (e) => {
+        save('hideDetailBadges', e.target.checked);
+      });
+
+      hideProgressBarsCheckbox.addEventListener('change', (e) => {
+        save('hideProgressBars', e.target.checked);
+        updatePreview();
+      });
+
+      autoFocusModeCheckbox.addEventListener('change', (e) => {
+        save('autoFocus', e.target.checked);
+      });
+
+      removeBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to unauthorize this Power-Up?')) {
+          t.closePopup();
+        }
+      });
+    </script>
   </body>
 </html>
