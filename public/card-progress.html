@@ -8,26 +8,27 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  body {
+  html, body {
     background: transparent;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden; /* prevents scroll */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #e0e0e0;
   }
 
-  .wrapper {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 14px 16px;
+  /* Full-width container */
+  .container {
+    width: 100%;
+    padding: 6px 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
+  /* Header */
   .header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
   }
 
   .title {
@@ -38,24 +39,23 @@
     gap: 6px;
   }
 
-  .percent-badge {
-    background: #2ec4b6;
-    padding: 2px 8px;
-    border-radius: 20px;
+  /* Percentage badge */
+  .percent {
     font-size: 12px;
     font-weight: 600;
-    color: #002b29;
+    color: #2ec4b6;
   }
 
-  .progress-bar-bg {
-    height: 7px;
+  /* Progress bar */
+  .bar-bg {
     width: 100%;
-    background: rgba(46, 196, 182, 0.18);
+    height: 7px;
     border-radius: 5px;
+    background: rgba(46, 196, 182, 0.18);
     overflow: hidden;
   }
 
-  .progress-bar-fill {
+  .bar-fill {
     height: 100%;
     background: #2ec4b6;
     transition: width 0.25s ease;
@@ -64,9 +64,10 @@
   .label {
     font-size: 11px;
     color: #9b9b9b;
+    margin-top: 2px;
   }
 
-  .range-line {
+  .line {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -74,8 +75,8 @@
 
   .range-label {
     font-size: 10px;
+    width: 30px;
     color: #777;
-    width: 26px;
     text-align: center;
   }
 
@@ -84,40 +85,6 @@
     accent-color: #2ec4b6;
     height: 6px;
     cursor: pointer;
-  }
-
-  .hide-btn {
-    margin-top: 4px;
-    font-size: 11px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #bbb;
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    width: fit-content;
-    transition: 0.2s ease;
-  }
-
-  .hide-btn:hover {
-    background: rgba(255,255,255,0.12);
-    color: white;
-  }
-
-  /* Smooth hide animation */
-  .fade-out {
-    animation: fadeOut 0.35s forwards ease;
-  }
-
-  @keyframes fadeOut {
-    to {
-      opacity: 0;
-      transform: translateY(-6px);
-      height: 0;
-      padding: 0;
-      margin: 0;
-      pointer-events: none;
-    }
   }
 </style>
 </head>
@@ -129,57 +96,42 @@
     const t = TrelloPowerUp.iframe();
     let state = { progress: 0 };
 
-    t.get('card', 'shared', 'progress').then(val => {
-      if (val !== null && val !== undefined) {
-        state.progress = parseInt(val);
-      }
+    t.get("card", "shared", "progress").then(val => {
+      if (val !== null && val !== undefined) state.progress = parseInt(val);
       render();
     });
 
     function saveProgress(v) {
       state.progress = v;
-      t.set('card', 'shared', 'progress', v);
+      t.set("card", "shared", "progress", v);
       render();
-    }
-
-    function hideWidget() {
-      t.remove('card', 'shared', 'progress');
-      const wrapper = document.querySelector(".wrapper");
-      wrapper.classList.add("fade-out");
-      setTimeout(() => {
-        document.getElementById("root").innerHTML = "";
-      }, 350);
     }
 
     function render() {
       document.getElementById("root").innerHTML = `
-        <div class="wrapper">
+        <div class="container">
           <div class="header">
             <div class="title">⚡ Progress</div>
-            <div class="percent-badge">${state.progress}%</div>
+            <div class="percent">${state.progress}%</div>
           </div>
 
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" style="width:${state.progress}%"></div>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width: ${state.progress}%"></div>
           </div>
 
           <div class="label">Adjust progress manually</div>
 
-          <div class="range-line">
+          <div class="line">
             <span class="range-label">0%</span>
             <input type="range" id="slider" min="0" max="100" value="${state.progress}">
             <span class="range-label">100%</span>
           </div>
-
-          <button class="hide-btn" id="hideBtn">Hide widget</button>
         </div>
       `;
 
       document.getElementById("slider").addEventListener("input", e =>
         saveProgress(parseInt(e.target.value))
       );
-
-      document.getElementById("hideBtn").addEventListener("click", hideWidget);
     }
   </script>
 </body>

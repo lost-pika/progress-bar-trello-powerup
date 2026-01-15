@@ -35,15 +35,20 @@ TrelloPowerUp.initialize({
 
   // 3️⃣ BADGE → shows saved progress on card front
   'card-badges': function(t){
-    return t.get('card', 'shared', 'progress')
-      .then(function(progress){
-        if (!progress) return [];
+  return t.get('board', 'shared', 'hideProgressBadge')
+    .then(function(shouldHide){
+      if (shouldHide) return [];
+      
+      return t.get('card', 'shared', 'progress')
+        .then(function(progress){
+          if (!progress) return [];
+          return [{
+            text: progress + '%',
+            color: progress >= 100 ? 'green' : 'blue'
+          }];
+        });
+    });
+}
 
-        return [{
-          text: progress + '%',
-          color: progress >= 100 ? 'green' : 'blue'
-        }];
-      });
-  }
 
 });

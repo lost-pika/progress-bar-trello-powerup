@@ -15,12 +15,13 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         line-height: 1.5;
+        background-color: #f8f9fa;
       }
 
       .settings-container {
-        max-width: 100%;
+        max-width: 500px;
         margin: 0 auto;
-        padding: 12px;
+        padding: 24px 16px;
       }
 
       /* Header */
@@ -37,24 +38,28 @@
       }
 
       .header-title {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
         line-height: 1.4;
-        margin-top: 2px;
+        color: #1a202c;
       }
 
       /* Sections */
       .settings-section {
-        margin-bottom: 24px;
-        padding: 12px;
+        background: white;
+        margin-bottom: 16px;
+        padding: 16px;
         border-radius: 8px;
+        border: 1px solid #e2e8f0;
       }
 
       .section-title {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        margin-bottom: 8px;
-        text-transform: capitalize;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #4a5568;
       }
 
       /* Settings Items */
@@ -62,21 +67,21 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 12px 0;
+        border-bottom: 1px solid #edf2f7;
       }
 
       .setting-item:last-child {
         border-bottom: none;
+        padding-bottom: 0;
       }
 
       .setting-item.highlight {
         background-color: rgba(72, 219, 251, 0.08);
+        padding: 12px;
+        margin: 8px -16px;
+        padding-left: 12px;
         border-left: 3px solid #48dbfb;
-        padding: 16px;
-        padding-left: 13px;
-        margin: 0 -12px;
-        padding-right: 16px;
         border-radius: 4px;
       }
 
@@ -90,11 +95,12 @@
       .setting-label {
         font-size: 14px;
         font-weight: 500;
+        color: #1a202c;
       }
 
       .setting-desc {
         font-size: 12px;
-        color: #666;
+        color: #718096;
       }
 
       /* Toggle Switch */
@@ -113,7 +119,7 @@
       .toggle-slider {
         width: 44px;
         height: 24px;
-        background-color: #ccc;
+        background-color: #cbd5e0;
         border-radius: 12px;
         position: relative;
         transition: background-color 0.3s ease;
@@ -145,7 +151,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 16px;
+        padding: 12px 12px;
         border-radius: 6px;
         margin-top: 12px;
         font-size: 13px;
@@ -160,6 +166,7 @@
 
       .status-icon {
         font-weight: bold;
+        font-size: 16px;
       }
 
       .status-text {
@@ -169,7 +176,7 @@
       /* Divider */
       .divider {
         height: 1px;
-        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+        background: linear-gradient(to right, transparent, #e2e8f0, transparent);
         margin: 24px 0;
       }
 
@@ -181,7 +188,7 @@
 
       .unauthorized-desc {
         font-size: 12px;
-        color: #666;
+        color: #718096;
         margin-bottom: 16px;
       }
 
@@ -221,7 +228,7 @@
 
       .preview-desc {
         font-size: 12px;
-        color: #666;
+        color: #718096;
         margin-bottom: 16px;
       }
 
@@ -229,7 +236,7 @@
         background: linear-gradient(135deg, #f5f7fa 0%, #eef2f5 100%);
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       }
 
       .preview-header {
@@ -272,9 +279,13 @@
         margin-bottom: 12px;
       }
 
-      .progress-bar {
+      .preview-progress.hidden {
+        display: none;
+      }
+
+      .progress-bar-preview {
         height: 6px;
-        background: linear-gradient(to right, #48dbfb, #48dbfb);
+        background: linear-gradient(to right, #48dbfb 65%, #48dbfb 65%);
         border-radius: 3px;
       }
 
@@ -290,6 +301,12 @@
         font-size: 12px;
         color: #4a5568;
       }
+
+      .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #718096;
+      }
     </style>
   </head>
   <body>
@@ -297,57 +314,77 @@
       <!-- Header -->
       <div class="settings-header">
         <div class="header-icon">⚙️</div>
-        <h1 class="header-title">Customize your task card display</h1>
+        <h1 class="header-title">Progress Settings</h1>
       </div>
 
-      <!-- Customize Section -->
+      <!-- Main Settings Section -->
       <div class="settings-section">
-        <div class="setting-item">
-          <div class="setting-content">
-            <span class="setting-label">Hide card badges</span>
-            <span class="setting-desc">Remove all badges from cards</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideBadges" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="setting-item">
-          <div class="setting-content">
-            <span class="setting-label">Hide card detail badges</span>
-            <span class="setting-desc">Remove badges from expanded view</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideDetailBadges" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <!-- Progress Bar Setting with Status -->
+        <div class="section-title">Visibility</div>
+        
+        <!-- Hide Progress Badge -->
         <div class="setting-item highlight">
           <div class="setting-content">
-            <span class="setting-label">Hide progress bar from card badges</span>
-            <span class="setting-desc">Remove progress bars from all cards</span>
+            <span class="setting-label">Hide progress badge</span>
+            <span class="setting-desc">Remove progress % from card front</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="hideProgressBars" />
+            <input type="checkbox" id="hideProgressBadge" />
             <span class="toggle-slider"></span>
           </label>
         </div>
 
-        <div class="status-message hidden" id="statusMessage">
+        <div class="status-message hidden" id="statusBadge">
           <span class="status-icon">✓</span>
-          <span class="status-text">Progress bars hidden on all cards</span>
+          <span class="status-text">Progress badge hidden</span>
         </div>
 
+        <!-- Hide Detail Badges -->
         <div class="setting-item">
           <div class="setting-content">
-            <span class="setting-label">Auto-enable Focus Mode</span>
-            <span class="setting-desc">Start Focus Mode when timer begins</span>
+            <span class="setting-label">Hide details section</span>
+            <span class="setting-desc">Remove progress details from card back</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hideDetailSection" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Auto-Focus Mode -->
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Auto-focus on progress</span>
+            <span class="setting-desc">Expand progress section by default</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="autoFocusMode" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Display Settings -->
+      <div class="settings-section">
+        <div class="section-title">Display Options</div>
+        
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Show time tracker</span>
+            <span class="setting-desc">Display elapsed & estimated time</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showTimeTracker" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-content">
+            <span class="setting-label">Show circular progress</span>
+            <span class="setting-desc">Display circular progress indicator</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showCircularProgress" checked />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -358,29 +395,29 @@
 
       <!-- Unauthorize Section -->
       <div class="settings-section">
-        <h2 class="section-title unauthorized-title">Unauthorize Power-Up</h2>
-        <p class="unauthorized-desc">Remove this integration from workspace</p>
+        <h2 class="section-title unauthorized-title">Manage Power-Up</h2>
+        <p class="unauthorized-desc">Remove this Power-Up from workspace</p>
         <button class="remove-btn" id="removeBtn">
           <span class="remove-icon">⚠️</span>
-          Remove
+          Uninstall
         </button>
       </div>
 
       <!-- Live Preview Section -->
       <div class="preview-section">
-        <h2 class="section-title">Live Preview</h2>
-        <p class="preview-desc">See how your cards will look</p>
+        <h2 class="section-title">Preview</h2>
+        <p class="preview-desc">How your cards will appear</p>
         
         <div class="preview-card">
           <div class="preview-header">
             <span class="preview-title">Sample Task</span>
-            <span class="focus-badge">🎯 Focus ON</span>
+            <span class="focus-badge" id="previewBadge">65%</span>
           </div>
           <div class="preview-content">
-            <p class="preview-message" id="previewMessage">Progress bars are currently hidden</p>
-            <div class="preview-progress hidden" id="previewProgress">
-              <div class="progress-bar"></div>
+            <div class="preview-progress" id="previewProgress">
+              <div class="progress-bar-preview"></div>
             </div>
+            <div class="preview-message" id="previewMessage"></div>
             <div class="preview-meta">
               <span class="meta-item">⏱️ 01:23:45</span>
               <span class="meta-item">⏰ 02:00:00</span>
@@ -393,26 +430,30 @@
     <script>
       const t = TrelloPowerUp.iframe();
 
-      const hideBadgesCheckbox = document.getElementById('hideBadges');
-      const hideDetailBadgesCheckbox = document.getElementById('hideDetailBadges');
-      const hideProgressBarsCheckbox = document.getElementById('hideProgressBars');
+      const hideProgressBadgeCheckbox = document.getElementById('hideProgressBadge');
+      const hideDetailSectionCheckbox = document.getElementById('hideDetailSection');
       const autoFocusModeCheckbox = document.getElementById('autoFocusMode');
-      const statusMessage = document.getElementById('statusMessage');
-      const previewMessage = document.getElementById('previewMessage');
+      const showTimeTrackerCheckbox = document.getElementById('showTimeTracker');
+      const showCircularProgressCheckbox = document.getElementById('showCircularProgress');
+      const statusBadge = document.getElementById('statusBadge');
+      const previewBadge = document.getElementById('previewBadge');
       const previewProgress = document.getElementById('previewProgress');
+      const previewMessage = document.getElementById('previewMessage');
       const removeBtn = document.getElementById('removeBtn');
 
-      // Load settings from board on load
+      // Load all settings from board storage
       Promise.all([
-        t.get('board', 'shared', 'hideBadges'),
-        t.get('board', 'shared', 'hideDetailBadges'),
-        t.get('board', 'shared', 'hideProgressBars'),
-        t.get('board', 'shared', 'autoFocus')
-      ]).then(([badges, detailBadges, progressBars, autoFocus]) => {
-        hideBadgesCheckbox.checked = badges || false;
-        hideDetailBadgesCheckbox.checked = detailBadges || false;
-        hideProgressBarsCheckbox.checked = progressBars || false;
+        t.get('board', 'shared', 'hideProgressBadge'),
+        t.get('board', 'shared', 'hideDetailSection'),
+        t.get('board', 'shared', 'autoFocusMode'),
+        t.get('board', 'shared', 'showTimeTracker'),
+        t.get('board', 'shared', 'showCircularProgress')
+      ]).then(([badge, details, autoFocus, timeTracker, circular]) => {
+        hideProgressBadgeCheckbox.checked = badge || false;
+        hideDetailSectionCheckbox.checked = details || false;
         autoFocusModeCheckbox.checked = autoFocus !== false;
+        showTimeTrackerCheckbox.checked = timeTracker !== false;
+        showCircularProgressCheckbox.checked = circular !== false;
         updatePreview();
       });
 
@@ -421,36 +462,55 @@
       }
 
       function updatePreview() {
-        if (hideProgressBarsCheckbox.checked) {
-          statusMessage.classList.remove('hidden');
-          previewMessage.textContent = 'Progress bars are currently hidden';
-          previewProgress.classList.add('hidden');
+        // Update badge visibility
+        if (hideProgressBadgeCheckbox.checked) {
+          previewBadge.style.display = 'none';
+          statusBadge.classList.remove('hidden');
         } else {
-          statusMessage.classList.add('hidden');
-          previewMessage.textContent = '';
+          previewBadge.style.display = 'inline-block';
+          statusBadge.classList.add('hidden');
+        }
+
+        // Update progress visibility
+        if (hideDetailSectionCheckbox.checked) {
+          previewProgress.classList.add('hidden');
+          previewMessage.textContent = 'Details section hidden';
+        } else {
           previewProgress.classList.remove('hidden');
+          previewMessage.textContent = '';
         }
       }
 
-      hideBadgesCheckbox.addEventListener('change', (e) => {
-        save('hideBadges', e.target.checked);
-      });
-
-      hideDetailBadgesCheckbox.addEventListener('change', (e) => {
-        save('hideDetailBadges', e.target.checked);
-      });
-
-      hideProgressBarsCheckbox.addEventListener('change', (e) => {
-        save('hideProgressBars', e.target.checked);
+      // Hide Progress Badge
+      hideProgressBadgeCheckbox.addEventListener('change', (e) => {
+        save('hideProgressBadge', e.target.checked);
         updatePreview();
       });
 
-      autoFocusModeCheckbox.addEventListener('change', (e) => {
-        save('autoFocus', e.target.checked);
+      // Hide Detail Section
+      hideDetailSectionCheckbox.addEventListener('change', (e) => {
+        save('hideDetailSection', e.target.checked);
+        updatePreview();
       });
 
+      // Auto-Focus Mode
+      autoFocusModeCheckbox.addEventListener('change', (e) => {
+        save('autoFocusMode', e.target.checked);
+      });
+
+      // Show Time Tracker
+      showTimeTrackerCheckbox.addEventListener('change', (e) => {
+        save('showTimeTracker', e.target.checked);
+      });
+
+      // Show Circular Progress
+      showCircularProgressCheckbox.addEventListener('change', (e) => {
+        save('showCircularProgress', e.target.checked);
+      });
+
+      // Remove/Uninstall button
       removeBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to unauthorize this Power-Up?')) {
+        if (confirm('Are you sure you want to uninstall this Power-Up?')) {
           t.closePopup();
         }
       });
