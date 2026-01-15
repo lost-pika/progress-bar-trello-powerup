@@ -77,93 +77,113 @@
   input[type="range"] { flex: 1; accent-color: #2ec4b6; height: 7px; cursor: pointer; }
 
   /* TIME TRACKING SECTION */
-  .time-box {
-    margin-top: 8px;
-    padding: 10px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
+  /* TIME TRACKER — CLEAN FLAT STYLE */
+.time-box {
+  margin-top: 10px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  width: 100%;
+}
 
-  .time-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  width: 100%;
+}
 
-  .elapsed { font-size: 18px; font-weight: 600; color: #38e1d3; }
-  .estimated { font-size: 16px; color: #fff; }
+.elapsed { 
+  font-size: 18px; 
+  font-weight: 600; 
+  color: #38e1d3; 
+}
 
-  .status-warning {
-    margin: 6px 0;
-    padding: 6px;
-    background: #ffe9b3;
-    color: #7a5a00;
-    border-radius: 4px;
-    font-size: 13px;
-    display: flex;
-    justify-content: center;
-    font-weight: 600;
-  }
+.estimated { 
+  font-size: 16px; 
+  color: #ffffff; 
+}
 
-  .track-btn {
-    width: 100%;
-    padding: 10px;
-    background: #2ec4b6;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-  }
+.status-warning {
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: rgba(255, 229, 149, 0.25);
+  border-left: 3px solid #f5c542;
+  color: #ffe498;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  width: 100%;
+}
 
-  .reset-btn {
-    background: #b23838;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-  }
+/* Full-width buttons */
+.track-btn {
+  width: 100%;
+  padding: 10px;
+  background: #2ec4b6;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
 
-  .auto-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    font-size: 13px;
-  }
+.reset-btn {
+  width: 100%;
+  background: #b23838;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
 
-  .toggle input { display: none; }
-  .toggle-slider {
-    width: 40px;
-    height: 20px;
-    background: #555;
-    border-radius: 20px;
-    position: relative;
-    cursor: pointer;
-  }
+.auto-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+  width: 100%;
+}
 
-  .toggle-slider::after {
-    content: "";
-    width: 16px;
-    height: 16px;
-    background: white;
-    position: absolute;
-    top: 2px; left: 2px;
-    border-radius: 50%;
-    transition: .3s;
-  }
+/* Toggle */
+.toggle input { display: none; }
 
-  input:checked + .toggle-slider {
-    background: #2ec4b6;
-  }
+.toggle-slider {
+  width: 40px;
+  height: 20px;
+  background: #777;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
 
-  input:checked + .toggle-slider::after {
-    transform: translateX(20px);
-  }
+.toggle-slider::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  transition: .25s ease;
+}
+
+input:checked + .toggle-slider {
+  background: #2ec4b6;
+}
+
+input:checked + .toggle-slider::after {
+  transform: translateX(20px);
+}
+
 </style>
 </head>
 
