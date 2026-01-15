@@ -13,7 +13,7 @@
       color: #e0e0e0;
     }
 
-    .container { padding: 0 0 16px 0; }
+    .container { padding: 0; }
 
     /* PROGRESS SECTION HEADER */
     .section-header {
@@ -31,7 +31,7 @@
       background: transparent;
       border: none;
       padding: 0;
-      margin-bottom: 16px;
+      margin-bottom: 0;
     }
 
     .progress-bar-container {
@@ -79,247 +79,10 @@
       text-align: right;
     }
 
-    /* COLLAPSIBLE SECTIONS */
-    .collapsible-section {
-      background: transparent;
-      border: none;
-      padding: 0;
-      margin-bottom: 12px;
-    }
-
-    .collapsible-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      font-size: 13px;
-      font-weight: 600;
-      color: #e0e0e0;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      width: 100%;
-      text-align: left;
-      user-select: none;
-    }
-
-    .collapsible-header:hover {
-      color: #2ec4b6;
-    }
-
-    .collapsible-toggle {
-      font-size: 12px;
-      transition: transform 0.2s;
+    .progress-label {
+      font-size: 11px;
       color: #888;
-    }
-
-    .collapsible-toggle.open {
-      transform: rotate(180deg);
-    }
-
-    .collapsible-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      padding: 0;
-    }
-
-    .collapsible-content.open {
-      max-height: 500px;
-      padding: 8px 0;
-    }
-
-    /* TIME SECTION */
-    .time-row {
-      display: flex;
-      justify-content: space-between;
       margin-bottom: 8px;
-      font-size: 12px;
-      padding: 4px 0;
-    }
-
-    .time-label {
-      color: #e0e0e0;
-    }
-
-    .time-value {
-      color: #e0e0e0;
-    }
-
-    .status-badge {
-      background: rgba(255, 107, 107, 0.12);
-      color: #ff6b6b;
-      padding: 6px 8px;
-      border-radius: 4px;
-      text-align: center;
-      font-size: 11px;
-      margin-bottom: 8px;
-      border: 1px solid rgba(255, 107, 107, 0.2);
-    }
-
-    .button-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #2ec4b6;
-      color: #000;
-    }
-
-    .btn-primary:hover {
-      background: #27b5a8;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 107, 107, 0.15);
-      border: 1px solid #ff6b6b;
-      color: #ff6b6b;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 107, 107, 0.25);
-    }
-
-    .checkbox-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      margin-bottom: 8px;
-      padding: 4px 0;
-    }
-
-    input[type="checkbox"] {
-      accent-color: #2ec4b6;
-      cursor: pointer;
-      width: 18px;
-      height: 18px;
-    }
-
-    /* TOGGLE SWITCH */
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #555;
-      transition: 0.4s;
-      border-radius: 24px;
-    }
-
-    .toggle-slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .toggle-slider {
-      background-color: #2ec4b6;
-    }
-
-    input:checked + .toggle-slider:before {
-      transform: translateX(20px);
-    }
-
-    /* SETTINGS */
-    .settings-section {
-      background: transparent;
-      border: none;
-      padding: 0;
-    }
-
-    .setting-item {
-      margin-bottom: 12px;
-    }
-
-    .setting-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #e0e0e0;
-      margin-bottom: 6px;
-    }
-
-    .style-buttons {
-      display: flex;
-      gap: 8px;
-      margin: 8px 0;
-    }
-
-    .style-btn {
-      flex: 1;
-      padding: 6px;
-      border: 1px solid rgba(46, 196, 182, 0.3);
-      background: transparent;
-      color: #e0e0e0;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .style-btn.active {
-      background: rgba(46, 196, 182, 0.2);
-      border-color: #2ec4b6;
-      color: #38e1d3;
-    }
-
-    .style-btn:hover:not(.active) {
-      background: rgba(46, 196, 182, 0.1);
-      border-color: rgba(46, 196, 182, 0.5);
-    }
-
-    /* HIDE BUTTON */
-    .hide-button {
-      background: transparent;
-      border: 1px solid rgba(255, 107, 107, 0.3);
-      color: #ff6b6b;
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 8px;
-      width: 100%;
-    }
-
-    .hide-button:hover {
-      background: rgba(255, 107, 107, 0.1);
-      border-color: rgba(255, 107, 107, 0.5);
     }
   </style>
 </head>
@@ -329,68 +92,24 @@
   <script>
     const t = TrelloPowerUp.iframe();
     let state = {
-      progress: 32,
-      strokeWidth: 8,
-      progressSteps: 12,
-      segmentGap: 4,
-      showOnFront: true,
-      autoTracking: false,
-      selectedStyle: 'chunked',
-      expandedSections: {}
+      progress: 32
     };
 
-    // Load progress and settings from Trello
-    Promise.all([
-      t.get('card', 'shared', 'progress'),
-      t.get('card', 'shared', 'progressSettings')
-    ]).then(([progress, settings]) => {
-      if (progress !== undefined && progress !== null) {
-        state.progress = parseInt(progress);
+    // Load progress from Trello
+    t.get('card', 'shared', 'progress').then(val => {
+      if (val !== undefined && val !== null) {
+        state.progress = parseInt(val);
+        render();
       }
-      if (settings) {
-        state = { ...state, ...settings };
-      }
-      render();
     });
 
     function saveProgress(value) {
       state.progress = value;
       t.set('card', 'shared', 'progress', value);
-      saveSettings();
-    }
-
-    function saveSettings() {
-      t.set('card', 'shared', 'progressSettings', {
-        strokeWidth: state.strokeWidth,
-        progressSteps: state.progressSteps,
-        segmentGap: state.segmentGap,
-        showOnFront: state.showOnFront,
-        autoTracking: state.autoTracking,
-        selectedStyle: state.selectedStyle
-      });
-    }
-
-    function toggleSection(sectionId) {
-      state.expandedSections[sectionId] = !state.expandedSections[sectionId];
-      render();
-    }
-
-    function hideProgressBar() {
-      state.showOnFront = false;
-      saveSettings();
-      render();
-    }
-
-    function updateState(key, value) {
-      state[key] = value;
-      saveSettings();
       render();
     }
 
     function render() {
-      const detailsOpen = state.expandedSections['details'] ? 'open' : '';
-      const settingsOpen = state.expandedSections['settings'] ? 'open' : '';
-      
       document.getElementById('container').innerHTML = `
         <!-- PROGRESS SECTION -->
         <div class="progress-section">
@@ -399,89 +118,11 @@
           <div class="progress-bar-container">
             <div class="progress-bar" style="width: ${state.progress}%"></div>
           </div>
+          <div class="progress-label">Adjust progress manually</div>
           <div class="slider-wrapper">
             <span class="range-label">0%</span>
             <input type="range" id="progressSlider" min="0" max="100" value="${state.progress}" style="flex:1;" />
             <span class="range-label">100%</span>
-          </div>
-        </div>
-
-        <!-- COLLAPSIBLE: DETAILS -->
-        <div class="collapsible-section">
-          <button class="collapsible-header" id="detailsToggle">
-            <span>⏱ Details</span>
-            <span class="collapsible-toggle ${detailsOpen}">▼</span>
-          </button>
-          <div class="collapsible-content ${detailsOpen}" id="detailsContent">
-            <div class="time-row">
-              <span class="time-label">Elapsed Time</span>
-              <span class="time-value"><strong>02:34:12</strong></span>
-            </div>
-            <div class="time-row">
-              <span class="time-label">Estimated</span>
-              <span class="time-value"><strong>08:00:00</strong></span>
-            </div>
-            <div class="status-badge">⚠️ Behind schedule</div>
-            <div class="button-group">
-              <button class="btn btn-primary">▶️ Start</button>
-              <button class="btn btn-secondary">↻ Reset</button>
-            </div>
-            <div class="checkbox-row">
-              <span>Time Tracker</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="timeTrackerToggle" ${state.autoTracking ? 'checked' : ''} />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- COLLAPSIBLE: SETTINGS -->
-        <div class="collapsible-section">
-          <button class="collapsible-header" id="settingsToggle">
-            <span>⚙️ Settings</span>
-            <span class="collapsible-toggle ${settingsOpen}">▼</span>
-          </button>
-          <div class="collapsible-content ${settingsOpen}" id="settingsContent">
-            <div class="setting-item">
-              <div class="setting-label">
-                <span>Stroke Width</span>
-                <span>${state.strokeWidth}px</span>
-              </div>
-              <input type="range" id="strokeWidth" min="1" max="20" value="${state.strokeWidth}" style="width: 100%; accent-color: #2ec4b6;" />
-            </div>
-
-            <div class="setting-item">
-              <div class="setting-label">
-                <span>Progress Steps</span>
-                <span>${state.progressSteps}</span>
-              </div>
-              <input type="range" id="progressSteps" min="1" max="20" value="${state.progressSteps}" style="width: 100%; accent-color: #2ec4b6;" />
-            </div>
-
-            <div class="setting-item">
-              <div class="setting-label">
-                <span>Segment Gap</span>
-                <span>${state.segmentGap}px</span>
-              </div>
-              <input type="range" id="segmentGap" min="0" max="20" value="${state.segmentGap}" style="width: 100%; accent-color: #2ec4b6;" />
-            </div>
-
-            <div class="style-buttons">
-              <button class="style-btn ${state.selectedStyle === 'minimal' ? 'active' : ''}" data-style="minimal">Minimal</button>
-              <button class="style-btn ${state.selectedStyle === 'chunked' ? 'active' : ''}" data-style="chunked">Chunked</button>
-              <button class="style-btn ${state.selectedStyle === 'bold' ? 'active' : ''}" data-style="bold">Bold</button>
-            </div>
-
-            <div class="checkbox-row">
-              <span>Show Circular Progress</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="showOnFront" ${state.showOnFront ? 'checked' : ''} />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <button class="hide-button" id="hideButton">🚫 Hide Progress Bar</button>
           </div>
         </div>
       `;
@@ -489,42 +130,6 @@
       // Attach event listeners
       document.getElementById('progressSlider').addEventListener('input', (e) => {
         saveProgress(parseInt(e.target.value));
-      });
-
-      document.getElementById('detailsToggle').addEventListener('click', () => {
-        toggleSection('details');
-      });
-
-      document.getElementById('settingsToggle').addEventListener('click', () => {
-        toggleSection('settings');
-      });
-
-      document.getElementById('timeTrackerToggle').addEventListener('change', (e) => {
-        updateState('autoTracking', e.target.checked);
-      });
-
-      document.getElementById('showOnFront').addEventListener('change', (e) => {
-        updateState('showOnFront', e.target.checked);
-      });
-
-      document.getElementById('strokeWidth').addEventListener('input', (e) => {
-        updateState('strokeWidth', parseInt(e.target.value));
-      });
-
-      document.getElementById('progressSteps').addEventListener('input', (e) => {
-        updateState('progressSteps', parseInt(e.target.value));
-      });
-
-      document.getElementById('segmentGap').addEventListener('input', (e) => {
-        updateState('segmentGap', parseInt(e.target.value));
-      });
-
-      document.getElementById('hideButton').addEventListener('click', hideProgressBar);
-
-      document.querySelectorAll('.style-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          updateState('selectedStyle', btn.dataset.style);
-        });
       });
     }
 
