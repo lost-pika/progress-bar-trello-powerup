@@ -10,7 +10,7 @@
 
   html, body {
     background: transparent;
-    overflow: hidden;
+    overflow: visible; /* IMPORTANT FIX */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #e0e0e0;
   }
@@ -76,118 +76,107 @@
 
   input[type="range"] { flex: 1; accent-color: #2ec4b6; height: 7px; cursor: pointer; }
 
-  /* TIME TRACKING SECTION */
-  /* TIME TRACKER — CLEAN FLAT STYLE */
-/* TIME TRACKER — RESTORED CARD BOX */
-.time-box {
-  margin-top: 10px;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.03); /* same subtle box */
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-  width: 100%;
-}
+  /* TIME TRACKER — RESTORED CARD BOX */
+  .time-box {
+    margin-top: 10px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.06);
+    width: 100%;
+  }
 
-/* top rows */
-.time-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
 
-/* time values */
-.elapsed {
-  font-size: 20px;
-  font-weight: 600;
-  color: #38e1d3;
-}
+  .elapsed {
+    font-size: 20px;
+    font-weight: 600;
+    color: #38e1d3;
+  }
 
-.estimated {
-  font-size: 16px;
-  color: #fff;
-}
+  .estimated {
+    font-size: 16px;
+    color: #fff;
+  }
 
-/* warning bar */
-.status-warning {
-  margin: 6px 0 10px 0;
-  padding: 8px 12px;
-  background: rgba(255, 189, 67, 0.16);
-  border-left: 3px solid #ffb84a;
-  color: #ffcb7a;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-}
+  .status-warning {
+    margin: 6px 0 10px 0;
+    padding: 8px 12px;
+    background: rgba(255, 189, 67, 0.16);
+    border-left: 3px solid #ffb84a;
+    color: #ffcb7a;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+  }
 
-/* START TRACKING button */
-.track-btn {
-  width: 100%;
-  padding: 12px;
-  background: #2ec4b6;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
+  .track-btn {
+    width: 100%;
+    padding: 12px;
+    background: #2ec4b6;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
 
-/* RESET button */
-.reset-btn {
-  width: 100%;
-  background: #b23838;
-  color: white;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  margin-bottom: 14px;
-}
+  .reset-btn {
+    width: 100%;
+    background: #b23838;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
 
-/* AUTO-TRACK ROW — visible inside box again */
-.auto-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  width: 100%;
-}
+  .auto-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    width: 100%;
+  }
 
-/* TOGGLE SWITCH */
-.toggle input { display: none; }
+  .toggle input { display: none; }
 
-.toggle-slider {
-  width: 40px;
-  height: 20px;
-  background: #777;
-  border-radius: 20px;
-  position: relative;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
+  .toggle-slider {
+    width: 40px;
+    height: 20px;
+    background: #777;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: 0.25s ease;
+  }
 
-.toggle-slider::after {
-  content: "";
-  width: 16px;
-  height: 16px;
-  background: #fff;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  border-radius: 50%;
-  transition: .25s ease;
-}
+  .toggle-slider::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    position: absolute;
+    top: 2px; left: 2px;
+    border-radius: 50%;
+    transition: .25s ease;
+  }
 
-input:checked + .toggle-slider {
-  background: #2ec4b6;
-}
+  input:checked + .toggle-slider {
+    background: #2ec4b6;
+  }
 
-input:checked + .toggle-slider::after {
-  transform: translateX(20px);
-}
-
+  input:checked + .toggle-slider::after {
+    transform: translateX(20px);
+  }
 </style>
 </head>
 
@@ -227,13 +216,11 @@ function save() {
 
 function toggleTimer() {
   if (state.running) {
-    // Stop
     const now = Date.now();
     state.elapsed += Math.floor((now - state.startTime) / 1000);
     state.running = false;
     state.startTime = null;
   } else {
-    // Start
     state.running = true;
     state.startTime = Date.now();
     startTimerTick();
@@ -283,7 +270,6 @@ function render() {
   document.getElementById("root").innerHTML = `
     <div class="container">
 
-      <!-- EXISTING PROGRESS UI -->
       <div class="header">
         <div class="title">⚡ Progress</div>
         <div class="percent">${state.progress}%</div>
@@ -301,7 +287,6 @@ function render() {
         <span class="range-label">100%</span>
       </div>
 
-      <!-- NEW TIME TRACKING UI -->
       <div class="time-box">
 
         <div class="time-row">
