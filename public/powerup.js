@@ -1,6 +1,7 @@
 /* global TrelloPowerUp */
 
 var ICON = 'https://cdn-icons-png.flaticon.com/512/992/992651.png';
+var Promise = TrelloPowerUp.Promise;
 
 TrelloPowerUp.initialize({
 
@@ -34,21 +35,29 @@ TrelloPowerUp.initialize({
   },
 
   // 3️⃣ BADGE → shows saved progress on card front
-  'card-badges': function(t){
-  return t.get('board', 'shared', 'hideProgressBadge')
-    .then(function(shouldHide){
-      if (shouldHide) return [];
-      
-      return t.get('card', 'shared', 'progress')
-        .then(function(progress){
-          if (!progress) return [];
-          return [{
-            text: progress + '%',
-            color: progress >= 100 ? 'green' : 'blue'
-          }];
-        });
+  'card-badges': function (t, opts) {
+    return Promise.all([
+      t.get('card', 'shared', 'progress'),
+      t.get('board', 'shared', 'hideProgressBars') // <-- settings from settings.html
+    ])
+    .then(function ([progress, hideProgressBars]) {
+
+      // If progress bars are disabled, return NO badges
+      if (hideProgressBars) {
+        return [];
+      }
+
+      // No progress set → do nothing
+      if (!progress && progress !== 0) {
+        return [];
+      }
+
+      return [{
+        text: progress + '%',
+        color: 'blue'
+      }];
     });
-}
+  }
 
 
 });
