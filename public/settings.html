@@ -272,6 +272,10 @@
         margin-bottom: 12px;
       }
 
+      .preview-progress.hidden {
+        display: none;
+      }
+
       .progress-bar {
         height: 6px;
         background: linear-gradient(to right, #48dbfb, #48dbfb);
@@ -374,7 +378,7 @@
         <div class="preview-card">
           <div class="preview-header">
             <span class="preview-title">Sample Task</span>
-            <span class="focus-badge">🎯 Focus ON</span>
+            <span class="focus-badge" id="previewBadge">🎯 Focus ON</span>
           </div>
           <div class="preview-content">
             <p class="preview-message" id="previewMessage">Progress bars are currently hidden</p>
@@ -400,6 +404,7 @@
       const statusMessage = document.getElementById('statusMessage');
       const previewMessage = document.getElementById('previewMessage');
       const previewProgress = document.getElementById('previewProgress');
+      const previewBadge = document.getElementById('previewBadge');
       const removeBtn = document.getElementById('removeBtn');
 
       // Load settings from board on load
@@ -421,6 +426,7 @@
       }
 
       function updatePreview() {
+        // Update progress bars visibility
         if (hideProgressBarsCheckbox.checked) {
           statusMessage.classList.remove('hidden');
           previewMessage.textContent = 'Progress bars are currently hidden';
@@ -430,25 +436,38 @@
           previewMessage.textContent = '';
           previewProgress.classList.remove('hidden');
         }
+
+        // Update badge visibility
+        if (hideBadgesCheckbox.checked) {
+          previewBadge.style.display = 'none';
+        } else {
+          previewBadge.style.display = 'inline-block';
+        }
       }
 
+      // Hide Badges
       hideBadgesCheckbox.addEventListener('change', (e) => {
         save('hideBadges', e.target.checked);
+        updatePreview();
       });
 
+      // Hide Detail Badges
       hideDetailBadgesCheckbox.addEventListener('change', (e) => {
         save('hideDetailBadges', e.target.checked);
       });
 
+      // Hide Progress Bars
       hideProgressBarsCheckbox.addEventListener('change', (e) => {
         save('hideProgressBars', e.target.checked);
         updatePreview();
       });
 
+      // Auto-Focus Mode
       autoFocusModeCheckbox.addEventListener('change', (e) => {
         save('autoFocus', e.target.checked);
       });
 
+      // Remove/Uninstall button
       removeBtn.addEventListener('click', () => {
         if (confirm('Are you sure you want to unauthorize this Power-Up?')) {
           t.closePopup();

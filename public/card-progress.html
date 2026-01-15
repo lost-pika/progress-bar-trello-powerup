@@ -97,15 +97,18 @@
     const t = TrelloPowerUp.iframe();
     let state = { progress: 0 };
 
+    // Load progress from card storage
     t.get("card", "shared", "progress").then(val => {
       if (val !== null && val !== undefined) state.progress = parseInt(val);
       render();
+      t.sizeTo(document.body).done();
     });
 
     function saveProgress(v) {
       state.progress = v;
       t.set("card", "shared", "progress", v);
       render();
+      t.sizeTo(document.body).done();
     }
 
     function render() {
@@ -133,6 +136,8 @@
       document.getElementById("slider").addEventListener("input", e =>
         saveProgress(parseInt(e.target.value))
       );
+
+      t.sizeTo(document.body).done();
     }
   </script>
 </body>
