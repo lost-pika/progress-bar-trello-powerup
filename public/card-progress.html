@@ -162,10 +162,10 @@
       }
 
       .toggle-slider {
-        width: 40px;
-        height: 20px;
-        background: #777;
-        border-radius: 20px;
+        width: 46px;
+        height: 22px;
+        background: rgba(255, 255, 255, 0.2); /* brighter */
+        border-radius: 22px;
         position: relative;
         cursor: pointer;
         transition: 0.25s ease;
@@ -184,7 +184,7 @@
       }
 
       input:checked + .toggle-slider {
-        background: #2ec4b6;
+        background: #2ec4b6 !important;
       }
 
       input:checked + .toggle-slider::after {
@@ -221,6 +221,9 @@
         if (state.running) startTimerTick();
 
         render();
+
+        t.sizeTo(document.body).done();
+        setTimeout(() => t.sizeTo("#root").done(), 50);
       }
 
       function save() {
