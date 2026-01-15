@@ -62,10 +62,7 @@ TrelloPowerUp.initialize({
         return [
           {
             dynamic: function () {
-              return {
-                title: "Progress",
-                percent: pct, // THIS draws the horizontal bar automatically
-              };
+              return [{ text: progress + '%', color: 'blue' }];
             },
           },
         ];
