@@ -13,41 +13,48 @@
       color: #e0e0e0;
     }
 
-    .container { padding: 0 0 16px 0; }
+    .container { padding: 0; }
 
-    /* PROGRESS SECTION HEADER */
-    .section-header {
-      color: #e0e0e0;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* PROGRESS SECTION */
+    /* PROGRESS SECTION - COMPACT */
     .progress-section {
       background: transparent;
       border: none;
-      padding: 0;
-      margin-bottom: 16px;
+      padding: 0 0 8px 0;
+      margin-bottom: 0;
+    }
+
+    .section-header {
+      color: #e0e0e0;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .progress-bar-container {
       width: 100%;
-      height: 8px;
-      background: rgba(46, 196, 182, 0.15);
-      border-radius: 4px;
+      height: 6px;
+      background: rgba(46, 196, 182, 0.1);
+      border-radius: 3px;
       overflow: hidden;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .progress-bar {
       height: 100%;
       background: #2ec4b6;
-      border-radius: 4px;
+      border-radius: 3px;
       transition: width 0.3s ease;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
     }
 
     .slider-wrapper {
@@ -60,22 +67,21 @@
     input[type="range"] {
       flex: 1;
       accent-color: #2ec4b6;
-      height: 6px;
+      height: 4px;
       cursor: pointer;
     }
 
     .range-label {
-      font-size: 11px;
+      font-size: 10px;
       color: #666;
       min-width: 25px;
-      text-align: center;
     }
 
     .percentage-display {
       color: #38e1d3;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       text-align: right;
     }
 
@@ -84,7 +90,7 @@
       background: transparent;
       border: none;
       padding: 0;
-      margin-bottom: 12px;
+      margin-bottom: 0;
     }
 
     .collapsible-header {
@@ -92,7 +98,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 0;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: #e0e0e0;
       cursor: pointer;
@@ -108,9 +114,8 @@
     }
 
     .collapsible-toggle {
-      font-size: 12px;
+      font-size: 10px;
       transition: transform 0.2s;
-      color: #888;
     }
 
     .collapsible-toggle.open {
@@ -125,7 +130,7 @@
     }
 
     .collapsible-content.open {
-      max-height: 500px;
+      max-height: 400px;
       padding: 8px 0;
     }
 
@@ -135,10 +140,12 @@
       justify-content: space-between;
       margin-bottom: 8px;
       font-size: 12px;
-      padding: 4px 0;
     }
 
     .time-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       color: #e0e0e0;
     }
 
@@ -147,9 +154,9 @@
     }
 
     .status-badge {
-      background: rgba(255, 107, 107, 0.12);
+      background: rgba(255, 107, 107, 0.1);
       color: #ff6b6b;
-      padding: 6px 8px;
+      padding: 4px 8px;
       border-radius: 4px;
       text-align: center;
       font-size: 11px;
@@ -165,10 +172,10 @@
 
     .btn {
       flex: 1;
-      padding: 8px;
+      padding: 6px;
       border: none;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -199,67 +206,72 @@
       align-items: center;
       font-size: 12px;
       margin-bottom: 8px;
-      padding: 4px 0;
     }
 
     input[type="checkbox"] {
       accent-color: #2ec4b6;
       cursor: pointer;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
     }
 
-    /* TOGGLE SWITCH */
-    .toggle-switch {
+    /* CIRCULAR PREVIEW */
+    .circular-section {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin-bottom: 0;
+    }
+
+    .circular-preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+
+    .circular-progress {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      background: conic-gradient(#2ec4b6 var(--progress-angle), rgba(46, 196, 182, 0.1) 0deg);
       position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
     }
 
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-slider {
+    .circular-progress::after {
+      content: '';
       position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #555;
-      transition: 0.4s;
-      border-radius: 24px;
-    }
-
-    .toggle-slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.4s;
+      width: 82px;
+      height: 82px;
+      background: #1a1e26;
       border-radius: 50%;
     }
 
-    input:checked + .toggle-slider {
-      background-color: #2ec4b6;
+    .circular-progress span {
+      position: relative;
+      z-index: 1;
     }
 
-    input:checked + .toggle-slider:before {
-      transform: translateX(20px);
-    }
-
-    /* SETTINGS */
+    /* ADVANCED SETTINGS */
     .settings-section {
       background: transparent;
       border: none;
       padding: 0;
+    }
+
+    .settings-title {
+      color: #e0e0e0;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .setting-item {
@@ -269,21 +281,21 @@
     .setting-label {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
       color: #e0e0e0;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .style-buttons {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin: 8px 0;
     }
 
     .style-btn {
       flex: 1;
       padding: 6px;
-      border: 1px solid rgba(46, 196, 182, 0.3);
+      border: 1px solid #2a2f37;
       background: transparent;
       color: #e0e0e0;
       border-radius: 4px;
@@ -300,17 +312,46 @@
 
     .style-btn:hover:not(.active) {
       background: rgba(46, 196, 182, 0.1);
-      border-color: rgba(46, 196, 182, 0.5);
+    }
+
+    /* SYNC SECTION */
+    .sync-section {
+      background: transparent;
+      border: 1px solid rgba(46, 196, 182, 0.1);
+      border-radius: 4px;
+      padding: 8px;
+      margin-top: 8px;
+    }
+
+    .sync-title {
+      font-size: 11px;
+      color: #e0e0e0;
+      margin-bottom: 4px;
+    }
+
+    .sync-desc {
+      font-size: 10px;
+      color: #888;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .sync-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #38e1d3;
     }
 
     /* HIDE BUTTON */
     .hide-button {
-      background: transparent;
-      border: 1px solid rgba(255, 107, 107, 0.3);
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.2);
       color: #ff6b6b;
-      padding: 8px 12px;
+      padding: 6px 12px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.2s;
       margin-top: 8px;
@@ -318,8 +359,8 @@
     }
 
     .hide-button:hover {
-      background: rgba(255, 107, 107, 0.1);
-      border-color: rgba(255, 107, 107, 0.5);
+      background: rgba(255, 107, 107, 0.2);
+      border-color: rgba(255, 107, 107, 0.3);
     }
   </style>
 </head>
@@ -340,17 +381,18 @@
     };
 
     // Load progress and settings from Trello
-    Promise.all([
-      t.get('card', 'shared', 'progress'),
-      t.get('card', 'shared', 'progressSettings')
-    ]).then(([progress, settings]) => {
-      if (progress !== undefined && progress !== null) {
-        state.progress = parseInt(progress);
+    t.get('card', 'shared', 'progress').then(val => {
+      if (val !== undefined && val !== null) {
+        state.progress = parseInt(val);
+        render();
       }
-      if (settings) {
-        state = { ...state, ...settings };
+    });
+
+    t.get('card', 'shared', 'progressSettings').then(val => {
+      if (val) {
+        state = { ...state, ...val };
+        render();
       }
-      render();
     });
 
     function saveProgress(value) {
@@ -388,13 +430,13 @@
     }
 
     function render() {
+      const progressAngle = (state.progress / 100) * 360;
       const detailsOpen = state.expandedSections['details'] ? 'open' : '';
       const settingsOpen = state.expandedSections['settings'] ? 'open' : '';
       
       document.getElementById('container').innerHTML = `
-        <!-- PROGRESS SECTION -->
+        <!-- PROGRESS SECTION - ALWAYS VISIBLE, COMPACT -->
         <div class="progress-section">
-          <div class="section-header">⚡ Progress</div>
           <div class="percentage-display">${state.progress}%</div>
           <div class="progress-bar-container">
             <div class="progress-bar" style="width: ${state.progress}%"></div>
@@ -427,11 +469,8 @@
               <button class="btn btn-secondary">↻ Reset</button>
             </div>
             <div class="checkbox-row">
-              <span>Time Tracker</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="timeTrackerToggle" ${state.autoTracking ? 'checked' : ''} />
-                <span class="toggle-slider"></span>
-              </label>
+              <span>Enable auto tracking</span>
+              <input type="checkbox" id="autoTracking" ${state.autoTracking ? 'checked' : ''} />
             </div>
           </div>
         </div>
@@ -474,11 +513,8 @@
             </div>
 
             <div class="checkbox-row">
-              <span>Show Circular Progress</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="showOnFront" ${state.showOnFront ? 'checked' : ''} />
-                <span class="toggle-slider"></span>
-              </label>
+              <span>👁 Show on card front</span>
+              <input type="checkbox" id="showOnFront" ${state.showOnFront ? 'checked' : ''} />
             </div>
 
             <button class="hide-button" id="hideButton">🚫 Hide Progress Bar</button>
@@ -499,7 +535,7 @@
         toggleSection('settings');
       });
 
-      document.getElementById('timeTrackerToggle').addEventListener('change', (e) => {
+      document.getElementById('autoTracking').addEventListener('change', (e) => {
         updateState('autoTracking', e.target.checked);
       });
 

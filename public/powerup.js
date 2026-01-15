@@ -21,13 +21,14 @@ TrelloPowerUp.initialize({
   },
 
   // 2️⃣ CARD BACK SECTION → Shows ABOVE Description
-  'card-back-section': function(t) {
+   'card-back-section': function(t) {
     return {
       title: 'Progress',
       icon: ICON,
       content: {
         type: 'iframe',
-        url: t.signUrl('./card-progress.html', { minutes: 30 })
+        url: t.signUrl('./card-progress_v1.html', { minutes: 30 }),
+        height: 130   // <= reduce this
       }
     };
   },
