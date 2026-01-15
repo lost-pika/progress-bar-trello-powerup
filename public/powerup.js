@@ -38,24 +38,56 @@ TrelloPowerUp.initialize({
   'card-badges': function (t, opts) {
     return Promise.all([
       t.get('card', 'shared', 'progress'),
-      t.get('board', 'shared', 'hideProgressBars') // <-- settings from settings.html
+      t.get('board', 'shared', 'hideBadges'),
+      t.get('board', 'shared', 'hideProgressBars')
     ])
-    .then(function ([progress, hideProgressBars]) {
+    .then(function ([progress, hideBadges, hideProgressBars]) {
 
-      // If progress bars are disabled, return NO badges
-      if (hideProgressBars) {
-        return [];
+      // 1️⃣ If ALL card badges are hidden → return NOTHING
+      if (hideBadges) return [];
+
+      // 2️⃣ If ONLY progress bars are hidden → return NOTHING for your badge
+      if (hideProgressBars) return [];
+
+      // 3️⃣ Show your own progress badge
+      if (progress !== undefined && progress !== null) {
+        return [{
+          text: progress + '%',
+          color: 'blue'
+        }];
       }
 
-      // No progress set → do nothing
-      if (!progress && progress !== 0) {
-        return [];
+      return [];
+    });
+  },
+
+  // ---------------------------------------------------------
+  // CARD DETAIL BADGES (Inside card modal)
+  // ---------------------------------------------------------
+  'card-detail-badges': function (t, opts) {
+    return Promise.all([
+      t.get('card', 'shared', 'progress'),
+      t.get('board', 'shared', 'hideDetailBadges'),
+      t.get('board', 'shared', 'hideProgressBars')
+    ])
+    .then(function ([progress, hideDetailBadges, hideProgressBars]) {
+
+      // 1️⃣ Hide ALL detail badges
+      if (hideDetailBadges) return [];
+
+      // 2️⃣ Hide progress bar badge only
+      if (hideProgressBars) return [];
+
+      // 3️⃣ Show your detail badge
+      if (progress !== undefined && progress !== null) {
+        return [{
+          title: 'Progress',
+          text: progress + '%',
+          color: 'blue'
+        }];
       }
 
-      return [{
-        text: progress + '%',
-        color: 'blue'
-      }];
+      return [];
     });
   }
 
