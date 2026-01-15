@@ -13,7 +13,8 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", sans-serif;
         line-height: 1.5;
       }
 
@@ -120,7 +121,7 @@
       }
 
       .toggle-slider::after {
-        content: '';
+        content: "";
         position: absolute;
         width: 20px;
         height: 20px;
@@ -169,7 +170,12 @@
       /* Divider */
       .divider {
         height: 1px;
-        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(0, 0, 0, 0.1),
+          transparent
+        );
         margin: 24px 0;
       }
 
@@ -331,8 +337,12 @@
         <!-- Progress Bar Setting with Status -->
         <div class="setting-item highlight">
           <div class="setting-content">
-            <span class="setting-label">Hide progress bar from card badges</span>
-            <span class="setting-desc">Remove progress bars from all cards</span>
+            <span class="setting-label"
+              >Hide progress bar from card badges</span
+            >
+            <span class="setting-desc"
+              >Remove progress bars from all cards</span
+            >
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideProgressBars" />
@@ -374,14 +384,16 @@
       <div class="preview-section">
         <h2 class="section-title">Live Preview</h2>
         <p class="preview-desc">See how your cards will look</p>
-        
+
         <div class="preview-card">
           <div class="preview-header">
             <span class="preview-title">Sample Task</span>
             <span class="focus-badge" id="previewBadge">🎯 Focus ON</span>
           </div>
           <div class="preview-content">
-            <p class="preview-message" id="previewMessage">Progress bars are currently hidden</p>
+            <p class="preview-message" id="previewMessage">
+              Progress bars are currently hidden
+            </p>
             <div class="preview-progress hidden" id="previewProgress">
               <div class="progress-bar"></div>
             </div>
@@ -395,89 +407,89 @@
     </div>
 
     <script>
-  const t = TrelloPowerUp.iframe();
+      const t = TrelloPowerUp.iframe();
 
-  // Elements
-  const hideBadgesCheckbox = document.getElementById('hideBadges');
-  const hideDetailBadgesCheckbox = document.getElementById('hideDetailBadges');
-  const hideProgressBarsCheckbox = document.getElementById('hideProgressBars');
-  const autoFocusModeCheckbox = document.getElementById('autoFocusMode');
+      const hideBadges = document.getElementById("hideBadges");
+      const hideDetailBadges = document.getElementById("hideDetailBadges");
+      const hideProgressBars = document.getElementById("hideProgressBars");
+      const autoFocusMode = document.getElementById("autoFocusMode");
 
-  const statusMessage = document.getElementById('statusMessage');
-  const previewMessage = document.getElementById('previewMessage');
-  const previewProgress = document.getElementById('previewProgress');
-  const previewBadge = document.getElementById('previewBadge');
-  const removeBtn = document.getElementById('removeBtn');
+      const previewBadge = document.getElementById("previewBadge");
+      const previewProgress = document.getElementById("previewProgress");
+      const previewMessage = document.getElementById("previewMessage");
+      const statusMessage = document.getElementById("statusMessage");
 
-  // Save helper
-  function save(key, value) {
-    return t.set('board', 'shared', key, value);
-  }
+      // Load current settings
+      async function loadSettings() {
+        const settings = await t.get("board", "shared");
 
-  // Load settings from Trello on open
-  async function loadSettings() {
-    const settings = await t.get('board', 'shared');
+        hideBadges.checked = settings.hideBadges || false;
+        hideDetailBadges.checked = settings.hideDetailBadges || false;
+        hideProgressBars.checked = settings.hideProgressBars || false;
+        autoFocusMode.checked = settings.autoFocus !== false;
 
-    hideBadgesCheckbox.checked = settings.hideBadges || false;
-    hideDetailBadgesCheckbox.checked = settings.hideDetailBadges || false;
-    hideProgressBarsCheckbox.checked = settings.hideProgressBars || false;
-    autoFocusModeCheckbox.checked = settings.autoFocus !== false;
+        updatePreview();
+      }
 
-    updatePreview();
-  }
+      function updatePreview() {
+        // Hide progress bar preview
+        if (hideProgressBars.checked) {
+          previewProgress.classList.add("hidden");
+          previewMessage.textContent = "Progress bars are currently hidden";
+          statusMessage.classList.remove("hidden");
+        } else {
+          previewProgress.classList.remove("hidden");
+          previewMessage.textContent = "";
+          statusMessage.classList.add("hidden");
+        }
 
-  // Update the card preview area
-  function updatePreview() {
-    // Progress bar visibility
-    if (hideProgressBarsCheckbox.checked) {
-      statusMessage.classList.remove('hidden');
-      previewMessage.textContent = "Progress bars are currently hidden";
-      previewProgress.classList.add("hidden");
-    } else {
-      statusMessage.classList.add('hidden');
-      previewMessage.textContent = "";
-      previewProgress.classList.remove("hidden");
-    }
+        // Hide badge preview
+        previewBadge.style.display = hideBadges.checked
+          ? "none"
+          : "inline-block";
+      }
 
-    // Badge visibility
-    previewBadge.style.display = hideBadgesCheckbox.checked ? "none" : "inline-block";
-  }
+      // SAVE + AUTO REFRESH TREELO UI
+      function save(key, value) {
+        t.set("board", "shared", key, value).then(() => {
+          t.refresh(); // 🔥 force refresh card badges
+        });
+      }
 
-  // EVENT LISTENERS
-  hideBadgesCheckbox.addEventListener('change', (e) => {
-    save('hideBadges', e.target.checked);
-    updatePreview();
-  });
-
-  hideDetailBadgesCheckbox.addEventListener('change', (e) => {
-    save('hideDetailBadges', e.target.checked);
-  });
-
-  hideProgressBarsCheckbox.addEventListener('change', (e) => {
-    save('hideProgressBars', e.target.checked);
-    updatePreview();
-  });
-
-  autoFocusModeCheckbox.addEventListener('change', (e) => {
-    save('autoFocus', e.target.checked);
-  });
-
-  // REMOVE POWER-UP (clears all board settings)
-  removeBtn.addEventListener('click', async () => {
-    if (confirm("Are you sure you want to unauthorize this Power-Up?")) {
-      await t.set('board', 'shared', {
-        hideBadges: null,
-        hideDetailBadges: null,
-        hideProgressBars: null,
-        autoFocus: null
+      // Events
+      hideBadges.addEventListener("change", (e) => {
+        save("hideBadges", e.target.checked);
+        updatePreview();
       });
-      t.closePopup();
-    }
-  });
 
-  // Init page
-  loadSettings();
-</script>
+      hideDetailBadges.addEventListener("change", (e) => {
+        save("hideDetailBadges", e.target.checked);
+        updatePreview();
+      });
 
+      hideProgressBars.addEventListener("change", (e) => {
+        save("hideProgressBars", e.target.checked);
+        updatePreview();
+      });
+
+      autoFocusMode.addEventListener("change", (e) => {
+        save("autoFocus", e.target.checked);
+      });
+
+      // Unauthorize
+      document.getElementById("removeBtn").addEventListener("click", () => {
+        if (confirm("Remove Power-Up and clear settings?")) {
+          t.set("board", "shared", {
+            hideBadges: null,
+            hideDetailBadges: null,
+            hideProgressBars: null,
+            autoFocus: null,
+          }).then(() => t.closePopup());
+        }
+      });
+
+      // Init
+      loadSettings();
+    </script>
   </body>
 </html>
