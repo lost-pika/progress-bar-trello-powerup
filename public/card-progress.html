@@ -15,29 +15,26 @@
     color: #e0e0e0;
   }
 
-  /* Full-width layout */
   .container {
     width: 100%;
-    padding: 4px 0 2px;
+    padding: 4px 0;
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
 
-  /* Section Header */
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 2px;
   }
 
   .title {
     font-size: 15px;
     font-weight: 600;
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
   }
 
   .percent {
@@ -46,7 +43,6 @@
     color: #2ec4b6;
   }
 
-  /* Progress Bar */
   .bar-bg {
     width: 100%;
     height: 8px;
@@ -64,10 +60,8 @@
   .label {
     font-size: 13px;
     color: #b0b0b0;
-    margin-top: -4px;
   }
 
-  /* Slider */
   .line {
     display: flex;
     align-items: center;
@@ -78,67 +72,265 @@
     font-size: 12px;
     width: 32px;
     color: #888;
-    text-align: center;
   }
 
-  input[type="range"] {
-    flex: 1;
-    accent-color: #2ec4b6;
-    height: 7px;
+  input[type="range"] { flex: 1; accent-color: #2ec4b6; height: 7px; cursor: pointer; }
+
+  /* TIME TRACKING SECTION */
+  .time-box {
+    margin-top: 8px;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .elapsed { font-size: 18px; font-weight: 600; color: #38e1d3; }
+  .estimated { font-size: 16px; color: #fff; }
+
+  .status-warning {
+    margin: 6px 0;
+    padding: 6px;
+    background: #ffe9b3;
+    color: #7a5a00;
+    border-radius: 4px;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .track-btn {
+    width: 100%;
+    padding: 10px;
+    background: #2ec4b6;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+  }
+
+  .reset-btn {
+    background: #b23838;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .auto-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+
+  .toggle input { display: none; }
+  .toggle-slider {
+    width: 40px;
+    height: 20px;
+    background: #555;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .toggle-slider::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: white;
+    position: absolute;
+    top: 2px; left: 2px;
+    border-radius: 50%;
+    transition: .3s;
+  }
+
+  input:checked + .toggle-slider {
+    background: #2ec4b6;
+  }
+
+  input:checked + .toggle-slider::after {
+    transform: translateX(20px);
   }
 </style>
 </head>
 
 <body>
-  <div id="root"></div>
+<div id="root"></div>
 
-  <script>
-    const t = TrelloPowerUp.iframe();
-    let state = { progress: 0 };
+<script>
+const t = TrelloPowerUp.iframe();
 
-    // Load progress from card storage
-    t.get("card", "shared", "progress").then(val => {
-      if (val !== null && val !== undefined) state.progress = parseInt(val);
-      render();
-      t.sizeTo(document.body).done();
-    });
+let state = {
+  progress: 0,
+  elapsed: 0,
+  estimated: 8 * 3600,
+  running: false,
+  startTime: null,
+  auto: false
+};
 
-    function saveProgress(v) {
-      state.progress = v;
-      t.set("card", "shared", "progress", v);
-      render();
-      t.sizeTo(document.body).done();
+async function loadState() {
+  const data = await t.get("card", "shared");
+
+  state.progress = data.progress || 0;
+  state.elapsed = data.elapsed || 0;
+  state.estimated = data.estimated || 8 * 3600;
+  state.running = data.running || false;
+  state.startTime = data.startTime || null;
+  state.auto = data.auto || false;
+
+  if (state.running) startTimerTick();
+
+  render();
+}
+
+function save() {
+  t.set("card", "shared", state);
+}
+
+function toggleTimer() {
+  if (state.running) {
+    // Stop
+    const now = Date.now();
+    state.elapsed += Math.floor((now - state.startTime) / 1000);
+    state.running = false;
+    state.startTime = null;
+  } else {
+    // Start
+    state.running = true;
+    state.startTime = Date.now();
+    startTimerTick();
+  }
+  save();
+  render();
+}
+
+function resetTimer() {
+  state.elapsed = 0;
+  state.running = false;
+  state.startTime = null;
+  save();
+  render();
+}
+
+let timerInterval = null;
+function startTimerTick() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    if (state.running) {
+      renderElapsed();
     }
+  }, 1000);
+}
 
-    function render() {
-      document.getElementById("root").innerHTML = `
-        <div class="container">
-          <div class="header">
-            <div class="title">⚡ Progress</div>
-            <div class="percent">${state.progress}%</div>
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function renderElapsed() {
+  const now = Date.now();
+  const liveElapsed = state.elapsed + Math.floor((now - state.startTime) / 1000);
+  document.getElementById("elapsed").innerHTML = formatTime(liveElapsed);
+}
+
+function render() {
+  const elapsed = state.running
+    ? state.elapsed + Math.floor((Date.now() - state.startTime) / 1000)
+    : state.elapsed;
+
+  const behind = elapsed > state.estimated;
+
+  document.getElementById("root").innerHTML = `
+    <div class="container">
+
+      <!-- EXISTING PROGRESS UI -->
+      <div class="header">
+        <div class="title">⚡ Progress</div>
+        <div class="percent">${state.progress}%</div>
+      </div>
+
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:${state.progress}%"></div>
+      </div>
+
+      <div class="label">Adjust progress manually</div>
+
+      <div class="line">
+        <span class="range-label">0%</span>
+        <input type="range" id="slider" min="0" max="100" value="${state.progress}">
+        <span class="range-label">100%</span>
+      </div>
+
+      <!-- NEW TIME TRACKING UI -->
+      <div class="time-box">
+
+        <div class="time-row">
+          <div>
+            <div style="opacity:0.7; font-size:12px;">Elapsed Time</div>
+            <div class="elapsed" id="elapsed">${formatTime(elapsed)}</div>
           </div>
 
-          <div class="bar-bg">
-            <div class="bar-fill" style="width: ${state.progress}%"></div>
-          </div>
-
-          <div class="label">Adjust progress manually</div>
-
-          <div class="line">
-            <span class="range-label">0%</span>
-            <input type="range" id="slider" min="0" max="100" value="${state.progress}">
-            <span class="range-label">100%</span>
+          <div>
+            <div style="opacity:0.7; font-size:12px; text-align:right;">Estimated</div>
+            <div class="estimated">${formatTime(state.estimated)}</div>
           </div>
         </div>
-      `;
 
-      document.getElementById("slider").addEventListener("input", e =>
-        saveProgress(parseInt(e.target.value))
-      );
+        ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ``}
 
-      t.sizeTo(document.body).done();
-    }
-  </script>
+        <button class="track-btn" id="trackBtn">
+          ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+        </button>
+
+        <button class="reset-btn" id="resetBtn">Reset</button>
+
+        <div class="auto-row">
+          <span>Enable automatic tracking</span>
+          <label class="toggle">
+            <input type="checkbox" id="autoToggle" ${state.auto ? "checked":""}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  document.getElementById("slider").addEventListener("input", e => {
+    state.progress = parseInt(e.target.value);
+    save();
+    render();
+  });
+
+  document.getElementById("trackBtn").addEventListener("click", toggleTimer);
+  document.getElementById("resetBtn").addEventListener("click", resetTimer);
+  document.getElementById("autoToggle").addEventListener("change", e => {
+    state.auto = e.target.checked;
+    save();
+  });
+
+  t.sizeTo(document.body).done();
+}
+
+loadState();
+</script>
+
 </body>
 </html>
