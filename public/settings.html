@@ -395,84 +395,89 @@
     </div>
 
     <script>
-      const t = TrelloPowerUp.iframe();
+  const t = TrelloPowerUp.iframe();
 
-      const hideBadgesCheckbox = document.getElementById('hideBadges');
-      const hideDetailBadgesCheckbox = document.getElementById('hideDetailBadges');
-      const hideProgressBarsCheckbox = document.getElementById('hideProgressBars');
-      const autoFocusModeCheckbox = document.getElementById('autoFocusMode');
-      const statusMessage = document.getElementById('statusMessage');
-      const previewMessage = document.getElementById('previewMessage');
-      const previewProgress = document.getElementById('previewProgress');
-      const previewBadge = document.getElementById('previewBadge');
-      const removeBtn = document.getElementById('removeBtn');
+  // Elements
+  const hideBadgesCheckbox = document.getElementById('hideBadges');
+  const hideDetailBadgesCheckbox = document.getElementById('hideDetailBadges');
+  const hideProgressBarsCheckbox = document.getElementById('hideProgressBars');
+  const autoFocusModeCheckbox = document.getElementById('autoFocusMode');
 
-      // Load settings from board on load
-      Promise.all([
-        t.get('board', 'shared', 'hideBadges'),
-        t.get('board', 'shared', 'hideDetailBadges'),
-        t.get('board', 'shared', 'hideProgressBars'),
-        t.get('board', 'shared', 'autoFocus')
-      ]).then(([badges, detailBadges, progressBars, autoFocus]) => {
-        hideBadgesCheckbox.checked = badges || false;
-        hideDetailBadgesCheckbox.checked = detailBadges || false;
-        hideProgressBarsCheckbox.checked = progressBars || false;
-        autoFocusModeCheckbox.checked = autoFocus !== false;
-        updatePreview();
+  const statusMessage = document.getElementById('statusMessage');
+  const previewMessage = document.getElementById('previewMessage');
+  const previewProgress = document.getElementById('previewProgress');
+  const previewBadge = document.getElementById('previewBadge');
+  const removeBtn = document.getElementById('removeBtn');
+
+  // Save helper
+  function save(key, value) {
+    return t.set('board', 'shared', key, value);
+  }
+
+  // Load settings from Trello on open
+  async function loadSettings() {
+    const settings = await t.get('board', 'shared');
+
+    hideBadgesCheckbox.checked = settings.hideBadges || false;
+    hideDetailBadgesCheckbox.checked = settings.hideDetailBadges || false;
+    hideProgressBarsCheckbox.checked = settings.hideProgressBars || false;
+    autoFocusModeCheckbox.checked = settings.autoFocus !== false;
+
+    updatePreview();
+  }
+
+  // Update the card preview area
+  function updatePreview() {
+    // Progress bar visibility
+    if (hideProgressBarsCheckbox.checked) {
+      statusMessage.classList.remove('hidden');
+      previewMessage.textContent = "Progress bars are currently hidden";
+      previewProgress.classList.add("hidden");
+    } else {
+      statusMessage.classList.add('hidden');
+      previewMessage.textContent = "";
+      previewProgress.classList.remove("hidden");
+    }
+
+    // Badge visibility
+    previewBadge.style.display = hideBadgesCheckbox.checked ? "none" : "inline-block";
+  }
+
+  // EVENT LISTENERS
+  hideBadgesCheckbox.addEventListener('change', (e) => {
+    save('hideBadges', e.target.checked);
+    updatePreview();
+  });
+
+  hideDetailBadgesCheckbox.addEventListener('change', (e) => {
+    save('hideDetailBadges', e.target.checked);
+  });
+
+  hideProgressBarsCheckbox.addEventListener('change', (e) => {
+    save('hideProgressBars', e.target.checked);
+    updatePreview();
+  });
+
+  autoFocusModeCheckbox.addEventListener('change', (e) => {
+    save('autoFocus', e.target.checked);
+  });
+
+  // REMOVE POWER-UP (clears all board settings)
+  removeBtn.addEventListener('click', async () => {
+    if (confirm("Are you sure you want to unauthorize this Power-Up?")) {
+      await t.set('board', 'shared', {
+        hideBadges: null,
+        hideDetailBadges: null,
+        hideProgressBars: null,
+        autoFocus: null
       });
+      t.closePopup();
+    }
+  });
 
-      function save(key, value) {
-        t.set('board', 'shared', key, value);
-      }
+  // Init page
+  loadSettings();
+</script>
 
-      function updatePreview() {
-        // Update progress bars visibility
-        if (hideProgressBarsCheckbox.checked) {
-          statusMessage.classList.remove('hidden');
-          previewMessage.textContent = 'Progress bars are currently hidden';
-          previewProgress.classList.add('hidden');
-        } else {
-          statusMessage.classList.add('hidden');
-          previewMessage.textContent = '';
-          previewProgress.classList.remove('hidden');
-        }
-
-        // Update badge visibility
-        if (hideBadgesCheckbox.checked) {
-          previewBadge.style.display = 'none';
-        } else {
-          previewBadge.style.display = 'inline-block';
-        }
-      }
-
-      // Hide Badges
-      hideBadgesCheckbox.addEventListener('change', (e) => {
-        save('hideBadges', e.target.checked);
-        updatePreview();
-      });
-
-      // Hide Detail Badges
-      hideDetailBadgesCheckbox.addEventListener('change', (e) => {
-        save('hideDetailBadges', e.target.checked);
-      });
-
-      // Hide Progress Bars
-      hideProgressBarsCheckbox.addEventListener('change', (e) => {
-        save('hideProgressBars', e.target.checked);
-        updatePreview();
-      });
-
-      // Auto-Focus Mode
-      autoFocusModeCheckbox.addEventListener('change', (e) => {
-        save('autoFocus', e.target.checked);
-      });
-
-      // Remove/Uninstall button
-      removeBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to unauthorize this Power-Up?')) {
-          t.closePopup();
-        }
-      });
-    </script>
   </body>
 </html>
