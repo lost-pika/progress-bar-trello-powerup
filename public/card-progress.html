@@ -78,80 +78,84 @@
 
   /* TIME TRACKING SECTION */
   /* TIME TRACKER — CLEAN FLAT STYLE */
+/* TIME TRACKER — RESTORED CARD BOX */
 .time-box {
   margin-top: 10px;
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.03); /* same subtle box */
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
   width: 100%;
 }
 
+/* top rows */
 .time-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
-  width: 100%;
+  margin-bottom: 10px;
 }
 
-.elapsed { 
-  font-size: 18px; 
-  font-weight: 600; 
-  color: #38e1d3; 
+/* time values */
+.elapsed {
+  font-size: 20px;
+  font-weight: 600;
+  color: #38e1d3;
 }
 
-.estimated { 
-  font-size: 16px; 
-  color: #ffffff; 
+.estimated {
+  font-size: 16px;
+  color: #fff;
 }
 
+/* warning bar */
 .status-warning {
-  margin: 6px 0;
-  padding: 6px 10px;
-  background: rgba(255, 229, 149, 0.25);
-  border-left: 3px solid #f5c542;
-  color: #ffe498;
+  margin: 6px 0 10px 0;
+  padding: 8px 12px;
+  background: rgba(255, 189, 67, 0.16);
+  border-left: 3px solid #ffb84a;
+  color: #ffcb7a;
   border-radius: 4px;
   font-size: 13px;
   font-weight: 600;
-  width: 100%;
 }
 
-/* Full-width buttons */
+/* START TRACKING button */
 .track-btn {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background: #2ec4b6;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
   cursor: pointer;
+  margin-bottom: 8px;
 }
 
+/* RESET button */
 .reset-btn {
   width: 100%;
   background: #b23838;
   color: white;
-  padding: 8px 12px;
-  border-radius: 5px;
+  padding: 10px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   font-size: 13px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 
+/* AUTO-TRACK ROW — visible inside box again */
 .auto-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
   font-size: 13px;
   width: 100%;
 }
 
-/* Toggle */
+/* TOGGLE SWITCH */
 .toggle input { display: none; }
 
 .toggle-slider {
