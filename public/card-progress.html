@@ -5,56 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Card Progress</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      background: transparent; 
+
+    body {
+      background: transparent;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       color: #e0e0e0;
+      padding: 0;
+      margin: 0;
     }
 
-    .container { padding: 0; }
+    /* Remove ALL extra space */
+    html, body {
+      height: auto;
+      overflow: hidden;
+    }
 
-    /* PROGRESS SECTION HEADER */
+    .container {
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Section Header */
     .section-header {
       color: #e0e0e0;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    /* PROGRESS SECTION */
     .progress-section {
-      background: transparent;
-      border: none;
       padding: 0;
-      margin-bottom: 0;
+      margin: 0;
+    }
+
+    .percentage-display {
+      font-size: 13px;
+      color: #38e1d3;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-align: right;
     }
 
     .progress-bar-container {
       width: 100%;
-      height: 8px;
-      background: rgba(46, 196, 182, 0.15);
+      height: 6px;
+      background: rgba(46, 196, 182, 0.18);
       border-radius: 4px;
       overflow: hidden;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .progress-bar {
       height: 100%;
       background: #2ec4b6;
       border-radius: 4px;
-      transition: width 0.3s ease;
+      transition: width 0.25s ease;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 4px;
     }
 
     .slider-wrapper {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
+      margin-bottom: 0;
     }
 
     input[type="range"] {
@@ -65,37 +89,24 @@
     }
 
     .range-label {
-      font-size: 11px;
-      color: #666;
+      font-size: 10px;
+      color: #777;
       min-width: 25px;
       text-align: center;
     }
-
-    .percentage-display {
-      color: #38e1d3;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      text-align: right;
-    }
-
-    .progress-label {
-      font-size: 11px;
-      color: #888;
-      margin-bottom: 8px;
-    }
   </style>
 </head>
+
 <body>
   <div class="container" id="container"></div>
 
   <script>
     const t = TrelloPowerUp.iframe();
+
     let state = {
       progress: 32
     };
 
-    // Load progress from Trello
     t.get('card', 'shared', 'progress').then(val => {
       if (val !== undefined && val !== null) {
         state.progress = parseInt(val);
@@ -103,31 +114,33 @@
       }
     });
 
-    function saveProgress(value) {
-      state.progress = value;
-      t.set('card', 'shared', 'progress', value);
+    function saveProgress(v) {
+      state.progress = v;
+      t.set('card', 'shared', 'progress', v);
       render();
     }
 
     function render() {
       document.getElementById('container').innerHTML = `
-        <!-- PROGRESS SECTION -->
         <div class="progress-section">
           <div class="section-header">⚡ Progress</div>
+
           <div class="percentage-display">${state.progress}%</div>
+
           <div class="progress-bar-container">
             <div class="progress-bar" style="width: ${state.progress}%"></div>
           </div>
+
           <div class="progress-label">Adjust progress manually</div>
+
           <div class="slider-wrapper">
             <span class="range-label">0%</span>
-            <input type="range" id="progressSlider" min="0" max="100" value="${state.progress}" style="flex:1;" />
+            <input type="range" id="progressSlider" min="0" max="100" value="${state.progress}">
             <span class="range-label">100%</span>
           </div>
         </div>
       `;
 
-      // Attach event listeners
       document.getElementById('progressSlider').addEventListener('input', (e) => {
         saveProgress(parseInt(e.target.value));
       });
