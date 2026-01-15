@@ -94,6 +94,23 @@ TrelloPowerUp.initialize({
     });
   },
 
+  // POWER-UPS MENU - HIDE/SHOW BUTTON
+  'card-detail-section': function(t) {
+    return Promise.all([
+      t.get('board', 'shared', 'hideProgressBars'),
+    ]).then(([hideProgressBars]) => {
+      return {
+        title: 'Time Tracker',
+        icon: ICON,
+        content: {
+          type: 'iframe',
+          url: t.signUrl('./card-detail-progress.html'),
+          height: 120
+        }
+      };
+    });
+  },
+
   "authorization-status": function (t) {
     return t
       .get("member", "private", "authorized")
