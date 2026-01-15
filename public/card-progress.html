@@ -10,46 +10,46 @@
 
   html, body {
     background: transparent;
-    overflow: hidden; /* prevents scroll */
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #e0e0e0;
   }
 
-  /* Full-width container */
+  /* Full-width layout */
   .container {
     width: 100%;
-    padding: 6px 0;
+    padding: 4px 0 2px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 14px;
   }
 
-  /* Header */
+  /* Section Header */
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-bottom: 2px;
   }
 
   .title {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
-  /* Percentage badge */
   .percent {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #2ec4b6;
   }
 
-  /* Progress bar */
+  /* Progress Bar */
   .bar-bg {
     width: 100%;
-    height: 7px;
+    height: 8px;
     border-radius: 5px;
     background: rgba(46, 196, 182, 0.18);
     overflow: hidden;
@@ -62,28 +62,29 @@
   }
 
   .label {
-    font-size: 11px;
-    color: #9b9b9b;
-    margin-top: 2px;
+    font-size: 13px;
+    color: #b0b0b0;
+    margin-top: -4px;
   }
 
+  /* Slider */
   .line {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
   .range-label {
-    font-size: 10px;
-    width: 30px;
-    color: #777;
+    font-size: 12px;
+    width: 32px;
+    color: #888;
     text-align: center;
   }
 
   input[type="range"] {
     flex: 1;
     accent-color: #2ec4b6;
-    height: 6px;
+    height: 7px;
     cursor: pointer;
   }
 </style>
