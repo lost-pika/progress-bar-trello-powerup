@@ -82,6 +82,19 @@ TrelloPowerUp.initialize({
 
       return [];
     });
-  }
+  },
+
+  "authorization-status": function(t) {
+  return t.get('member', 'private', 'authorized')
+    .then(auth => ({ authorized: auth === true }));
+},
+
+"show-authorization": function(t) {
+  return t.popup({
+    title: "Authorize Progress Power-Up",
+    url: './auth.html',
+    height: 180
+  });
+},
 
 });
