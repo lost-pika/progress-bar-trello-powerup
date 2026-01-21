@@ -21,6 +21,10 @@ function computeElapsed(data) {
 }
 
 TrelloPowerUp.initialize({
+
+  /* -------------------------
+     BOARD BUTTON (SETTINGS)
+  -------------------------- */
   "board-buttons": function (t) {
     return [
       {
@@ -29,7 +33,7 @@ TrelloPowerUp.initialize({
         callback: function () {
           return t.popup({
             title: "Progress Settings",
-            url: "./dist/src/views/settings.html",
+            url: t.signUrl("./src/views/settings.html"),   // ✅ CORRECT
             height: 620,
           });
         },
@@ -37,30 +41,37 @@ TrelloPowerUp.initialize({
     ];
   },
 
+  /* -------------------------
+     CARD BACK SECTION UI
+  -------------------------- */
   "card-back-section": function (t) {
     return {
       title: "Progress",
       icon: ICON,
       content: {
         type: "iframe",
-        url: t.signUrl("./dist/src/views/card-progress.html"),
+        url: t.signUrl("./src/views/card-progress.html"),   // ✅ CORRECT
         height: 180,
       },
     };
   },
 
+  /* -------------------------
+     CARD BADGES
+  -------------------------- */
   "card-badges": function (t) {
     return Promise.all([
       t.get("card", "shared"),
       t.get("board", "shared", "hideBadges"),
       t.get("board", "shared", "hideProgressBars"),
     ]).then(([data, hideBadges, hideBars]) => {
+
       if (hideBadges) return [];
       if (!data) return [];
 
       const badges = [];
 
-      if (data.focusMode === true) {
+      if (data.focusMode) {
         badges.push({ text: "🎯 Focus ON", color: "red" });
       }
 
@@ -73,17 +84,15 @@ TrelloPowerUp.initialize({
       }
 
       badges.push({
-        dynamic: function () {
-          return t.get("card", "shared").then((cd) => {
-            if (!cd) return { text: "" };
-            return {
-              text: `⏱ ${formatHM(computeElapsed(cd))} | Est ${formatHM(
-                cd.estimated || 8 * 3600,
-              )}`,
-              color: "blue",
-            };
-          });
-        },
+        dynamic: () =>
+          t.get("card", "shared").then((cd) => ({
+            text: cd
+              ? `⏱ ${formatHM(computeElapsed(cd))} | Est ${formatHM(
+                  cd.estimated || 28800
+                )}`
+              : "",
+            color: "blue",
+          })),
         refresh: 1000,
       });
 
@@ -91,6 +100,9 @@ TrelloPowerUp.initialize({
     });
   },
 
+  /* -------------------------
+     CARD DETAIL BADGES
+  -------------------------- */
   "card-detail-badges": function (t) {
     return Promise.all([
       t.get("card", "shared", "progress"),
@@ -98,16 +110,13 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideDetailBadges"),
       t.get("board", "shared", "hideProgressBars"),
     ]).then(([progress, focusMode, hideDetails, hideBars]) => {
+
       if (hideDetails) return [];
 
       const badges = [];
 
       if (focusMode) {
-        badges.push({
-          title: "Focus",
-          text: "🎯 Focus ON",
-          color: "red",
-        });
+        badges.push({ title: "Focus", text: "🎯 Focus ON", color: "red" });
       }
 
       if (progress != null) {
@@ -123,6 +132,9 @@ TrelloPowerUp.initialize({
     });
   },
 
+  /* -------------------------
+     OPEN CARD BUTTON
+  -------------------------- */
   "card-buttons": function (t) {
     return [
       {
@@ -149,59 +161,61 @@ TrelloPowerUp.initialize({
     ];
   },
 
- "card-moved": function (t, opts) {
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "autoTrackMode"),
-    t.get("board", "shared", "autoTrackLists"),
-  ]).then(([data, mode, lists]) => {
-    if (!data) return;
-    if (mode !== "list" && mode !== "both") return;
-    if (!lists?.includes(opts.to.list)) return;
+  /* -------------------------
+     AUTO-TRACK + RESTART POPUP
+  -------------------------- */
+  "card-moved": function (t, opts) {
+    return Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "autoTrackMode"),
+      t.get("board", "shared", "autoTrackLists"),
+    ]).then(([data, mode, lists]) => {
 
-    // Auto start
-    if (!data.running) {
-      return t.set("card", "shared", {
-        ...data,
-        running: true,
-        startTime: Date.now(),
-      });
-    }
+      if (!data) return;
+      if (mode !== "list" && mode !== "both") return;
+      if (!lists?.includes(opts.to.list)) return;
 
-    // Ask restart popup
-    return t.popup({
-  title: "Restart Timer?",
-  url: t.signUrl("./src/views/confirm-restart.html"),   // ✅ CORRECT
-  height: 150,
-  args: { cardData: data },
-})
+      // Auto start
+      if (!data.running) {
+        return t.set("card", "shared", {
+          ...data,
+          running: true,
+          startTime: Date.now(),
+        });
+      }
 
-    .then((result) => {
-      if (!result?.restart) return;
-
-      return t.set("card", "shared", {
-        ...data,
-        elapsed: 0,
-        running: true,
-        startTime: Date.now(),
-      });
+      // Restart popup
+      return t
+        .popup({
+          title: "Restart Timer?",
+          url: t.signUrl("./src/views/confirm-restart.html"),   // ✅ CORRECT
+          height: 150,
+          args: { cardData: data },
+        })
+        .then((result) => {
+          if (!result?.restart) return;
+          return t.set("card", "shared", {
+            ...data,
+            elapsed: 0,
+            running: true,
+            startTime: Date.now(),
+          });
+        });
     });
-  });
-},
-
-
-
-  "authorization-status": function (t) {
-    return t
-      .get("member", "private", "authorized")
-      .then((auth) => ({ authorized: auth === true }));
   },
 
-  "show-authorization": function (t) {
-    return t.popup({
+  /* -------------------------
+     AUTH
+  -------------------------- */
+  "authorization-status": (t) =>
+    t.get("member", "private", "authorized").then((auth) => ({
+      authorized: auth === true,
+    })),
+
+  "show-authorization": (t) =>
+    t.popup({
       title: "Authorize Progress Power-Up",
       url: "./auth.html",
       height: 200,
-    });
-  },
+    }),
 });
