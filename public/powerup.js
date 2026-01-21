@@ -3,8 +3,7 @@
 var ICON = "https://cdn-icons-png.flaticon.com/512/992/992651.png";
 var Promise = TrelloPowerUp.Promise;
 
-// 🔥 ADD THIS FUNCTION HERE
-
+// TEXT PROGRESS BAR
 function makeBar(pct) {
   const total = 10;
   const filled = Math.round((pct / 100) * total);
@@ -12,7 +11,9 @@ function makeBar(pct) {
 }
 
 TrelloPowerUp.initialize({
-  // SETTINGS BUTTON
+  /* -----------------------------------------------------
+     BOARD SETTINGS BUTTON
+  ----------------------------------------------------- */
   "board-buttons": function (t) {
     return [
       {
@@ -29,8 +30,21 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  // CARD BACK SECTION (iframe) - Detail view progress tracker
-  "card-back-section": function (t, opts) {
+  /* -----------------------------------------------------
+     CARD BACK SECTION (with AUTO-START TIMER)
+  ----------------------------------------------------- */
+  "card-back-section": function (t) {
+    // AUTO-START LOGIC (MUST BE OUTSIDE RETURN)
+    t.get("card", "shared").then((data) => {
+      if (data?.auto && !data.running) {
+        t.set("card", "shared", {
+          ...data,
+          running: true,
+          startTime: Date.now(),
+        });
+      }
+    });
+
     return {
       title: "Progress",
       icon: ICON,
@@ -42,112 +56,120 @@ TrelloPowerUp.initialize({
     };
   },
 
-  // CARD BADGES (front) - Shows on card in board view
-  "card-badges": function (t, opts) {
+  /* -----------------------------------------------------
+     CARD BADGES (BOARD VIEW)
+  ----------------------------------------------------- */
+  "card-badges": function (t) {
     return Promise.all([
       t.get("card", "shared", "progress"),
+      t.get("card", "shared", "focusMode"),
       t.get("board", "shared", "hideBadges"),
       t.get("board", "shared", "hideProgressBars"),
-    ]).then(([progress, hideBadges, hideProgressBars]) => {
-      // 1️⃣ If hide card badges → hide entirely from board view
-      if (hideBadges) return [];
+    ]).then(([progress, focusMode, hideBadges, hideProgressBars]) => {
+      const badges = [];
 
-      // If no progress → no badge
-      if (progress === undefined || progress === null || progress === "") {
-        return [];
+      // 🎯 Focus Badge
+      if (focusMode) {
+        badges.push({
+          text: "🎯 Focus ON",
+          color: "red",
+        });
       }
+
+      // Hide all badges?
+      if (hideBadges) return badges;
+
+      if (progress == null) return badges;
 
       const pct = Math.max(0, Math.min(parseInt(progress), 100));
 
-      // 2️⃣ Hide progress bar but KEEP % visible
+      // Percentage only
       if (hideProgressBars) {
-        return [
-          {
-            text: pct + "%",
-            color: "blue",
-          },
-        ];
+        badges.push({
+          text: pct + "%",
+          color: "blue",
+        });
+      } else {
+        badges.push({
+          text: `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        });
       }
 
-      // 3️⃣ Normal mode → show bar + %
-      const bar = makeBar(pct);
-
-      return [
-        {
-          text: `${bar} ${pct}%`,
-          color: "blue",
-        },
-      ];
+      return badges;
     });
   },
 
-  // CARD DETAIL BADGES - Shows in expanded card view
-  "card-detail-badges": function (t, opts) {
+  /* -----------------------------------------------------
+     CARD DETAIL BADGES (EXPANDED VIEW)
+  ----------------------------------------------------- */
+  "card-detail-badges": function (t) {
     return Promise.all([
       t.get("card", "shared", "progress"),
+      t.get("card", "shared", "focusMode"),
       t.get("board", "shared", "hideDetailBadges"),
       t.get("board", "shared", "hideProgressBars"),
-    ]).then(([progress, hideDetailBadges, hideProgressBars]) => {
-      // Hide detail badges entirely only when this toggle is ON
-      if (hideDetailBadges) return [];
+    ]).then(([progress, focusMode, hideDetailBadges, hideProgressBars]) => {
+      const badges = [];
 
-      if (progress === undefined || progress === null || progress === "") {
-        return [];
+      if (hideDetailBadges) return badges;
+
+      if (focusMode) {
+        badges.push({
+          title: "Focus",
+          text: "🎯 Focus ON",
+          color: "red",
+        });
       }
+
+      if (progress == null) return badges;
 
       const pct = Math.max(0, Math.min(parseInt(progress), 100));
 
-      // If user hides only progress bars (card badge bars)
-      // show percentage only in expanded view too (for consistency)
       if (hideProgressBars) {
-        return [
-          {
-            title: "Progress",
-            text: pct + "%",
-            color: "blue",
-          },
-        ];
+        badges.push({
+          title: "Progress",
+          text: pct + "%",
+          color: "blue",
+        });
+      } else {
+        badges.push({
+          title: "Progress",
+          text: `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        });
       }
 
-      // SHOW BAR + PERCENT EVEN IN EXPANDED VIEW (your requirement)
-      const bar = makeBar(pct);
-
-      return [
-        {
-          title: "Progress",
-          text: `${bar} ${pct}%`,
-          color: "blue",
-        },
-      ];
+      return badges;
     });
   },
 
-  // POWER-UPS MENU - Time tracker section in card detail
+  /* -----------------------------------------------------
+     TIME TRACKER SECTION IN CARD DETAIL
+  ----------------------------------------------------- */
   "card-detail-section": function (t) {
-    return Promise.all([t.get("board", "shared", "hideDetailBadges")]).then(
-      ([hideDetailBadges]) => {
-        // Don't show time tracker if detail badges are hidden
-        if (hideDetailBadges) {
-          return null;
-        }
+    return t.get("board", "shared", "hideDetailBadges").then((hide) => {
+      if (hide) return null;
 
-        return {
-          title: "Time Tracker",
-          icon: ICON,
-          content: {
-            type: "iframe",
-            url: t.signUrl("./card-detail-progress.html"),
-            height: 120,
-          },
-        };
-      },
-    );
+      return {
+        title: "Time Tracker",
+        icon: ICON,
+        content: {
+          type: "iframe",
+          url: t.signUrl("./card-detail-progress.html"),
+          height: 120,
+        },
+      };
+    });
   },
 
+  /* -----------------------------------------------------
+     AUTH
+  ----------------------------------------------------- */
   "authorization-status": function (t) {
-    return t
-      .get("member", "private", "authorized")
-      .then((auth) => ({ authorized: auth === true }));
+    return t.get("member", "private", "authorized").then((auth) => ({
+      authorized: auth === true,
+    }));
   },
 
   "show-authorization": function (t) {
