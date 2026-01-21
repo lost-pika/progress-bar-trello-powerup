@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -13,7 +13,8 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", sans-serif;
         line-height: 1.5;
       }
@@ -316,7 +317,9 @@
         <div class="setting-item">
           <div class="setting-content">
             <span class="setting-label">Hide card badges</span>
-            <span class="setting-desc">Remove all badges from board view cards</span>
+            <span class="setting-desc"
+              >Remove all badges from board view cards</span
+            >
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideBadges" />
@@ -328,7 +331,9 @@
         <div class="setting-item">
           <div class="setting-content">
             <span class="setting-label">Hide card detail badges</span>
-            <span class="setting-desc">Remove badges from expanded card view</span>
+            <span class="setting-desc"
+              >Remove badges from expanded card view</span
+            >
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideDetailBadges" />
@@ -337,10 +342,15 @@
         </div>
 
         <!-- Toggle 3: Hide progress bar from card badges -->
-        <div class="setting-item highlight">
+        <!-- Toggle 3: Hide progress bar from card badges -->
+        <div class="setting-item" id="progressBarsRow">
           <div class="setting-content">
-            <span class="setting-label">Hide progress bar from card badges</span>
-            <span class="setting-desc">Show only percentage, hide the progress bar</span>
+            <span class="setting-label"
+              >Hide progress bar from card badges</span
+            >
+            <span class="setting-desc"
+              >Show only percentage, hide the progress bar</span
+            >
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideProgressBars" />
@@ -390,9 +400,7 @@
             <span class="focus-badge" id="previewBadge">🎯 Focus ON</span>
           </div>
           <div class="preview-content">
-            <p class="preview-message" id="previewMessage">
-              Progress at 65%
-            </p>
+            <p class="preview-message" id="previewMessage">Progress at 65%</p>
             <div class="preview-progress" id="previewProgress">
               <div class="progress-bar"></div>
             </div>
@@ -406,6 +414,8 @@
     </div>
 
     <script>
+      const progressBarsRow = document.getElementById("progressBarsRow");
+
       const t = TrelloPowerUp.iframe();
 
       const hideBadges = document.getElementById("hideBadges");
@@ -431,7 +441,14 @@
       }
 
       function updatePreview() {
-        // If hide progress bars is enabled, show only percentage
+        // Highlight only when the toggle is ON
+        if (hideProgressBars.checked) {
+          progressBarsRow.classList.add("highlight");
+        } else {
+          progressBarsRow.classList.remove("highlight");
+        }
+
+        // Existing logic
         if (hideProgressBars.checked) {
           previewProgress.classList.add("hidden");
           previewMessage.textContent = "Progress at 65%";
@@ -442,8 +459,9 @@
           statusMessage.classList.add("hidden");
         }
 
-        // Hide badge preview if hide badges is enabled
-        previewBadge.style.display = hideBadges.checked ? "none" : "inline-block";
+        previewBadge.style.display = hideBadges.checked
+          ? "none"
+          : "inline-block";
       }
 
       // SAVE + AUTO REFRESH TRELLO UI
