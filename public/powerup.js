@@ -11,7 +11,6 @@ function makeBar(pct) {
   return "█".repeat(filled) + "▒".repeat(total - filled);
 }
 
-
 TrelloPowerUp.initialize({
   // SETTINGS BUTTON
   "board-buttons": function (t) {
@@ -32,105 +31,117 @@ TrelloPowerUp.initialize({
 
   // CARD BACK SECTION (iframe) - Detail view progress tracker
   "card-back-section": function (t, opts) {
-  return {
-    title: "Progress",
-    icon: ICON,
-    content: {
-      type: "iframe",
-      url: t.signUrl("./card-progress.html"),
-      height: 180
-    }
-  };
-},
-
+    return {
+      title: "Progress",
+      icon: ICON,
+      content: {
+        type: "iframe",
+        url: t.signUrl("./card-progress.html"),
+        height: 180,
+      },
+    };
+  },
 
   // CARD BADGES (front) - Shows on card in board view
- "card-badges": function (t, opts) {
-  return Promise.all([
-    t.get("card", "shared", "progress"),
-    t.get("board", "shared", "hideBadges"),
-    t.get("board", "shared", "hideProgressBars")
-  ]).then(([progress, hideBadges, hideProgressBars]) => {
+  "card-badges": function (t, opts) {
+    return Promise.all([
+      t.get("card", "shared", "progress"),
+      t.get("board", "shared", "hideBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+    ]).then(([progress, hideBadges, hideProgressBars]) => {
+      // 1️⃣ If hide card badges → hide entirely from board view
+      if (hideBadges) return [];
 
-    // 1️⃣ If hide card badges → hide entirely from board view
-    if (hideBadges) return [];
+      // If no progress → no badge
+      if (progress === undefined || progress === null || progress === "") {
+        return [];
+      }
 
-    // If no progress → no badge
-    if (progress === undefined || progress === null || progress === "") {
-      return [];
-    }
+      const pct = Math.max(0, Math.min(parseInt(progress), 100));
 
-    const pct = Math.max(0, Math.min(parseInt(progress), 100));
+      // 2️⃣ Hide progress bar but KEEP % visible
+      if (hideProgressBars) {
+        return [
+          {
+            text: pct + "%",
+            color: "blue",
+          },
+        ];
+      }
 
-    // 2️⃣ Hide progress bar but KEEP % visible
-    if (hideProgressBars) {
+      // 3️⃣ Normal mode → show bar + %
+      const bar = makeBar(pct);
+
       return [
         {
-          text: pct + "%",
-          color: "blue"
-        }
+          text: `${bar} ${pct}%`,
+          color: "blue",
+        },
       ];
-    }
-
-    // 3️⃣ Normal mode → show bar + %
-    const bar = makeBar(pct);
-
-    return [
-      {
-        text: `${bar} ${pct}%`,
-        color: "blue"
-      }
-    ];
-  });
-},
-
-
+    });
+  },
 
   // CARD DETAIL BADGES - Shows in expanded card view
   "card-detail-badges": function (t, opts) {
-  return Promise.all([
-    t.get("card", "shared", "progress"),
-    t.get("board", "shared", "hideDetailBadges")
-  ]).then(([progress, hideDetailBadges]) => {
+    return Promise.all([
+      t.get("card", "shared", "progress"),
+      t.get("board", "shared", "hideDetailBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+    ]).then(([progress, hideDetailBadges, hideProgressBars]) => {
+      // Hide detail badges entirely only when this toggle is ON
+      if (hideDetailBadges) return [];
 
-    // 1️⃣ If hide detail badges → remove from expanded view ONLY
-    if (hideDetailBadges) return [];
-
-    // If no progress
-    if (!progress && progress !== 0) return [];
-
-    const pct = Math.max(0, Math.min(parseInt(progress), 100));
-
-    return [
-      {
-        title: "Progress",
-        text: pct + "%",
-        color: "blue"
+      if (progress === undefined || progress === null || progress === "") {
+        return [];
       }
-    ];
-  });
-},
+
+      const pct = Math.max(0, Math.min(parseInt(progress), 100));
+
+      // If user hides only progress bars (card badge bars)
+      // show percentage only in expanded view too (for consistency)
+      if (hideProgressBars) {
+        return [
+          {
+            title: "Progress",
+            text: pct + "%",
+            color: "blue",
+          },
+        ];
+      }
+
+      // SHOW BAR + PERCENT EVEN IN EXPANDED VIEW (your requirement)
+      const bar = makeBar(pct);
+
+      return [
+        {
+          title: "Progress",
+          text: `${bar} ${pct}%`,
+          color: "blue",
+        },
+      ];
+    });
+  },
 
   // POWER-UPS MENU - Time tracker section in card detail
-  'card-detail-section': function(t) {
-    return Promise.all([
-      t.get('board', 'shared', 'hideDetailBadges'),
-    ]).then(([hideDetailBadges]) => {
-      // Don't show time tracker if detail badges are hidden
-      if (hideDetailBadges) {
-        return null;
-      }
-
-      return {
-        title: 'Time Tracker',
-        icon: ICON,
-        content: {
-          type: 'iframe',
-          url: t.signUrl('./card-detail-progress.html'),
-          height: 120
+  "card-detail-section": function (t) {
+    return Promise.all([t.get("board", "shared", "hideDetailBadges")]).then(
+      ([hideDetailBadges]) => {
+        // Don't show time tracker if detail badges are hidden
+        if (hideDetailBadges) {
+          return null;
         }
-      };
-    });
+
+        return {
+          title: "Time Tracker",
+          icon: ICON,
+          content: {
+            type: "iframe",
+            url: t.signUrl("./card-detail-progress.html"),
+            height: 120,
+          },
+        };
+      },
+    );
   },
 
   "authorization-status": function (t) {
