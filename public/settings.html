@@ -287,6 +287,21 @@
         width: 100% !important;
         margin-bottom: 12px !important;
       }
+
+      /* FINAL FIX — perfect side-by-side alignment */
+#trackerBox .time-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 30px !important;
+  width: 100% !important;
+}
+
+#trackerBox .time-row > div {
+  flex: 1;
+  min-width: 0; /* ensures they don't wrap weirdly */
+}
+
     </style>
   </head>
 
