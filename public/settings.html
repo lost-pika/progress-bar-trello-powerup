@@ -7,191 +7,205 @@
     <style>
       /* RESET */
       /* RESET */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+      /* RESET */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  background: transparent !important;
-  color: #ffffff;
-}
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", sans-serif;
+        background: transparent !important;
+        color: #ffffff;
+      }
 
-/* WRAPPER */
-.settings-wrapper {
-  padding: 20px;
-}
+      /* WRAPPER */
+      .settings-wrapper {
+        padding: 20px;
+      }
 
-/* HEADER */
-.settings-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
+      /* HEADER */
+      .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
 
-.settings-header .icon {
-  font-size: 22px;
-}
+      .settings-header .icon {
+        font-size: 24px; /* +2 */
+      }
 
-.settings-header h1 {
-  font-size: 17px;
-  font-weight: 600;
-}
+      .settings-header h1 {
+        font-size: 19px; /* was 17 → +2 */
+        font-weight: 600;
+      }
 
-/* COLLAPSIBLE */
-.collapsible {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
+      /* COLLAPSIBLE */
+      .collapsible {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        font-size: 17px; /* was 15 → +2 */
+        font-weight: 600;
+        cursor: pointer;
+      }
 
-/* TIME TRACKER BOX */
-#trackerBox {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 14px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
+      /* TIME TRACKER BOX */
+      #trackerBox {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 14px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
 
-.time-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
+      .time-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
 
-.elapsed {
-  font-size: 20px;
-  font-weight: 600;
-}
+      .elapsed-label,
+      .estimated-label {
+        font-size: 14px; /* was 12 → +2 */
+        opacity: 0.7;
+      }
 
-.estimated {
-  font-size: 16px;
-  cursor: pointer;
-}
+      .elapsed {
+        font-size: 24px; /* was 22 → +2 */
+        font-weight: 600;
+      }
 
-#estimatedInput {
-  display: none;
-  width: 95px;
-  padding: 4px;
-  margin-top: 4px;
-}
+      .estimated {
+        font-size: 18px; /* was 16 → +2 */
+        cursor: pointer;
+      }
 
-/* BUTTONS */
-.track-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  background: #00d1ff;
-  border: none;
-  color: #000;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
+      #estimatedInput {
+        display: none;
+        width: 95px;
+        padding: 4px;
+        margin-top: 4px;
+        font-size: 16px; /* +2 */
+      }
 
-.reset-btn {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  background: #ff4d4d;
-  border: none;
-  color: white;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
+      /* BUTTONS */
+      .track-btn {
+        width: 100%;
+        padding: 14px; /* visually balanced */
+        border-radius: 6px;
+        background: #00d1ff;
+        border: none;
+        color: #000;
+        margin-bottom: 10px;
+        font-size: 16px; /* was 14 → +2 */
+        font-weight: 600;
+      }
 
-/* SECTIONS */
-.section {
-  margin-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
+      .reset-btn {
+        width: 100%;
+        padding: 12px;
+        border-radius: 6px;
+        background: #ff4d4d;
+        border: none;
+        color: white;
+        margin-bottom: 10px;
+        font-size: 15px; /* was 13 → +2 */
+        font-weight: 600;
+      }
 
-/* ITEM ROW */
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-}
+      /* SECTIONS */
+      .section {
+        margin-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-/* TEXT */
-.label {
-  font-size: 14px;
-  font-weight: 500;
-}
+      /* ITEM ROW */
+      .item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0; /* slightly increased for bigger text */
+      }
 
-.desc {
-  font-size: 12px;
-  opacity: 0.7;
-}
+      /* TEXT */
+      .label {
+        font-size: 16px; /* was 14 → +2 */
+        font-weight: 500;
+      }
 
-/* TOGGLE */
-.toggle {
-  display: inline-flex;
-  align-items: center;
-}
+      .desc {
+        font-size: 14px; /* was 12 → +2 */
+        opacity: 0.7;
+      }
 
-.toggle input {
-  display: none;
-}
+      /* TOGGLE */
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+      }
 
-.toggle-slider {
-  width: 44px;
-  height: 24px;
-  background: #666;
-  border-radius: 30px;
-  position: relative;
-  transition: 0.2s;
-}
+      .toggle input {
+        display: none;
+      }
 
-.toggle-slider::after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: 0.25s ease;
-}
+      .toggle-slider {
+        width: 48px; /* +4 so the knob fits perfectly */
+        height: 26px; /* +2 */
+        background: #666;
+        border-radius: 30px;
+        position: relative;
+        transition: 0.2s;
+      }
 
-.toggle input:checked + .toggle-slider {
-  background: #00c2ff;
-}
+      .toggle-slider::after {
+        content: "";
+        width: 22px; /* +2 */
+        height: 22px; /* +2 */
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: 0.25s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+      }
 
-.toggle input:checked + .toggle-slider::after {
-  transform: translateX(20px);
-}
+      .toggle input:checked + .toggle-slider {
+        background: #00c2ff;
+      }
 
-/* DROPDOWN */
-select {
-  padding: 8px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
-  border-radius: 6px;
-}
+      .toggle input:checked + .toggle-slider::after {
+        transform: translateX(22px); /* adjusted for size */
+      }
 
-/* REMOVE BUTTON */
-.remove-btn {
-  width: 100%;
-  padding: 12px;
-  margin-top: 20px;
-  background: transparent;
-  border: 2px solid #ff6b6b;
-  border-radius: 6px;
-  color: #ff6b6b;
-  font-weight: 600;
-}
+      /* DROPDOWN */
+      select {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 6px;
+        font-size: 16px; /* was 14 → +2 */
+      }
 
+      /* REMOVE BUTTON */
+      .remove-btn {
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        border: 2px solid #ff6b6b;
+        border-radius: 6px;
+        color: #ff6b6b;
+        font-size: 15px; /* was 13 → +2 */
+        font-weight: 600;
+        margin-top: 22px;
+      }
     </style>
   </head>
 
@@ -200,7 +214,7 @@ select {
       <!-- HEADER -->
       <div class="settings-header">
         <div class="icon">⚙️</div>
-        <h1>Progress Settings</h1>
+        <h1>Customize your task card display</h1>
       </div>
 
       <!-- TIME TRACKER COLLAPSIBLE -->
