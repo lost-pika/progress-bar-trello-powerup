@@ -159,27 +159,29 @@ select {
   font-weight: 600;
 }
 
-/* ----------------------------------------
-   FIX FOR TIME-TRACKER SECTION
-   Restores original layout EXACTLY
------------------------------------------ */
+/* ============================================================
+   FIX: Restore Time Tracker EXACT layout (undo changes)
+   ============================================================ */
 
-/* Restore normal block flow inside tracker */
-#trackerBox .time-row,
-#trackerBox div,
-#trackerBox button,
+/* Prevent global .item rules from affecting time tracker */
 #trackerBox .item {
-  display: block !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 0 !important;
 }
 
-/* Reset spacing */
+/* Restore proper column layout in tracker rows */
 #trackerBox .time-row {
+  display: flex !important;
+  justify-content: space-between !important;
   margin-bottom: 12px !important;
 }
 
+/* Restore correct font sizes */
 #trackerBox .elapsed-label,
 #trackerBox .estimated-label {
-  font-size: 14px !important;
+  font-size: 12px !important;
   opacity: 0.7 !important;
 }
 
@@ -190,27 +192,35 @@ select {
 
 #trackerBox .estimated {
   font-size: 18px !important;
+  cursor: pointer !important;
 }
 
-/* Fix button row */
+/* Restore buttons inline */
 #trackerBox #trackBtn,
 #trackerBox #resetBtn {
   display: inline-block !important;
   margin-right: 6px !important;
+  width: auto !important;
 }
 
-/* Restore toggle alignment in tracker row */
-#trackerBox .item {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 10px 0 !important;
+/* Restore estimated EDIT input behavior */
+#trackerBox #estimatedInput {
+  display: none !important;
+  width: 110px !important;
+  padding: 4px !important;
+  margin-top: 4px !important;
 }
 
-/* Prevent wrapping that broke the layout */
+/* Restore correct text wrapping behavior */
 #trackerBox * {
-  white-space: unset !important;
-  flex-wrap: unset !important;
+  white-space: normal !important;
+}
+
+/* VERY IMPORTANT:
+   Stop global spacing / alignment from leaking into tracker */
+#trackerHeader,
+#trackerBox {
+  isolation: isolate !important;
 }
 
 
