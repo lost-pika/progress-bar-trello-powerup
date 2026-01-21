@@ -4,11 +4,13 @@ var ICON = "https://cdn-icons-png.flaticon.com/512/992/992651.png";
 var Promise = TrelloPowerUp.Promise;
 
 // 🔥 ADD THIS FUNCTION HERE
+
 function makeBar(pct) {
   const total = 10;
   const filled = Math.round((pct / 100) * total);
   return "█".repeat(filled) + "▒".repeat(total - filled);
 }
+
 
 TrelloPowerUp.initialize({
   // SETTINGS BUTTON
@@ -52,52 +54,71 @@ TrelloPowerUp.initialize({
   },
 
   // CARD BADGES (front) - Shows on card in board view
-  "card-badges": function (t, opts) {
-  return t.get("card", "shared", "progress")
-    .then(function (progress) {
+ "card-badges": function (t, opts) {
+  return Promise.all([
+    t.get("card", "shared", "progress"),
+    t.get("board", "shared", "hideBadges"),
+    t.get("board", "shared", "hideProgressBars")
+  ]).then(([progress, hideBadges, hideProgressBars]) => {
 
-      if (!progress && progress !== 0) return [];
+    // 1️⃣ If hide card badges → hide entirely from board view
+    if (hideBadges) return [];
 
-      const pct = Math.max(0, Math.min(parseInt(progress), 100));
-      const bar = makeBar(pct);
+    // If no progress → no badge
+    if (progress === undefined || progress === null || progress === "") {
+      return [];
+    }
 
+    const pct = Math.max(0, Math.min(parseInt(progress), 100));
+
+    // 2️⃣ Hide progress bar but KEEP % visible
+    if (hideProgressBars) {
       return [
         {
-          text: `${pct}% ${bar}`,
-          color: "blue",
+          text: pct + "%",
+          color: "blue"
         }
       ];
-    });
+    }
+
+    // 3️⃣ Normal mode → show bar + %
+    const bar = makeBar(pct);
+
+    return [
+      {
+        text: `${bar} ${pct}%`,
+        color: "blue"
+      }
+    ];
+  });
 },
+
 
 
   // CARD DETAIL BADGES - Shows in expanded card view
   "card-detail-badges": function (t, opts) {
-    return Promise.all([
-      t.get("card", "shared", "progress"),
-      t.get("board", "shared", "hideDetailBadges"),
-    ]).then(([progress, hideDetailBadges]) => {
-      // If hide detail badges is ON, don't show anything
-      if (hideDetailBadges) {
-        return [];
+  return Promise.all([
+    t.get("card", "shared", "progress"),
+    t.get("board", "shared", "hideDetailBadges")
+  ]).then(([progress, hideDetailBadges]) => {
+
+    // 1️⃣ If hide detail badges → remove from expanded view ONLY
+    if (hideDetailBadges) return [];
+
+    // If no progress
+    if (!progress && progress !== 0) return [];
+
+    const pct = Math.max(0, Math.min(parseInt(progress), 100));
+
+    return [
+      {
+        title: "Progress",
+        text: pct + "%",
+        color: "blue"
       }
-
-      // If progress exists and is a valid number
-      if (progress !== undefined && progress !== null && progress !== "") {
-        const pct = Math.max(0, Math.min(parseInt(progress), 100));
-
-        return [
-          {
-            title: "Progress",
-            text: pct + "%",
-            color: "blue",
-          },
-        ];
-      }
-
-      return [];
-    });
-  },
+    ];
+  });
+},
 
   // POWER-UPS MENU - Time tracker section in card detail
   'card-detail-section': function(t) {
