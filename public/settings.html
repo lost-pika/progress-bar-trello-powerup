@@ -1,0 +1,422 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:#fff;
+      padding:16px;
+      color:#1a1a1a;
+    }
+
+    .settings-header {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:22px;
+    }
+
+    .settings-header .icon {
+      font-size:24px;
+    }
+
+    h1 {
+      font-size:17px;
+      font-weight:600;
+    }
+
+    .section {
+      margin-bottom:22px;
+      padding-bottom:10px;
+      border-bottom:1px solid #e5e5e5;
+    }
+
+    .item {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 0;
+    }
+
+    .item:last-child {
+      border-bottom:none;
+    }
+
+    .item .label {
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .item .desc {
+      font-size:12px;
+      opacity:0.6;
+    }
+
+    .toggle input { display:none; }
+
+    .toggle-slider {
+      width:44px;
+      height:24px;
+      background:#ccc;
+      border-radius:24px;
+      position:relative;
+      transition:0.25s ease;
+    }
+
+    .toggle-slider::after {
+      content:"";
+      width:20px;
+      height:20px;
+      background:#fff;
+      position:absolute;
+      top:2px;
+      left:2px;
+      border-radius:50%;
+      transition:0.25s ease;
+    }
+
+    input:checked + .toggle-slider {
+      background:#2ec4b6;
+    }
+
+    input:checked + .toggle-slider::after {
+      transform:translateX(20px);
+    }
+
+    /* Collapsible Header */
+    .collapsible {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 0;
+      cursor:pointer;
+      font-size:15px;
+      font-weight:600;
+    }
+
+    #trackerBox {
+      background:#f1f5f9;
+      border:1px solid #e2e8f0;
+      padding:14px;
+      border-radius:8px;
+      margin-top:8px;
+    }
+
+    .time-row {
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .elapsed { font-size:22px; font-weight:600; }
+    .estimated { font-size:18px; cursor:pointer; }
+
+    .track-btn {
+      width:100%;
+      padding:12px;
+      background:#2ec4b6;
+      border:none;
+      border-radius:6px;
+      color:white;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:10px;
+    }
+
+    .reset-btn {
+      width:100%;
+      padding:10px;
+      background:#b23838;
+      color:white;
+      border:none;
+      border-radius:6px;
+      margin-top:10px;
+      cursor:pointer;
+    }
+
+    select {
+      padding:6px 10px;
+      border-radius:6px;
+      border:1px solid #ccc;
+      font-size:14px;
+    }
+
+    .remove-btn {
+      width:100%;
+      padding:12px;
+      border:2px solid #ff6b6b;
+      border-radius:6px;
+      background:transparent;
+      color:#ff6b6b;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <div class="settings-header">
+    <div class="icon">⚙️</div>
+    <h1>Progress Settings</h1>
+  </div>
+
+  <!-- TIME TRACKER COLLAPSIBLE -->
+  <div class="collapsible" id="trackerHeader">
+    <span><span id="arrow">⯈</span> Time Tracker</span>
+    <span id="trackerElapsed">00:00:00</span>
+  </div>
+
+  <div id="trackerBox" style="display:none;">
+    <div class="time-row">
+      <div>
+        <div style="opacity:.6;">Elapsed</div>
+        <div id="elapsedLabel" class="elapsed">00:00:00</div>
+      </div>
+
+      <div>
+        <div style="opacity:.6;text-align:right;">Estimated</div>
+        <div id="estimatedDisplay" class="estimated">08:00:00 ✏️</div>
+        <input id="estimatedInput" style="display:none;width:90px;padding:4px;text-align:center;" />
+      </div>
+    </div>
+
+    <button id="trackBtn" class="track-btn">▶ Start Tracking</button>
+    <button id="resetBtn" class="reset-btn">Reset</button>
+
+    <div class="item" style="margin-top:14px;">
+      <span class="label">Enable automatic tracking</span>
+      <label class="toggle">
+        <input type="checkbox" id="autoTrack">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- BOARD SETTINGS -->
+  <div class="section">
+
+    <div class="item">
+      <div>
+        <div class="label">Hide card badges</div>
+        <div class="desc">Remove from card front</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="hideBadges">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="item">
+      <div>
+        <div class="label">Hide card detail badges</div>
+        <div class="desc">In detailed card view</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="hideDetail">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="item">
+      <div>
+        <div class="label">Hide progress bars</div>
+        <div class="desc">Show % only</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="hideBars">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="item">
+      <div>
+        <div class="label">Auto-enable Focus Mode</div>
+        <div class="desc">Start focus when tracking begins</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="focusMode">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="item">
+      <div>
+        <div class="label">Auto Tracking Mode</div>
+        <div class="desc">Choose when timer auto-starts</div>
+      </div>
+
+      <select id="autoTrackMode">
+        <option value="off">Off</option>
+        <option value="open">On card open</option>
+        <option value="list">On list move</option>
+        <option value="both">Both</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- REMOVE -->
+  <button class="remove-btn" id="removeBtn">⚠️ Remove Power-Up</button>
+
+  <script>
+    const t = TrelloPowerUp.iframe();
+
+    let elapsed=0, estimated=8*3600, running=false, startTime=null, auto=false;
+    let interval=null;
+
+    const format = (s)=>{
+      const h=String(Math.floor(s/3600)).padStart(2,"0");
+      const m=String(Math.floor((s%3600)/60)).padStart(2,"0");
+      const sec=String(s%60).padStart(2,"0");
+      return `${h}:${m}:${sec}`;
+    };
+
+    /* LOAD SETTINGS */
+    (async function load(){
+      const board = await t.get("board","shared") || {};
+      const card = await t.get("card","shared") || {};
+
+      elapsed = card.elapsed || 0;
+      estimated = card.estimated || 8*3600;
+      running = card.running || false;
+      startTime = card.startTime || null;
+      auto = card.auto || false;
+
+      document.getElementById("elapsedLabel").textContent = format(elapsed);
+      document.getElementById("trackerElapsed").textContent = format(elapsed);
+
+      document.getElementById("estimatedDisplay").textContent = format(estimated)+" ✏️";
+      document.getElementById("autoTrack").checked = auto;
+      document.getElementById("hideBadges").checked = board.hideBadges || false;
+      document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+      document.getElementById("hideBars").checked = board.hideProgressBars || false;
+      document.getElementById("focusMode").checked = board.autoFocus || false;
+      document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+
+      if(running) startTick();
+
+      setTimeout(()=>t.sizeTo(document.body).done(),40);
+    })();
+
+    function saveCard(){
+      t.set("card","shared",{elapsed,estimated,running,startTime,auto});
+    }
+
+    function saveBoard(key,val){
+      t.set("board","shared",key,val).then(()=>t.refresh());
+    }
+
+    /* TIMER */
+    function startTick(){
+      if(interval) return;
+      interval=setInterval(()=>{
+        if(running){
+          const now=Date.now();
+          const live=elapsed+Math.floor((now-startTime)/1000);
+          document.getElementById("elapsedLabel").textContent=format(live);
+          document.getElementById("trackerElapsed").textContent=format(live);
+        }
+      },1000);
+    }
+
+    document.getElementById("trackBtn").onclick=()=>{
+      if(running){
+        const now=Date.now();
+        elapsed += Math.floor((now-startTime)/1000);
+        running=false;
+        startTime=null;
+      } else {
+        running=true;
+        startTime=Date.now();
+        startTick();
+
+        t.get("board","shared","autoFocus").then(enabled=>{
+          if(enabled) t.set("card","shared","focusMode",true);
+        });
+      }
+      saveCard();
+      document.getElementById("trackBtn").textContent = running ? "⏸ Stop Tracking":"▶ Start Tracking";
+    };
+
+    document.getElementById("resetBtn").onclick=()=>{
+      elapsed=0; running=false; startTime=null;
+      saveCard();
+      document.getElementById("elapsedLabel").textContent="00:00:00";
+      document.getElementById("trackerElapsed").textContent="00:00:00";
+    };
+
+    /* Collapsible */
+    document.getElementById("trackerHeader").onclick=()=>{
+      const box=document.getElementById("trackerBox");
+      const arrow=document.getElementById("arrow");
+      if(box.style.display==="none"){
+        box.style.display="block"; arrow.textContent="⯆";
+      } else {
+        box.style.display="none"; arrow.textContent="⯈";
+      }
+      setTimeout(()=>t.sizeTo(document.body).done(),40);
+    };
+
+    /* Estimated edit */
+    document.getElementById("estimatedDisplay").onclick=()=>{
+      document.getElementById("estimatedDisplay").style.display="none";
+      const input=document.getElementById("estimatedInput");
+      input.style.display="block"; input.value=format(estimated); input.focus();
+    };
+
+    document.getElementById("estimatedInput").onblur=()=>{
+      const val=document.getElementById("estimatedInput").value.trim();
+      const [h,m,s]=val.split(":").map(Number);
+      estimated=h*3600+m*60+s;
+      saveCard();
+      document.getElementById("estimatedDisplay").textContent=val+" ✏️";
+      document.getElementById("estimatedDisplay").style.display="block";
+      document.getElementById("estimatedInput").style.display="none";
+    };
+
+    /* Board toggles */
+    document.getElementById("hideBadges").onchange=e=>saveBoard("hideBadges",e.target.checked);
+    document.getElementById("hideDetail").onchange=e=>saveBoard("hideDetailBadges",e.target.checked);
+    document.getElementById("hideBars").onchange=e=>saveBoard("hideProgressBars",e.target.checked);
+    document.getElementById("focusMode").onchange=e=>saveBoard("autoFocus",e.target.checked);
+
+    /* Auto track mode */
+    document.getElementById("autoTrackMode").onchange=e=>{
+      saveBoard("autoTrackMode",e.target.value).then(()=>{
+        if(e.target.value==="list" || e.target.value==="both"){
+          t.popup({
+            title:"Select Lists",
+            url:"./auto-track-lists.html",
+            height:350
+          });
+        }
+      });
+    };
+
+    /* Auto per-card */
+    document.getElementById("autoTrack").onchange=e=>{
+      auto=e.target.checked; saveCard();
+    };
+
+    /* Remove power-up */
+    document.getElementById("removeBtn").onclick=async()=>{
+      if(!confirm("Remove and clear all data?")) return;
+      await t.set("board","shared",null);
+      await t.set("card","shared",null);
+      await t.set("member","private",null);
+      await t.remove("member","private","authorized");
+      t.closePopup();
+    };
+
+  </script>
+
+</body>
+</html>

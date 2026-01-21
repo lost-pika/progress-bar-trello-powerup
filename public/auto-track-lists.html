@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #101010;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .desc {
+      font-size: 13px;
+      opacity: 0.75;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .list-box {
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 6px;
+      margin-bottom: 18px;
+    }
+
+    .list-item {
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: 0.15s ease;
+    }
+
+    .list-item:hover {
+      background: rgba(255,255,255,0.09);
+    }
+
+    .list-item.selected {
+      border-color: #2ec4b6;
+      background: rgba(46,196,182,0.14);
+    }
+
+    .checkmark {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .footer-btn {
+      width: 100%;
+      padding: 12px;
+      background: #2ec4b6;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .footer-btn:hover {
+      background: #22b6a9;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h2>Select Lists</h2>
+  <div class="desc">Choose the lists where auto-tracking should activate</div>
+
+  <div id="listContainer" class="list-box"></div>
+
+  <button id="saveBtn" class="footer-btn">Save</button>
+
+  <script>
+    const t = TrelloPowerUp.iframe();
+    let selected = [];
+
+    async function loadLists() {
+      const board = await t.board("lists");
+      const saved = await t.get("board", "shared", "autoTrackLists");
+
+      selected = saved || [];
+
+      const container = document.getElementById("listContainer");
+      container.innerHTML = "";
+
+      board.lists.forEach((list) => {
+        const div = document.createElement("div");
+        div.className = "list-item";
+        div.dataset.name = list.name;
+
+        if (selected.includes(list.name)) {
+          div.classList.add("selected");
+        }
+
+        div.innerHTML = `
+          <span>${list.name}</span>
+          ${
+            selected.includes(list.name)
+              ? `<span class="checkmark">✔</span>`
+              : ""
+          }
+        `;
+
+        div.onclick = () => toggleSelect(div, list.name);
+        container.appendChild(div);
+      });
+
+      setTimeout(() => t.sizeTo(document.body).done(), 40);
+    }
+
+    function toggleSelect(el, name) {
+      const index = selected.indexOf(name);
+
+      if (index === -1) {
+        selected.push(name);
+        el.classList.add("selected");
+        el.innerHTML = `<span>${name}</span><span class="checkmark">✔</span>`;
+      } else {
+        selected.splice(index, 1);
+        el.classList.remove("selected");
+        el.innerHTML = `<span>${name}</span>`;
+      }
+    }
+
+    document.getElementById("saveBtn").onclick = async () => {
+      await t.set("board", "shared", "autoTrackLists", selected);
+      t.closePopup({ selectedLists: selected });
+    };
+
+    loadLists();
+  </script>
+</body>
+</html>

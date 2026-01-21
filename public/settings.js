@@ -1,358 +1,177 @@
-import { useState, useEffect } from "react";
-import ReactDOM from "react-dom/client";
+const t = TrelloPowerUp.iframe();
 
-function formatTime(sec) {
+let elapsed = 0;
+let estimated = 8 * 3600;
+let running = false;
+let startTime = null;
+let auto = false;
+
+let interval = null;
+
+/* Format HH:MM:SS */
+function format(sec) {
   const h = String(Math.floor(sec / 3600)).padStart(2, "0");
   const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
   const s = String(sec % 60).padStart(2, "0");
   return `${h}:${m}:${s}`;
 }
 
-function parseTime(str) {
-  const p = str.split(":").map(Number);
-  if (p.length !== 3) return 8 * 3600;
-  return p[0] * 3600 + p[1] * 60 + p[2];
+/* Load everything */
+(async function load() {
+  const board = await t.get("board", "shared") || {};
+  const card = await t.get("card", "shared") || {};
+
+  elapsed = card.elapsed || 0;
+  estimated = card.estimated || 8 * 3600;
+  running = card.running || false;
+  startTime = card.startTime || null;
+  auto = card.auto || false;
+
+  document.getElementById("elapsedLabel").textContent = format(elapsed);
+  document.getElementById("trackerElapsed").textContent = format(elapsed);
+  document.getElementById("estimatedDisplay").textContent = format(estimated) + " ✏️";
+
+  document.getElementById("autoTrack").checked = auto;
+  document.getElementById("hideBadges").checked = board.hideBadges || false;
+  document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+  document.getElementById("hideBars").checked = board.hideProgressBars || false;
+  document.getElementById("focusMode").checked = board.autoFocus || false;
+  document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+
+  if (running) startTick();
+
+  setTimeout(() => t.sizeTo(document.body).done(), 50);
+})();
+
+/* Save card state */
+function saveCard() {
+  t.set("card", "shared", { elapsed, estimated, running, startTime, auto });
 }
 
-function Settings() {
-  const t = window.TrelloPowerUp.iframe();
+/* Save board settings */
+function saveBoard(key, value) {
+  t.set("board", "shared", key, value)
+    .then(() => t.refresh());
+}
 
-  // BOARD SETTINGS
-  const [hideBadges, setHideBadges] = useState(false);
-  const [hideDetailBadges, setHideDetailBadges] = useState(false);
-  const [hideProgressBars, setHideProgressBars] = useState(false);
-  const [autoFocusMode, setAutoFocusMode] = useState(false);
+/* Timer tick */
+function startTick() {
+  if (interval) return;
 
-  // ⭐ Auto Track Mode (off | open | list | both)
-  const [autoTrackMode, setAutoTrackMode] = useState("off");
-
-  // CARD TRACKER STATE
-  const [collapsed, setCollapsed] = useState(true);
-  const [elapsed, setElapsed] = useState(0);
-  const [estimated, setEstimated] = useState(8 * 3600);
-  const [running, setRunning] = useState(false);
-  const [startTime, setStartTime] = useState(null);
-  const [autoTrack, setAutoTrack] = useState(false);
-
-  const [editEst, setEditEst] = useState(false);
-  const [estInput, setEstInput] = useState("08:00:00");
-  const [loading, setLoading] = useState(true);
-
-  // LOAD SETTINGS
-  useEffect(() => {
-    Promise.all([
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "autoFocus"),
-      t.get("board", "shared", "autoTrackMode"),
-      t.get("card", "shared"),
-    ]).then(([b1, b2, b3, autoF, mode, card]) => {
-      setHideBadges(b1 || false);
-      setHideDetailBadges(b2 || false);
-      setHideProgressBars(b3 || false);
-      setAutoFocusMode(autoF || false);
-      setAutoTrackMode(mode || "off");
-
-      if (card) {
-        setElapsed(card.elapsed || 0);
-        setEstimated(card.estimated || 8 * 3600);
-        setRunning(card.running || false);
-        setStartTime(card.startTime || null);
-        setAutoTrack(card.auto || false);
-        setEstInput(formatTime(card.estimated || 8 * 3600));
-      }
-
-      setLoading(false);
-
-      if (card?.running) startTicker();
-    });
-  }, []);
-
-  // LIVE TIMER
-  function startTicker() {
-    setInterval(() => {
-      if (!running || !startTime) return;
-      const sec = elapsed + Math.floor((Date.now() - startTime) / 1000);
-      const label = document.getElementById("elapsedLive");
-      if (label) label.textContent = formatTime(sec);
-    }, 1000);
-  }
-
-  function saveTracker() {
-    t.set("card", "shared", {
-      elapsed,
-      estimated,
-      running,
-      startTime,
-      auto: autoTrack,
-    });
-  }
-
-  function toggleTimer() {
+  interval = setInterval(() => {
     if (running) {
       const now = Date.now();
-      setElapsed(elapsed + Math.floor((now - startTime) / 1000));
-      setRunning(false);
-      setStartTime(null);
-      t.set("card", "shared", "focusMode", false);
-    } else {
-      setRunning(true);
-      setStartTime(Date.now());
-      startTicker();
-
-      t.get("board", "shared", "autoFocus").then((auto) => {
-        if (auto) t.set("card", "shared", "focusMode", true);
-      });
+      const live = elapsed + Math.floor((now - startTime) / 1000);
+      document.getElementById("elapsedLabel").textContent = format(live);
+      document.getElementById("trackerElapsed").textContent = format(live);
     }
-
-    setTimeout(saveTracker, 50);
-  }
-
-  function resetTimer() {
-    setElapsed(0);
-    setRunning(false);
-    setStartTime(null);
-    saveTracker();
-  }
-
-  function saveEstimated() {
-    const sec = parseTime(estInput);
-    setEstimated(sec);
-    setEditEst(false);
-    saveTracker();
-  }
-
-  function saveBoard(key, value) {
-    return t.set("board", "shared", key, value).then(() => t.refresh());
-  }
-
-  // 🚀 Auto Track Mode Handler
-  async function handleAutoTrackChange(value) {
-    setAutoTrackMode(value);
-    await t.set("board", "shared", "autoTrackMode", value);
-
-    if (value === "list" || value === "both") {
-      return t.popup({
-        title: "Select Lists for Auto Tracking",
-        url: "./auto-track-lists.html",
-        height: 350,
-      });
-    }
-  }
-
-  async function handleUnauthorize() {
-    if (!window.confirm("Remove all data?")) return;
-
-    await t.set("board", "shared", null);
-    await t.set("card", "shared", null);
-    await t.set("member", "private", null);
-    await t.remove("member", "private", "authorized");
-    t.closePopup();
-  }
-
-  const liveElapsed =
-    running && startTime
-      ? elapsed + Math.floor((Date.now() - startTime) / 1000)
-      : elapsed;
-
-  if (loading) return <p>Loading…</p>;
-
-  return (
-    <div className="settings-container">
-      {/* HEADER */}
-      <div className="settings-header">
-        <div className="header-icon">⚙️</div>
-        <h1 className="header-title">Progress Settings</h1>
-      </div>
-
-      {/* ========== TIME TRACKER ========== */}
-      <div className="settings-section">
-        <div
-          className="setting-item"
-          style={{ cursor: "pointer", justifyContent: "space-between" }}
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <span className="setting-label">
-            {collapsed ? "⯈" : "⯆"} Time Tracker
-          </span>
-          <span>{formatTime(liveElapsed)}</span>
-        </div>
-
-        {!collapsed && (
-          <div className="time-box" style={{ marginTop: 12 }}>
-            <div className="time-row">
-              <div>
-                <div style={{ opacity: 0.6 }}>Elapsed</div>
-                <div id="elapsedLive" className="elapsed">
-                  {formatTime(liveElapsed)}
-                </div>
-              </div>
-
-              <div>
-                <div style={{ opacity: 0.6 }}>Estimated</div>
-                {!editEst ? (
-                  <div
-                    className="estimated"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setEditEst(true)}
-                  >
-                    {formatTime(estimated)} ✏️
-                  </div>
-                ) : (
-                  <input
-                    value={estInput}
-                    onChange={(e) => setEstInput(e.target.value)}
-                    onBlur={saveEstimated}
-                    style={{
-                      width: "90px",
-                      background: "#333",
-                      padding: 4,
-                      textAlign: "center",
-                      borderRadius: 4,
-                      color: "white",
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <button className="track-btn" onClick={toggleTimer}>
-              {running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-            </button>
-
-            <button className="reset-btn" onClick={resetTimer}>
-              Reset
-            </button>
-
-            <div className="auto-row">
-              Enable automatic tracking
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={autoTrack}
-                  onChange={(e) => {
-                    setAutoTrack(e.target.checked);
-                    saveTracker();
-                  }}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ========== OTHER SETTINGS ========== */}
-      <div className="settings-section">
-        {/* Hide Badges */}
-        <div className="setting-item">
-          <div className="setting-content">
-            <span className="setting-label">Hide card badges</span>
-          </div>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={hideBadges}
-              onChange={(e) => {
-                setHideBadges(e.target.checked);
-                saveBoard("hideBadges", e.target.checked);
-              }}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        {/* Hide Detail Badges */}
-        <div className="setting-item">
-          <div className="setting-content">
-            <span className="setting-label">Hide card detail badges</span>
-          </div>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={hideDetailBadges}
-              onChange={(e) => {
-                setHideDetailBadges(e.target.checked);
-                saveBoard("hideDetailBadges", e.target.checked);
-              }}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        {/* Hide Progress Bars */}
-        <div className="setting-item">
-          <div className="setting-content">
-            <span className="setting-label">Hide progress bar on cards</span>
-          </div>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={hideProgressBars}
-              onChange={(e) => {
-                setHideProgressBars(e.target.checked);
-                saveBoard("hideProgressBars", e.target.checked);
-              }}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        {/* Focus Mode */}
-        <div className="setting-item">
-          <div className="setting-content">
-            <span className="setting-label">Auto-enable Focus Mode</span>
-          </div>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={autoFocusMode}
-              onChange={(e) => {
-                setAutoFocusMode(e.target.checked);
-                saveBoard("autoFocus", e.target.checked);
-              }}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        {/* ⭐ AUTO TRACK MODE */}
-        <div className="setting-item">
-          <div className="setting-content">
-            <span className="setting-label">Auto Tracking Mode</span>
-          </div>
-
-          <select
-            value={autoTrackMode}
-            onChange={(e) => handleAutoTrackChange(e.target.value)}
-            style={{
-              padding: "6px 10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              fontSize: "13px",
-            }}
-          >
-            <option value="off">Off</option>
-            <option value="open">On card open</option>
-            <option value="list">On list move</option>
-            <option value="both">Both</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Unauthorize */}
-      <div className="settings-section">
-        <h2 className="section-title unauthorized-title">
-          Unauthorize Power-Up
-        </h2>
-        <button className="remove-btn" onClick={handleUnauthorize}>
-          <span className="remove-icon">⚠️</span>
-          Remove
-        </button>
-      </div>
-    </div>
-  );
+  }, 1000);
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<Settings />);
+/* Toggle Timer */
+document.getElementById("trackBtn").onclick = () => {
+  if (running) {
+    elapsed += Math.floor((Date.now() - startTime) / 1000);
+    running = false;
+    startTime = null;
+  } else {
+    running = true;
+    startTime = Date.now();
+    startTick();
+
+    t.get("board", "shared", "autoFocus").then(f => {
+      if (f) t.set("card", "shared", "focusMode", true);
+    });
+  }
+
+  saveCard();
+  document.getElementById("trackBtn").textContent =
+    running ? "⏸ Stop Tracking" : "▶ Start Tracking";
+};
+
+/* Reset Timer */
+document.getElementById("resetBtn").onclick = () => {
+  elapsed = 0;
+  running = false;
+  startTime = null;
+  saveCard();
+
+  document.getElementById("elapsedLabel").textContent = "00:00:00";
+  document.getElementById("trackerElapsed").textContent = "00:00:00";
+};
+
+/* Collapsible Time Tracker */
+document.getElementById("trackerHeader").onclick = () => {
+  const box = document.getElementById("trackerBox");
+  const arrow = document.getElementById("arrow");
+
+  if (box.style.display === "none") {
+    box.style.display = "block";
+    arrow.textContent = "⯆";
+  } else {
+    box.style.display = "none";
+    arrow.textContent = "⯈";
+  }
+
+  setTimeout(() => t.sizeTo(document.body).done(), 40);
+};
+
+/* Edit Estimated */
+document.getElementById("estimatedDisplay").onclick = () => {
+  document.getElementById("estimatedDisplay").style.display = "none";
+  const input = document.getElementById("estimatedInput");
+
+  input.style.display = "block";
+  input.value = format(estimated);
+  input.focus();
+};
+
+document.getElementById("estimatedInput").onblur = () => {
+  const raw = document.getElementById("estimatedInput").value.trim();
+  const [h, m, s] = raw.split(":").map(Number);
+  estimated = h * 3600 + m * 60 + s;
+
+  saveCard();
+
+  document.getElementById("estimatedDisplay").textContent = raw + " ✏️";
+  document.getElementById("estimatedDisplay").style.display = "block";
+  document.getElementById("estimatedInput").style.display = "none";
+};
+
+/* Board Toggle Settings */
+document.getElementById("hideBadges").onchange = e => saveBoard("hideBadges", e.target.checked);
+document.getElementById("hideDetail").onchange = e => saveBoard("hideDetailBadges", e.target.checked);
+document.getElementById("hideBars").onchange = e => saveBoard("hideProgressBars", e.target.checked);
+document.getElementById("focusMode").onchange = e => saveBoard("autoFocus", e.target.checked);
+
+/* Auto Tracking Mode */
+document.getElementById("autoTrackMode").onchange = e => {
+  const mode = e.target.value;
+  saveBoard("autoTrackMode", mode).then(() => {
+    if (mode === "list" || mode === "both") {
+      t.popup({
+        title: "Select Lists",
+        url: "./auto-track-lists.html",
+        height: 360
+      });
+    }
+  });
+};
+
+/* Auto per-card toggle */
+document.getElementById("autoTrack").onchange = e => {
+  auto = e.target.checked;
+  saveCard();
+};
+
+/* Remove Power-Up */
+document.getElementById("removeBtn").onclick = async () => {
+  if (!confirm("Remove this power-up and delete all stored data?")) return;
+
+  await t.set("board", "shared", null);
+  await t.set("card", "shared", null);
+  await t.set("member", "private", null);
+  await t.remove("member", "private", "authorized");
+
+  t.closePopup();
+};
