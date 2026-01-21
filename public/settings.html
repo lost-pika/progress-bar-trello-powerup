@@ -257,8 +257,12 @@
       }
 
       /* Fix row spacing now that box is removed */
+      /* Make Elapsed & Estimated side-by-side again */
       #trackerBox .time-row {
-        margin-bottom: 10px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
       }
 
       /* Keep your teal + red buttons */
