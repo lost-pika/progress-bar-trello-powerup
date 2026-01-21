@@ -21,10 +21,6 @@ function computeElapsed(data) {
 }
 
 TrelloPowerUp.initialize({
-
-  /* -------------------------
-     BOARD BUTTON (SETTINGS)
-  -------------------------- */
   "board-buttons": function (t) {
     return [
       {
@@ -33,7 +29,7 @@ TrelloPowerUp.initialize({
         callback: function () {
           return t.popup({
             title: "Progress Settings",
-            url: t.signUrl("./dist/settings.html"),   // ✅ FIXED
+            url: t.signUrl("./dist/settings.html"),
             height: 620,
           });
         },
@@ -41,31 +37,24 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* -------------------------
-     CARD BACK SECTION UI
-  -------------------------- */
   "card-back-section": function (t) {
     return {
       title: "Progress",
       icon: ICON,
       content: {
         type: "iframe",
-        url: t.signUrl("./dist/card-progress.html"),   // ✅ FIXED
+        url: t.signUrl("./dist/card-progress.html"),
         height: 180,
       },
     };
   },
 
-  /* -------------------------
-     CARD BADGES
-  -------------------------- */
   "card-badges": function (t) {
     return Promise.all([
       t.get("card", "shared"),
       t.get("board", "shared", "hideBadges"),
       t.get("board", "shared", "hideProgressBars"),
     ]).then(([data, hideBadges, hideBars]) => {
-
       if (hideBadges) return [];
       if (!data) return [];
 
@@ -88,7 +77,7 @@ TrelloPowerUp.initialize({
           t.get("card", "shared").then((cd) => ({
             text: cd
               ? `⏱ ${formatHM(computeElapsed(cd))} | Est ${formatHM(
-                  cd.estimated || 28800
+                  cd.estimated || 28800,
                 )}`
               : "",
             color: "blue",
@@ -100,9 +89,6 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* -------------------------
-     CARD DETAIL BADGES
-  -------------------------- */
   "card-detail-badges": function (t) {
     return Promise.all([
       t.get("card", "shared", "progress"),
@@ -110,7 +96,6 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideDetailBadges"),
       t.get("board", "shared", "hideProgressBars"),
     ]).then(([progress, focusMode, hideDetails, hideBars]) => {
-
       if (hideDetails) return [];
 
       const badges = [];
@@ -132,9 +117,6 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* -------------------------
-     OPEN CARD BUTTON
-  -------------------------- */
   "card-buttons": function (t) {
     return [
       {
@@ -161,21 +143,16 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* -------------------------
-     AUTO-TRACK + RESTART POPUP
-  -------------------------- */
   "card-moved": function (t, opts) {
     return Promise.all([
       t.get("card", "shared"),
       t.get("board", "shared", "autoTrackMode"),
       t.get("board", "shared", "autoTrackLists"),
     ]).then(([data, mode, lists]) => {
-
       if (!data) return;
       if (mode !== "list" && mode !== "both") return;
       if (!lists?.includes(opts.to.list)) return;
 
-      // Auto start
       if (!data.running) {
         return t.set("card", "shared", {
           ...data,
@@ -184,16 +161,16 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // Restart popup
       return t
         .popup({
           title: "Restart Timer?",
-          url: t.signUrl("./dist/confirm-restart.html"),   // ✅ FIXED
+          url: t.signUrl("./dist/confirm-restart.html"),
           height: 150,
           args: { cardData: data },
         })
         .then((result) => {
           if (!result?.restart) return;
+
           return t.set("card", "shared", {
             ...data,
             elapsed: 0,
@@ -204,9 +181,6 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* -------------------------
-     AUTH
-  -------------------------- */
   "authorization-status": (t) =>
     t.get("member", "private", "authorized").then((auth) => ({
       authorized: auth === true,
