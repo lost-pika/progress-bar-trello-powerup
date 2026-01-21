@@ -3,6 +3,13 @@
 var ICON = "https://cdn-icons-png.flaticon.com/512/992/992651.png";
 var Promise = TrelloPowerUp.Promise;
 
+// 🔥 ADD THIS FUNCTION HERE
+function makeBar(pct) {
+  const total = 10;
+  const filled = Math.round((pct / 100) * total);
+  return "█".repeat(filled) + "▒".repeat(total - filled);
+}
+
 TrelloPowerUp.initialize({
   // SETTINGS BUTTON
   "board-buttons": function (t) {
@@ -46,33 +53,23 @@ TrelloPowerUp.initialize({
 
   // CARD BADGES (front) - Shows on card in board view
   "card-badges": function (t, opts) {
-    return Promise.all([
-      t.get("card", "shared", "progress"),
-      t.get("board", "shared", "hideBadges"),
-    ]).then(function ([progress, hideBadges]) {
-      // If hide badges is ON, don't show anything
-      if (hideBadges) {
-        return [];
-      }
+  return t.get("card", "shared", "progress")
+    .then(function (progress) {
 
-      // If progress exists and is a valid number
-      if (progress !== undefined && progress !== null && progress !== "") {
-        const pct = Math.max(0, Math.min(parseInt(progress), 100));
+      if (!progress && progress !== 0) return [];
 
-        return [
-          {
-            text: pct + "%",
-            color: "blue",
-            dynamic: function () {
-              return [{ text: pct + "%" }];
-            },
-          },
-        ];
-      }
+      const pct = Math.max(0, Math.min(parseInt(progress), 100));
+      const bar = makeBar(pct);
 
-      return [];
+      return [
+        {
+          text: `${pct}% ${bar}`,
+          color: "blue",
+        }
+      ];
     });
-  },
+},
+
 
   // CARD DETAIL BADGES - Shows in expanded card view
   "card-detail-badges": function (t, opts) {
