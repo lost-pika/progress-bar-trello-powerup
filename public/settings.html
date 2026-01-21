@@ -5,6 +5,7 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
+      /* RESET */
       * {
         margin: 0;
         padding: 0;
@@ -20,10 +21,9 @@
 
       /* MAIN WRAPPER */
       .settings-wrapper {
-  padding: 20px;
-  background: transparent !important;
-}
-
+        padding: 20px;
+        background: transparent !important;
+      }
 
       /* HEADER */
       .settings-header {
@@ -31,7 +31,7 @@
         align-items: center;
         gap: 10px;
         margin-bottom: 22px;
-        padding-bottom: 10px;
+        padding-bottom: 6px;
         border-bottom: 1px solid #3a3a3d;
       }
 
@@ -40,7 +40,7 @@
       }
 
       h1 {
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 600;
         color: #ffffff;
       }
@@ -57,25 +57,19 @@
         color: #ddd;
       }
 
-      #arrow {
-        font-size: 17px;
-        opacity: 0.85;
-      }
-
       /* TIME TRACKER BOX */
       #trackerBox {
         background: #2a2a2e;
         border: 1px solid #3d3d42;
         padding: 16px;
-        border-radius: 10px;
-        margin-top: 8px;
+        border-radius: 8px;
+        margin-top: 10px;
         margin-bottom: 22px;
       }
 
       .time-row {
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
         margin-bottom: 12px;
       }
 
@@ -95,15 +89,15 @@
         font-size: 18px;
         cursor: pointer;
         text-align: right;
-        color: #9cd1ff;
+        color: #aee1ff;
       }
 
       #estimatedInput {
         display: none;
         width: 95px;
         padding: 5px;
-        text-align: center;
         margin-top: 4px;
+        text-align: center;
         border-radius: 6px;
         border: 1px solid #606060;
         background: #1a1a1c;
@@ -116,12 +110,12 @@
         padding: 12px;
         background: #1ba8ff;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         color: white;
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
 
       .reset-btn {
@@ -129,21 +123,23 @@
         padding: 10px;
         background: #ef5350;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         color: white;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
 
       /* SECTION */
       .section {
-        margin-bottom: 22px;
-        padding-bottom: 14px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
         border-bottom: 1px solid #3a3a3d;
       }
 
+      /* ITEM — TEXT + DESCRIPTION + TOGGLE */
       .item {
         display: flex;
         justify-content: space-between;
@@ -151,16 +147,21 @@
         padding: 14px 0;
       }
 
+      .item > div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
       .item .label {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 500;
-        color: #fff;
+        color: #ffffff;
       }
 
       .item .desc {
         font-size: 12px;
-        opacity: 0.55;
-        margin-top: 2px;
+        opacity: 0.6;
       }
 
       /* DROPDOWN */
@@ -179,38 +180,34 @@
       }
 
       .toggle-slider {
-  width: 44px;
-  height: 24px;
-  background: #b0b0b0; /* lighter track so it is visible */
-  border-radius: 24px;
-  position: relative;
-  transition: 0.25s ease;
-  border: 1px solid #e0e0e0;
-}
+        width: 44px;
+        height: 24px;
+        background: #8e8e8e; /* visible light-grey track */
+        border-radius: 24px;
+        position: relative;
+        transition: 0.25s ease;
+      }
 
-.toggle-slider::after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  background: white;
-  position: absolute;
-  top: 1.5px;
-  left: 2px;
-  border-radius: 50%;
-  transition: 0.25s ease;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
-}
+      .toggle-slider::after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        background: #ffffff;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        border-radius: 50%;
+        transition: 0.25s ease;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+      }
 
-/* active state */
-input:checked + .toggle-slider {
-  background: #4cc9f0;   /* bright cyan like Trello */
-  border-color: #4cc9f0;
-}
+      input:checked + .toggle-slider {
+        background: #00c2ff;
+      }
 
-input:checked + .toggle-slider::after {
-  transform: translateX(20px);
-}
-
+      input:checked + .toggle-slider::after {
+        transform: translateX(20px);
+      }
 
       /* REMOVE BUTTON */
       .remove-btn {
@@ -218,11 +215,11 @@ input:checked + .toggle-slider::after {
         padding: 12px;
         border: 2px solid #ff6b6b;
         border-radius: 8px;
-        background: #2a2a2e;
+        background: transparent;
         color: #ff6b6b;
         font-weight: 600;
         cursor: pointer;
-        margin-top: 15px;
+        margin-top: 20px;
         margin-bottom: 30px;
       }
     </style>
