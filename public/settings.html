@@ -5,207 +5,208 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      /* RESET */
-      /* RESET */
-      /* RESET */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+      //* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", sans-serif;
-        background: transparent !important;
-        color: #ffffff;
-      }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: transparent !important;
+  color: #ffffff;
+}
 
-      /* WRAPPER */
-      .settings-wrapper {
-        padding: 20px;
-      }
+/* WRAPPER (INCREASED WIDTH) */
+.settings-wrapper {
+  padding: 20px;
+  width: 350px; /* increased from default — adjust as needed */
+  max-width: 100%;
+}
 
-      /* HEADER */
-      .settings-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 22px;
-      }
+/* HEADER */
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
 
-      .settings-header .icon {
-        font-size: 24px; /* +2 */
-      }
+.settings-header .icon {
+  font-size: 24px;
+}
 
-      .settings-header h1 {
-        font-size: 19px; /* was 17 → +2 */
-        font-weight: 600;
-      }
+.settings-header h1 {
+  font-size: 19px;
+  font-weight: 600;
+}
 
-      /* COLLAPSIBLE */
-      .collapsible {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 0;
-        font-size: 17px; /* was 15 → +2 */
-        font-weight: 600;
-        cursor: pointer;
-      }
+/* COLLAPSIBLE */
+.collapsible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
-      /* TIME TRACKER BOX */
-      #trackerBox {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 14px;
-        border-radius: 8px;
-        margin-top: 10px;
-      }
+/* TIME TRACKER BOX */
+#trackerBox {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
 
-      .time-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 
-      .elapsed-label,
-      .estimated-label {
-        font-size: 14px; /* was 12 → +2 */
-        opacity: 0.7;
-      }
+.elapsed-label,
+.estimated-label {
+  font-size: 14px;
+  opacity: 0.7;
+}
 
-      .elapsed {
-        font-size: 24px; /* was 22 → +2 */
-        font-weight: 600;
-      }
+.elapsed {
+  font-size: 24px;
+  font-weight: 600;
+}
 
-      .estimated {
-        font-size: 18px; /* was 16 → +2 */
-        cursor: pointer;
-      }
+.estimated {
+  font-size: 18px;
+  cursor: pointer;
+}
 
-      #estimatedInput {
-        display: none;
-        width: 95px;
-        padding: 4px;
-        margin-top: 4px;
-        font-size: 16px; /* +2 */
-      }
+#estimatedInput {
+  display: none;
+  width: 95px;
+  padding: 4px;
+  margin-top: 4px;
+  font-size: 16px;
+}
 
-      /* BUTTONS */
-      .track-btn {
-        width: 100%;
-        padding: 14px; /* visually balanced */
-        border-radius: 6px;
-        background: #00d1ff;
-        border: none;
-        color: #000;
-        margin-bottom: 10px;
-        font-size: 16px; /* was 14 → +2 */
-        font-weight: 600;
-      }
+/* BUTTONS */
+.track-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 6px;
+  background: #00d1ff;
+  border: none;
+  color: #000;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
 
-      .reset-btn {
-        width: 100%;
-        padding: 12px;
-        border-radius: 6px;
-        background: #ff4d4d;
-        border: none;
-        color: white;
-        margin-bottom: 10px;
-        font-size: 15px; /* was 13 → +2 */
-        font-weight: 600;
-      }
+.reset-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
 
-      /* SECTIONS */
-      .section {
-        margin-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
+/* SECTIONS */
+.section {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
 
-      /* ITEM ROW */
-      .item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 0; /* slightly increased for bigger text */
-      }
+/* ITEMS (VERTICAL GAP REDUCED by 1px → 15px) */
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0; /* was 16px */
+}
 
-      /* TEXT */
-      .label {
-        font-size: 16px; /* was 14 → +2 */
-        font-weight: 500;
-      }
+/* ITEM TEXT */
+.label {
+  font-size: 16px;
+  font-weight: 500;
+}
 
-      .desc {
-        font-size: 14px; /* was 12 → +2 */
-        opacity: 0.7;
-      }
+.desc {
+  font-size: 14px;
+  opacity: 0.7;
+}
 
-      /* TOGGLE */
-      .toggle {
-        display: inline-flex;
-        align-items: center;
-      }
+/* TOGGLE (ADDED MORE GAP BETWEEN TEXT & TOGGLE) */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 14px; /* INCREASED GAP HERE */
+}
 
-      .toggle input {
-        display: none;
-      }
+.toggle input {
+  display: none;
+}
 
-      .toggle-slider {
-        width: 48px; /* +4 so the knob fits perfectly */
-        height: 26px; /* +2 */
-        background: #666;
-        border-radius: 30px;
-        position: relative;
-        transition: 0.2s;
-      }
+/* TOGGLE SLIDER */
+.toggle-slider {
+  width: 48px;
+  height: 26px;
+  background: #666;
+  border-radius: 30px;
+  position: relative;
+  transition: 0.2s;
+}
 
-      .toggle-slider::after {
-        content: "";
-        width: 22px; /* +2 */
-        height: 22px; /* +2 */
-        background: white;
-        border-radius: 50%;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        transition: 0.25s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-      }
+.toggle-slider::after {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
 
-      .toggle input:checked + .toggle-slider {
-        background: #00c2ff;
-      }
+.toggle input:checked + .toggle-slider {
+  background: #00c2ff;
+}
 
-      .toggle input:checked + .toggle-slider::after {
-        transform: translateX(22px); /* adjusted for size */
-      }
+.toggle input:checked + .toggle-slider::after {
+  transform: translateX(22px);
+}
 
-      /* DROPDOWN */
-      select {
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        border-radius: 6px;
-        font-size: 16px; /* was 14 → +2 */
-      }
+/* DROPDOWN */
+select {
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 6px;
+  font-size: 16px;
+}
 
-      /* REMOVE BUTTON */
-      .remove-btn {
-        width: 100%;
-        padding: 14px;
-        background: transparent;
-        border: 2px solid #ff6b6b;
-        border-radius: 6px;
-        color: #ff6b6b;
-        font-size: 15px; /* was 13 → +2 */
-        font-weight: 600;
-        margin-top: 22px;
-      }
+/* REMOVE BUTTON */
+.remove-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid #ff6b6b;
+  border-radius: 6px;
+  color: #ff6b6b;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 22px;
+}
+
     </style>
   </head>
 
