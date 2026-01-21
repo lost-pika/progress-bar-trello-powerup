@@ -116,4 +116,4 @@ function AutoTrackLists() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<AutoTrackLists />);
+export default AutoTrackLists;

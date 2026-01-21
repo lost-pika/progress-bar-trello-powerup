@@ -309,6 +309,4 @@ function CardDetailProgress() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <CardDetailProgress />
-);
+export default CardDetailProgress;

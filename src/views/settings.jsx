@@ -438,4 +438,5 @@ function Settings() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<Settings />);
+
+export default Settings;

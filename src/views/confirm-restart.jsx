@@ -85,4 +85,4 @@ function ConfirmRestart() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<ConfirmRestart />);
+export default ConfirmRestart;
