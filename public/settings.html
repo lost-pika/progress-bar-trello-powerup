@@ -20,9 +20,10 @@
 
       /* MAIN WRAPPER */
       .settings-wrapper {
-        padding: 20px;
-        background: #1f1f22;
-      }
+  padding: 20px;
+  background: transparent !important;
+}
+
 
       /* HEADER */
       .settings-header {
@@ -178,33 +179,38 @@
       }
 
       .toggle-slider {
-        width: 44px;
-        height: 24px;
-        background: #3a3a3d;
-        border-radius: 24px;
-        position: relative;
-        transition: 0.25s ease;
-      }
+  width: 44px;
+  height: 24px;
+  background: #b0b0b0; /* lighter track so it is visible */
+  border-radius: 24px;
+  position: relative;
+  transition: 0.25s ease;
+  border: 1px solid #e0e0e0;
+}
 
-      .toggle-slider::after {
-        content: "";
-        width: 20px;
-        height: 20px;
-        background: #fff;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        border-radius: 50%;
-        transition: 0.25s ease;
-      }
+.toggle-slider::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: white;
+  position: absolute;
+  top: 1.5px;
+  left: 2px;
+  border-radius: 50%;
+  transition: 0.25s ease;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+}
 
-      input:checked + .toggle-slider {
-        background: #31c48d;
-      }
+/* active state */
+input:checked + .toggle-slider {
+  background: #4cc9f0;   /* bright cyan like Trello */
+  border-color: #4cc9f0;
+}
 
-      input:checked + .toggle-slider::after {
-        transform: translateX(20px);
-      }
+input:checked + .toggle-slider::after {
+  transform: translateX(20px);
+}
+
 
       /* REMOVE BUTTON */
       .remove-btn {
