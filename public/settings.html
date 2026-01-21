@@ -218,100 +218,63 @@ select {
   margin-left: 6px !important;
 }
 
-/* ============================================================
-   RESTORE ORIGINAL COLORFUL TIME-TRACKER UI
-   ============================================================ */
+/* -----------------------------------------
+   REMOVE the colored/card box from Time Tracker
+------------------------------------------ */
 
-/* Restore the original card-like colorful box */
+/* Remove background & border */
 #trackerBox {
-  background: rgba(52, 199, 255, 0.12) !important;  /* light cyan tint */
-  border: 1px solid rgba(52, 199, 255, 0.25) !important;
-  border-radius: 10px !important;
-  padding: 16px !important;
-  margin-top: 12px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 8px !important;
+
+  /* For smooth animation */
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    max-height 0.35s ease,
+    opacity 0.35s ease,
+    transform 0.35s ease;
 }
 
-/* Header label colors */
-#trackerHeader {
-  font-size: 16px !important;
-  color: #e3f7ff !important;
-  font-weight: 600 !important;
+/* When expanded → animate open smoothly */
+#trackerBox.open {
+  max-height: 500px;       /* enough for full content */
+  opacity: 1;
+  transform: translateY(0);
+  padding: 14px 0 !important; /* restore vertical spacing */
 }
 
-/* Elapsed and Estimated labels */
-#trackerBox .elapsed-label,
-#trackerBox .estimated-label {
-  font-size: 13px !important;
-  opacity: 0.85 !important;
-  color: #d6f2ff !important;
+/* Fix row spacing now that box is removed */
+#trackerBox .time-row {
+  margin-bottom: 10px !important;
 }
 
-/* Time values (bold, white) */
-#trackerBox .elapsed,
-#trackerBox .estimated {
-  color: #ffffff !important;
-  font-weight: 700 !important;
-}
-
-/* Pencil icon stays colorful */
-#estimatedDisplay {
-  color: #ffd35a !important;
-}
-
-/* ==== BUTTONS (restore your exact original design) === */
-
+/* Keep your teal + red buttons */
 #trackBtn {
-  width: 100% !important;
-  background: #22d3c5 !important;     /* your old teal button */
-  color: #0c1f25 !important;
-  border-radius: 6px !important;
+  background: #22d3c5 !important;
+  color: #012629 !important;
   padding: 12px !important;
+  border-radius: 6px !important;
   font-weight: 600 !important;
   border: none !important;
-  margin-top: 6px !important;
+  width: 100% !important;
+  margin-bottom: 10px !important;
 }
 
 #resetBtn {
-  width: 100% !important;
-  background: #e74c3c !important;      /* your old red reset button */
+  background: #e74c3c !important;
   color: white !important;
+  padding: 12px !important;
   border-radius: 6px !important;
-  padding: 10px !important;
   font-weight: 600 !important;
   border: none !important;
-  margin-top: 10px !important;
-}
-
-/* Fix layout inside tracker — bring back the original flow */
-#trackerBox .time-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: flex-end !important;
+  width: 100% !important;
   margin-bottom: 12px !important;
-}
-
-/* Restore inline edit behavior */
-#estimatedInput {
-  display: none !important;
-  width: 110px !important;
-  padding: 4px !important;
-  margin-top: 4px !important;
-  font-size: 14px !important;
-}
-
-/* Restore toggle color palette inside tracker */
-#trackerBox .toggle-slider {
-  background: #c8c8c8 !important;
-}
-
-#trackerBox input:checked + .toggle-slider {
-  background: #22d3c5 !important; /* teal */
-}
-
-/* Prevent settings spacing from affecting Tracker */
-#trackerBox .item {
-  padding: 10px 0 !important;
-  align-items: center !important;
 }
 
 
