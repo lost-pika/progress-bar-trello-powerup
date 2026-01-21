@@ -6,10 +6,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     rollupOptions: {
-      // ⭐ REQUIRED FIX
-      preserveEntrySignatures: false,
-      preserveModules: false,
-
       input: {
         main: 'index.html',
         cardProgress: 'src/entries/card-progress.html',
@@ -19,7 +15,6 @@ export default defineConfig({
       },
 
       output: {
-        // ⭐ Force HTML output names in root of dist
         entryFileNames: (chunk) => {
           if (chunk.name === 'cardProgress') return 'card-progress.html'
           if (chunk.name === 'settings') return 'settings.html'
@@ -27,11 +22,22 @@ export default defineConfig({
           if (chunk.name === 'autoTrack') return 'auto-track-lists.html'
           return 'index.html'
         },
-
-        // assets
         assetFileNames: 'assets/[name]-[hash].[ext]',
         chunkFileNames: 'assets/[name]-[hash].js',
       },
+
+      plugins: [
+        {
+          name: 'remove-nested-html',
+          generateBundle(_, bundle) {
+            for (const file of Object.keys(bundle)) {
+              if (file.startsWith('src/entries/') && file.endsWith('.html')) {
+                delete bundle[file]
+              }
+            }
+          }
+        }
+      ]
     },
   },
 })
