@@ -32,26 +32,17 @@ TrelloPowerUp.initialize({
 
   // CARD BACK SECTION (iframe) - Detail view progress tracker
   "card-back-section": function (t, opts) {
-    return Promise.all([
-      t.get("card", "shared", "progress"),
-      t.get("board", "shared", "hideDetailBadges"),
-    ]).then(([progress, hideDetailBadges]) => {
-      // Hide card-back module if detail badges are toggled off
-      if (hideDetailBadges) {
-        return null; // Removes the entire section
-      }
+  return {
+    title: "Progress",
+    icon: ICON,
+    content: {
+      type: "iframe",
+      url: t.signUrl("./card-progress.html"),
+      height: 180
+    }
+  };
+},
 
-      return {
-        title: "Progress",
-        icon: ICON,
-        content: {
-          type: "iframe",
-          url: t.signUrl("./card-progress.html"),
-          height: 130,
-        },
-      };
-    });
-  },
 
   // CARD BADGES (front) - Shows on card in board view
  "card-badges": function (t, opts) {
