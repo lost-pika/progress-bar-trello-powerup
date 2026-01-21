@@ -159,6 +159,61 @@ select {
   font-weight: 600;
 }
 
+/* ----------------------------------------
+   FIX FOR TIME-TRACKER SECTION
+   Restores original layout EXACTLY
+----------------------------------------- */
+
+/* Restore normal block flow inside tracker */
+#trackerBox .time-row,
+#trackerBox div,
+#trackerBox button,
+#trackerBox .item {
+  display: block !important;
+}
+
+/* Reset spacing */
+#trackerBox .time-row {
+  margin-bottom: 12px !important;
+}
+
+#trackerBox .elapsed-label,
+#trackerBox .estimated-label {
+  font-size: 14px !important;
+  opacity: 0.7 !important;
+}
+
+#trackerBox .elapsed {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+}
+
+#trackerBox .estimated {
+  font-size: 18px !important;
+}
+
+/* Fix button row */
+#trackerBox #trackBtn,
+#trackerBox #resetBtn {
+  display: inline-block !important;
+  margin-right: 6px !important;
+}
+
+/* Restore toggle alignment in tracker row */
+#trackerBox .item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 0 !important;
+}
+
+/* Prevent wrapping that broke the layout */
+#trackerBox * {
+  white-space: unset !important;
+  flex-wrap: unset !important;
+}
+
+
 
     </style>
   </head>
