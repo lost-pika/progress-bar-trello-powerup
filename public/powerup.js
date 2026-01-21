@@ -33,7 +33,7 @@ TrelloPowerUp.initialize({
         callback: function () {
           return t.popup({
             title: "Progress Settings",
-            url: t.signUrl("./dist/src/views/settings.html"),   // ✅ FIXED
+            url: t.signUrl("./dist/settings.html"),   // ✅ FIXED
             height: 620,
           });
         },
@@ -50,7 +50,7 @@ TrelloPowerUp.initialize({
       icon: ICON,
       content: {
         type: "iframe",
-        url: t.signUrl("./dist/src/views/card-progress.html"),   // ✅ FIXED
+        url: t.signUrl("./dist/card-progress.html"),   // ✅ FIXED
         height: 180,
       },
     };
@@ -188,7 +188,7 @@ TrelloPowerUp.initialize({
       return t
         .popup({
           title: "Restart Timer?",
-          url: t.signUrl("./dist/src/views/confirm-restart.html"),   // ✅ FIXED
+          url: t.signUrl("./dist/confirm-restart.html"),   // ✅ FIXED
           height: 150,
           args: { cardData: data },
         })
