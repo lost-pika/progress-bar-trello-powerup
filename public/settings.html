@@ -62,37 +62,33 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      /* ITEM — PERFECT TRELL0-STYLE SPACING */
+      /* ITEM BLOCKS */
       .item {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start; /* <— IMPORTANT: lets text wrap to 2 lines */
-        gap: 12px; /* space between content & toggle */
+        align-items: flex-start;
+        gap: 12px;
         padding: 15px 0;
       }
 
-      /* CONTENT WRAPPER (LABEL + DESCRIPTION) */
       .item > div {
         display: flex;
         flex-direction: column;
         gap: 3px;
         flex: 1;
-        min-width: 0; /* Required so wrapping works properly */
+        min-width: 0;
       }
 
       .label {
         font-size: 15px;
         font-weight: 500;
         line-height: 1.35;
-        color: #ffffff;
-        white-space: normal; /* allow wrapping */
       }
 
       .desc {
         font-size: 13px;
         opacity: 0.75;
         line-height: 1.32;
-        white-space: normal; /* allow wrapping */
       }
 
       /* TOGGLE */
@@ -100,14 +96,13 @@
         display: flex;
         align-items: center;
         flex-shrink: 0;
-        margin-top: 3px; /* aligns with label vertically */
+        margin-top: 3px;
       }
 
       .toggle input {
         display: none;
       }
 
-      /* TOGGLE VISUAL */
       .toggle-slider {
         width: 46px;
         height: 24px;
@@ -161,111 +156,47 @@
         font-weight: 600;
       }
 
-      /* ------------------------------------------------------------
-   RESTORE COLORFUL ORIGINAL TIME TRACKER STYLING
-   ------------------------------------------------------------ */
+      /* -----------------------------
+         TIME TRACKER CLEAN + SMOOTH
+      ------------------------------ */
 
-      /* Tracker box — light card background */
       #trackerBox {
-        background: rgba(
-          71,
-          85,
-          105,
-          0.32
-        ) !important; /* slate/turquoise tint */
-        border: 1px solid rgba(148, 163, 184, 0.35) !important;
-        border-radius: 10px !important;
-        padding: 16px !important;
-        margin-top: 10px !important;
-      }
-
-      /* Title and elapsed label */
-      #trackerHeader {
-        color: #ddecf8 !important; /* soft bluish text */
-        font-weight: 600 !important;
-      }
-
-      /* Elapsed & Estimated labels */
-      #trackerBox .elapsed-label,
-      #trackerBox .estimated-label {
-        color: #bcd2e6 !important; /* soft pastel blue */
-        font-weight: 500 !important;
-      }
-
-      /* Actual time values */
-      #trackerBox .elapsed,
-      #trackerBox .estimated {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-      }
-
-      /* Pencil icon highlight */
-      #estimatedDisplay {
-        color: #ffd45a !important; /* warm highlight */
-      }
-
-      /* Buttons — restore your colourful UI */
-      #trackBtn {
-        background: #34d1c8 !important;
-        color: #0a1f2b !important;
-        border-radius: 6px !important;
-        padding: 10px 14px !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        border: none !important;
-      }
-
-      #resetBtn {
-        background: #ff5f56 !important;
-        color: white !important;
-        border-radius: 6px !important;
-        padding: 10px 14px !important;
-        font-size: 14px !important;
-        border: none !important;
-        margin-left: 6px !important;
-      }
-
-      /* -----------------------------------------
-   REMOVE the colored/card box from Time Tracker
------------------------------------------- */
-
-      /* Remove background & border */
-      #trackerBox {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin-top: 8px !important;
-
-        /* For smooth animation */
-        overflow: hidden;
+        display: none;
         max-height: 0;
+        overflow: hidden;
         opacity: 0;
-        transform: translateY(-6px);
+        transform: translateY(-4px);
         transition:
           max-height 0.35s ease,
           opacity 0.35s ease,
           transform 0.35s ease;
       }
 
-      /* When expanded → animate open smoothly */
       #trackerBox.open {
-        max-height: 500px; /* enough for full content */
         opacity: 1;
+        max-height: 500px;
         transform: translateY(0);
-        padding: 14px 0 !important; /* restore vertical spacing */
       }
 
-      /* Fix row spacing now that box is removed */
-      /* Make Elapsed & Estimated side-by-side again */
+      /* inner padding so the box doesn’t move */
+      #trackerBox .inner {
+        padding: 14px 0;
+      }
+
+      /* TIME ROW SIDE-BY-SIDE */
       #trackerBox .time-row {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: flex-start !important;
-        gap: 20px !important;
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        width: 100%;
       }
 
-      /* Keep your teal + red buttons */
+      #trackerBox .time-row > div {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* BUTTONS */
       #trackBtn {
         background: #22d3c5 !important;
         color: #012629 !important;
@@ -273,8 +204,8 @@
         border-radius: 6px !important;
         font-weight: 600 !important;
         border: none !important;
-        width: 100% !important;
-        margin-bottom: 10px !important;
+        width: 100%;
+        margin: 12px 0 10px 0;
       }
 
       #resetBtn {
@@ -284,24 +215,20 @@
         border-radius: 6px !important;
         font-weight: 600 !important;
         border: none !important;
-        width: 100% !important;
-        margin-bottom: 12px !important;
+        width: 100%;
+        margin-bottom: 12px;
       }
 
-      /* FINAL FIX — perfect side-by-side alignment */
-#trackerBox .time-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: flex-start !important;
-  gap: 30px !important;
-  width: 100% !important;
-}
-
-#trackerBox .time-row > div {
-  flex: 1;
-  min-width: 0; /* ensures they don't wrap weirdly */
-}
-
+      /* HIDE INPUT EDIT FIELD COMPLETELY */
+      #estimatedInput {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
     </style>
   </head>
 
@@ -313,35 +240,38 @@
         <h1>Customize your task card display</h1>
       </div>
 
-      <!-- TIME TRACKER COLLAPSIBLE -->
+      <!-- COLLAPSIBLE HEADER -->
       <div class="collapsible" id="trackerHeader">
         <span><span id="arrow">⯈</span> Time Tracker</span>
         <span id="trackerElapsed">00:00:00</span>
       </div>
 
-      <div id="trackerBox" style="display: none">
-        <div class="time-row">
-          <div>
-            <div class="elapsed-label">Elapsed</div>
-            <div id="elapsedLabel" class="elapsed">00:00:00</div>
+      <!-- TIME TRACKER CONTENT -->
+      <div id="trackerBox">
+        <div class="inner">
+          <div class="time-row">
+            <div>
+              <div class="elapsed-label">Elapsed</div>
+              <div id="elapsedLabel" class="elapsed">00:00:00</div>
+            </div>
+
+            <div>
+              <div class="estimated-label">Estimated</div>
+              <div id="estimatedDisplay" class="estimated">08:00:00 ✏️</div>
+              <input id="estimatedInput" />
+            </div>
           </div>
 
-          <div>
-            <div class="estimated-label">Estimated</div>
-            <div id="estimatedDisplay" class="estimated">08:00:00 ✏️</div>
-            <input id="estimatedInput" />
+          <button id="trackBtn">▶ Start Tracking</button>
+          <button id="resetBtn">Reset</button>
+
+          <div class="item" style="padding-top: 0">
+            <span class="label">Enable automatic tracking</span>
+            <label class="toggle">
+              <input type="checkbox" id="autoTrack" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-        </div>
-
-        <button id="trackBtn" class="track-btn">▶ Start Tracking</button>
-        <button id="resetBtn" class="reset-btn">Reset</button>
-
-        <div class="item" style="padding-top: 0">
-          <span class="label">Enable automatic tracking</span>
-          <label class="toggle">
-            <input type="checkbox" id="autoTrack" />
-            <span class="toggle-slider"></span>
-          </label>
         </div>
       </div>
 
@@ -352,11 +282,10 @@
             <div class="label">Hide card badges</div>
             <div class="desc">Remove from card front</div>
           </div>
-          <label class="toggle"
-            ><input type="checkbox" id="hideBadges" /><span
-              class="toggle-slider"
-            ></span
-          ></label>
+          <label class="toggle">
+            <input type="checkbox" id="hideBadges" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
 
         <div class="item">
@@ -364,11 +293,10 @@
             <div class="label">Hide card detail badges</div>
             <div class="desc">In detailed card view</div>
           </div>
-          <label class="toggle"
-            ><input type="checkbox" id="hideDetail" /><span
-              class="toggle-slider"
-            ></span
-          ></label>
+          <label class="toggle">
+            <input type="checkbox" id="hideDetail" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
 
         <div class="item">
@@ -376,11 +304,10 @@
             <div class="label">Hide progress bars</div>
             <div class="desc">Show % only</div>
           </div>
-          <label class="toggle"
-            ><input type="checkbox" id="hideBars" /><span
-              class="toggle-slider"
-            ></span
-          ></label>
+          <label class="toggle">
+            <input type="checkbox" id="hideBars" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
 
         <div class="item">
@@ -388,11 +315,10 @@
             <div class="label">Auto-enable Focus Mode</div>
             <div class="desc">Start focus when tracking begins</div>
           </div>
-          <label class="toggle"
-            ><input type="checkbox" id="focusMode" /><span
-              class="toggle-slider"
-            ></span
-          ></label>
+          <label class="toggle">
+            <input type="checkbox" id="focusMode" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
 
         <div class="item">
@@ -410,7 +336,7 @@
         </div>
       </div>
 
-      <!-- REMOVE -->
+      <!-- REMOVE POWER-UP -->
       <button class="remove-btn" id="removeBtn">⚠️ Remove Power-Up</button>
     </div>
 
@@ -431,7 +357,7 @@
         return `${h}:${m}:${sec}`;
       };
 
-      /* LOAD */
+      /* LOAD INITIAL */
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
         const card = (await t.get("card", "shared")) || {};
@@ -477,6 +403,7 @@
         t.set("board", "shared", k, v).then(() => t.refresh());
       }
 
+      /* LIVE TIMER UPDATE */
       function startTick() {
         if (interval) return;
         interval = setInterval(() => {
@@ -490,6 +417,7 @@
         }, 1000);
       }
 
+      /* START/STOP */
       document.getElementById("trackBtn").onclick = () => {
         if (running) {
           const now = Date.now();
@@ -511,6 +439,7 @@
           : "▶ Start Tracking";
       };
 
+      /* RESET */
       document.getElementById("resetBtn").onclick = () => {
         elapsed = 0;
         running = false;
@@ -520,49 +449,49 @@
         document.getElementById("trackerElapsed").textContent = "00:00:00";
       };
 
+      /* OPEN/CLOSE TRACKER */
       document.getElementById("trackerHeader").onclick = () => {
         const box = document.getElementById("trackerBox");
         const arrow = document.getElementById("arrow");
 
-        const isClosed = !box.classList.contains("open");
+        const isOpen = box.classList.contains("open");
 
-        if (isClosed) {
-          box.classList.add("open");
-          arrow.textContent = "⯆";
-          box.style.display = "block"; // ensure it becomes visible
-        } else {
+        if (isOpen) {
           box.classList.remove("open");
           arrow.textContent = "⯈";
 
-          // hide after animation finishes
           setTimeout(() => {
             if (!box.classList.contains("open")) {
               box.style.display = "none";
             }
-          }, 350); // matches your CSS animation
+          }, 350);
+        } else {
+          box.style.display = "block";
+          box.classList.add("open");
+          arrow.textContent = "⯆";
         }
 
         setTimeout(() => t.sizeTo(document.body).done(), 350);
       };
 
+      /* ESTIMATED EDIT — SIMPLE PROMPT */
       document.getElementById("estimatedDisplay").onclick = () => {
-        document.getElementById("estimatedDisplay").style.display = "none";
-        const input = document.getElementById("estimatedInput");
-        input.style.display = "block";
-        input.value = format(estimated);
-        input.focus();
-      };
+        const current = document
+          .getElementById("estimatedDisplay")
+          .textContent.replace(" ✏️", "");
+        const updated = prompt("Enter new estimate (HH:MM:SS):", current);
 
-      document.getElementById("estimatedInput").onblur = () => {
-        const val = document.getElementById("estimatedInput").value.trim();
-        const [h, m, s] = val.split(":").map(Number);
-        estimated = h * 3600 + m * 60 + s;
+        if (!updated) return;
+
+        const [h, m, s] = updated.split(":").map(Number);
+        estimated = h * 3600 + m * 60 + (s || 0);
         saveCard();
-        document.getElementById("estimatedDisplay").textContent = val + " ✏️";
-        document.getElementById("estimatedDisplay").style.display = "block";
-        document.getElementById("estimatedInput").style.display = "none";
+
+        document.getElementById("estimatedDisplay").textContent =
+          updated + " ✏️";
       };
 
+      /* BOARD SETTINGS SAVE */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
       document.getElementById("hideDetail").onchange = (e) =>
@@ -584,11 +513,13 @@
         });
       };
 
+      /* TOGGLE AUTO TRACKING */
       document.getElementById("autoTrack").onchange = (e) => {
         auto = e.target.checked;
         saveCard();
       };
 
+      /* REMOVE POWER-UP */
       document.getElementById("removeBtn").onclick = async () => {
         if (!confirm("Remove and clear all data?")) return;
         await t.set("board", "shared", null);
