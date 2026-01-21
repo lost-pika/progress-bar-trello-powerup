@@ -1,21 +1,29 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
+
   build: {
+    outDir: "dist",
+
     rollupOptions: {
       input: {
-        cardProgress: 'src/entries/card-progress.jsx',
-        settings: 'src/entries/settings.jsx',
-        confirmRestart: 'src/entries/confirm-restart.jsx',
-        autoTrack: 'src/entries/auto-track-lists.jsx',
+        main: "index.html",
+
+        // --- Correct paths (views folder) ---
+        settings: "src/views/settings.html",
+        cardProgress: "src/views/card-progress.html",
+        cardDetail: "src/views/card-detail-progress.html",
+        autoTrack: "src/views/auto-track-lists.html",
+        confirmRestart: "src/views/confirm-restart.html",
       },
-    },
 
-    // Output HTML files in dist root
-    outDir: "dist",
-  },
+      output: {
+        entryFileNames: "assets/[name].js",
+        chunkFileNames: "assets/[name].js",
+        assetFileNames: "assets/[name][extname]"
+      }
+    }
+  }
 });
-

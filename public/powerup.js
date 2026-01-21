@@ -29,7 +29,7 @@ TrelloPowerUp.initialize({
         callback: function () {
           return t.popup({
             title: "Progress Settings",
-            url: "./dist/settings.html",
+            url: "./dist/src/views/settings.html",
             height: 620,
           });
         },
@@ -43,7 +43,7 @@ TrelloPowerUp.initialize({
       icon: ICON,
       content: {
         type: "iframe",
-        url: t.signUrl("./dist/card-progress.html"),
+        url: t.signUrl("./dist/src/views/card-progress.html"),
         height: 180,
       },
     };
@@ -59,23 +59,21 @@ TrelloPowerUp.initialize({
       if (!data) return [];
 
       const badges = [];
-      const elapsed = computeElapsed(data);
 
       if (data.focusMode === true) {
         badges.push({ text: "🎯 Focus ON", color: "red" });
       }
 
       if (typeof data.progress === "number") {
-        const pct = Math.min(100, Math.max(0, parseInt(data.progress)));
-        if (hideBars) {
-          badges.push({ text: pct + "%", color: "blue" });
-        } else {
-          badges.push({ text: `${makeBar(pct)} ${pct}%`, color: "blue" });
-        }
+        const pct = Math.max(0, Math.min(100, data.progress));
+        badges.push({
+          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        });
       }
 
       badges.push({
-        dynamic: function (t) {
+        dynamic: function () {
           return t.get("card", "shared").then((cd) => {
             if (!cd) return { text: "" };
             return {
@@ -105,20 +103,20 @@ TrelloPowerUp.initialize({
       const badges = [];
 
       if (focusMode) {
-        badges.push({ title: "Focus", text: "🎯 Focus ON", color: "red" });
+        badges.push({
+          title: "Focus",
+          text: "🎯 Focus ON",
+          color: "red",
+        });
       }
 
       if (progress != null) {
-        const pct = Math.min(100, Math.max(0, progress));
-        if (hideBars) {
-          badges.push({ title: "Progress", text: pct + "%", color: "blue" });
-        } else {
-          badges.push({
-            title: "Progress",
-            text: `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          });
-        }
+        const pct = Math.max(0, Math.min(100, progress));
+        badges.push({
+          title: "Progress",
+          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        });
       }
 
       return badges;
@@ -136,14 +134,12 @@ TrelloPowerUp.initialize({
             t.get("board", "shared", "autoTrackMode"),
             t.card("id"),
           ]).then(([data, mode, card]) => {
-            if (mode === "open" || mode === "both") {
-              if (!data?.running) {
-                t.set("card", "shared", {
-                  ...data,
-                  running: true,
-                  startTime: Date.now(),
-                });
-              }
+            if ((mode === "open" || mode === "both") && !data?.running) {
+              t.set("card", "shared", {
+                ...data,
+                running: true,
+                startTime: Date.now(),
+              });
             }
 
             return t.navigate({ url: `https://trello.com/c/${card.id}` });
@@ -153,47 +149,52 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  "card-moved": function (t, opts) {
-    return Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "autoTrackMode"),
-      t.get("board", "shared", "autoTrackLists"),
-    ]).then(([data, mode, lists]) => {
-      if (!data) return;
-      if (mode !== "list" && mode !== "both") return;
-      if (!lists?.includes(opts.to.list)) return;
+ "card-moved": function (t, opts) {
+  return Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "autoTrackMode"),
+    t.get("board", "shared", "autoTrackLists"),
+  ]).then(([data, mode, lists]) => {
+    if (!data) return;
+    if (mode !== "list" && mode !== "both") return;
+    if (!lists?.includes(opts.to.list)) return;
 
-      if (!data.running) {
-        return t.set("card", "shared", {
-          ...data,
-          running: true,
-          startTime: Date.now(),
-        });
-      }
+    // Auto start
+    if (!data.running) {
+      return t.set("card", "shared", {
+        ...data,
+        running: true,
+        startTime: Date.now(),
+      });
+    }
 
-      return t
-        .popup({
-          title: "Restart Timer?",
-          url: "./dist/confirm-restart.html",
-          height: 150,
-          args: { cardData: data },
-        })
-        .then((result) => {
-          if (!result?.restart) return;
-          return t.set("card", "shared", {
-            ...data,
-            elapsed: 0,
-            running: true,
-            startTime: Date.now(),
-          });
-        });
+    // Ask restart popup
+    return t.popup({
+  title: "Restart Timer?",
+  url: t.signUrl("./src/views/confirm-restart.html"),   // ✅ CORRECT
+  height: 150,
+  args: { cardData: data },
+})
+
+    .then((result) => {
+      if (!result?.restart) return;
+
+      return t.set("card", "shared", {
+        ...data,
+        elapsed: 0,
+        running: true,
+        startTime: Date.now(),
+      });
     });
-  },
+  });
+},
+
+
 
   "authorization-status": function (t) {
-    return t.get("member", "private", "authorized").then((auth) => ({
-      authorized: auth === true,
-    }));
+    return t
+      .get("member", "private", "authorized")
+      .then((auth) => ({ authorized: auth === true }));
   },
 
   "show-authorization": function (t) {
