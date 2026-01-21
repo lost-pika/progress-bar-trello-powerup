@@ -34,20 +34,22 @@ TrelloPowerUp.initialize({
 
   /* Board Button → Settings popup */
   "board-buttons": function (t) {
-    return [
-      {
-        icon: ICON,
-        text: "Progress",
-        callback: function () {
-          return t.popup({
-            title: "Progress Settings",
-            url: "./settings.html",
-            height: 620,
-          });
-        },
-      },
-    ];
-  },
+  return [
+    {
+      icon: ICON,
+      text: "Progress",
+      callback: function (t, opts) {
+        return t.popup({
+          title: "Progress Settings",
+          url: "./settings.html",
+          height: 620,
+          mouseEvent: opts.mouseEvent   // ← REQUIRED FIX
+        });
+      }
+    }
+  ];
+},
+
 
   /* Card Back Section → Timer iframe */
   "card-back-section": function (t) {
