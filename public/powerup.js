@@ -51,15 +51,20 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideBadges"),
     ]).then(function ([progress, hideBadges]) {
       // If hide badges is ON, don't show anything
-      if (hideBadges) return [];
+      if (hideBadges) {
+        return [];
+      }
 
-      if (progress !== undefined && progress !== null) {
-        const pct = Math.max(0, Math.min(progress, 100));
+      // If progress exists and is a valid number
+      if (progress !== undefined && progress !== null && progress !== "") {
+        const pct = Math.max(0, Math.min(parseInt(progress), 100));
 
         return [
           {
+            text: pct + "%",
+            color: "blue",
             dynamic: function () {
-              return [{ text: progress + '%', color: 'blue' }];
+              return [{ text: pct + "%" }];
             },
           },
         ];
@@ -76,13 +81,18 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideDetailBadges"),
     ]).then(([progress, hideDetailBadges]) => {
       // If hide detail badges is ON, don't show anything
-      if (hideDetailBadges) return [];
+      if (hideDetailBadges) {
+        return [];
+      }
 
-      if (progress != null) {
+      // If progress exists and is a valid number
+      if (progress !== undefined && progress !== null && progress !== "") {
+        const pct = Math.max(0, Math.min(parseInt(progress), 100));
+
         return [
           {
             title: "Progress",
-            text: progress + "%",
+            text: pct + "%",
             color: "blue",
           },
         ];
@@ -98,7 +108,9 @@ TrelloPowerUp.initialize({
       t.get('board', 'shared', 'hideDetailBadges'),
     ]).then(([hideDetailBadges]) => {
       // Don't show time tracker if detail badges are hidden
-      if (hideDetailBadges) return null;
+      if (hideDetailBadges) {
+        return null;
+      }
 
       return {
         title: 'Time Tracker',
