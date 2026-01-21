@@ -5,7 +5,7 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      //* RESET */
+    /* RESET */
 * {
   margin: 0;
   padding: 0;
@@ -18,10 +18,10 @@ body {
   color: #ffffff;
 }
 
-/* WRAPPER (INCREASED WIDTH) */
+/* WRAPPER — wider */
 .settings-wrapper {
   padding: 20px;
-  width: 350px; /* increased from default — adjust as needed */
+  width: 360px;
   max-width: 100%;
 }
 
@@ -38,7 +38,7 @@ body {
 }
 
 .settings-header h1 {
-  font-size: 19px;
+  font-size: 19px; /* +2 */
   font-weight: 600;
 }
 
@@ -53,7 +53,7 @@ body {
   cursor: pointer;
 }
 
-/* TIME TRACKER BOX */
+/* TIME TRACKER */
 #trackerBox {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
@@ -100,7 +100,7 @@ body {
   background: #00d1ff;
   border: none;
   color: #000;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 16px;
   font-weight: 600;
 }
@@ -111,27 +111,33 @@ body {
   border-radius: 6px;
   background: #ff4d4d;
   border: none;
-  color: white;
-  margin-bottom: 10px;
+  color: #fff;
+  margin-bottom: 12px;
   font-size: 15px;
   font-weight: 600;
 }
 
 /* SECTIONS */
 .section {
-  margin-top: 20px;
+  margin-top: 22px;
   border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 6px;
 }
 
-/* ITEMS (VERTICAL GAP REDUCED by 1px → 15px) */
+/* FIRST ITEM GAP FIX */
+.section .item:first-child {
+  margin-top: 4px;
+}
+
+/* ITEMS (vertical gap -1) */
 .item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0; /* was 16px */
+  padding: 15px 0; /* was 16 */
 }
 
-/* ITEM TEXT */
+/* LABEL TEXT */
 .label {
   font-size: 16px;
   font-weight: 500;
@@ -139,25 +145,24 @@ body {
 
 .desc {
   font-size: 14px;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-/* TOGGLE (ADDED MORE GAP BETWEEN TEXT & TOGGLE) */
+/* TOGGLE */
 .toggle {
   display: inline-flex;
   align-items: center;
-  margin-left: 14px; /* INCREASED GAP HERE */
+  margin-left: 14px; /* wider spacing from text */
 }
 
 .toggle input {
   display: none;
 }
 
-/* TOGGLE SLIDER */
 .toggle-slider {
   width: 48px;
   height: 26px;
-  background: #666;
+  background: #b9b9b9;  /* fixed visibility */
   border-radius: 30px;
   position: relative;
   transition: 0.2s;
@@ -167,12 +172,12 @@ body {
   content: "";
   width: 22px;
   height: 22px;
-  background: white;
+  background: #ffffff;
   border-radius: 50%;
   position: absolute;
   top: 2px;
   left: 2px;
-  transition: 0.25s ease;
+  transition: transform 0.25s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 
@@ -184,14 +189,14 @@ body {
   transform: translateX(22px);
 }
 
-/* DROPDOWN */
+/* DROPDOWN — improved visibility */
 select {
   padding: 10px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
-  border-radius: 6px;
   font-size: 16px;
+  border-radius: 6px;
+  background: #3a3a3a;
+  border: 1px solid #5a5a5a;
+  color: #ffffff;
 }
 
 /* REMOVE BUTTON */
@@ -204,8 +209,9 @@ select {
   color: #ff6b6b;
   font-size: 15px;
   font-weight: 600;
-  margin-top: 22px;
+  margin-top: 26px;
 }
+
 
     </style>
   </head>
