@@ -5,7 +5,6 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      /* RESET */
       * {
         margin: 0;
         padding: 0;
@@ -13,14 +12,12 @@
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", sans-serif;
         background: transparent !important;
         color: #ffffff;
       }
 
-      /* WRAPPER */
       .settings-wrapper {
         padding: 20px;
         width: 360px;
@@ -44,17 +41,6 @@
         font-weight: 600;
       }
 
-      /* COLLAPSIBLE */
-      .collapsible {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 0;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
       /* SECTION DIVIDER */
       .section {
         margin-top: 18px;
@@ -62,7 +48,7 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      /* ITEM BLOCKS */
+      /* ITEM */
       .item {
         display: flex;
         justify-content: space-between;
@@ -76,19 +62,16 @@
         flex-direction: column;
         gap: 3px;
         flex: 1;
-        min-width: 0;
       }
 
       .label {
         font-size: 15px;
         font-weight: 500;
-        line-height: 1.35;
       }
 
       .desc {
         font-size: 13px;
         opacity: 0.75;
-        line-height: 1.32;
       }
 
       /* TOGGLE */
@@ -133,7 +116,6 @@
         transform: translateX(22px);
       }
 
-      /* DROPDOWN */
       select {
         padding: 10px;
         background: #3a3a3a;
@@ -155,80 +137,6 @@
         font-size: 15px;
         font-weight: 600;
       }
-
-      /* -----------------------------
-         TIME TRACKER CLEAN + SMOOTH
-      ------------------------------ */
-
-      #trackerBox {
-        display: none;
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(-4px);
-        transition:
-          max-height 0.35s ease,
-          opacity 0.35s ease,
-          transform 0.35s ease;
-      }
-
-      #trackerBox.open {
-        opacity: 1;
-        max-height: 500px;
-        transform: translateY(0);
-      }
-
-      /* inner padding so the box doesn’t move */
-      #trackerBox .inner {
-        padding: 14px 0;
-      }
-
-      /* TIME ROW SIDE-BY-SIDE */
-      #trackerBox .time-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 30px;
-        width: 100%;
-      }
-
-      #trackerBox .time-row > div {
-        flex: 1;
-        min-width: 0;
-      }
-
-      /* BUTTONS */
-      #trackBtn {
-        background: #22d3c5 !important;
-        color: #012629 !important;
-        padding: 12px !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-        border: none !important;
-        width: 100%;
-        margin: 12px 0 10px 0;
-      }
-
-      #resetBtn {
-        background: #e74c3c !important;
-        color: white !important;
-        padding: 12px !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-        border: none !important;
-        width: 100%;
-        margin-bottom: 12px;
-      }
-
-      /* HIDE INPUT EDIT FIELD COMPLETELY */
-      #estimatedInput {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        width: 0 !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
     </style>
   </head>
 
@@ -238,41 +146,6 @@
       <div class="settings-header">
         <div class="icon">⚙️</div>
         <h1>Customize your task card display</h1>
-      </div>
-
-      <!-- COLLAPSIBLE HEADER -->
-      <div class="collapsible" id="trackerHeader">
-        <span><span id="arrow">⯈</span> Time Tracker</span>
-        <span id="trackerElapsed">00:00:00</span>
-      </div>
-
-      <!-- TIME TRACKER CONTENT -->
-      <div id="trackerBox">
-        <div class="inner">
-          <div class="time-row">
-            <div>
-              <div class="elapsed-label">Elapsed</div>
-              <div id="elapsedLabel" class="elapsed">00:00:00</div>
-            </div>
-
-            <div>
-              <div class="estimated-label">Estimated</div>
-              <div id="estimatedDisplay" class="estimated">08:00:00 ✏️</div>
-              <input id="estimatedInput" />
-            </div>
-          </div>
-
-          <button id="trackBtn">▶ Start Tracking</button>
-          <button id="resetBtn">Reset</button>
-
-          <div class="item" style="padding-top: 0">
-            <span class="label">Enable automatic tracking</span>
-            <label class="toggle">
-              <input type="checkbox" id="autoTrack" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
       </div>
 
       <!-- BOARD SETTINGS -->
@@ -336,44 +209,17 @@
         </div>
       </div>
 
-      <!-- REMOVE POWER-UP -->
+      <!-- REMOVE -->
       <button class="remove-btn" id="removeBtn">⚠️ Remove Power-Up</button>
     </div>
 
     <script>
       const t = TrelloPowerUp.iframe();
 
-      let elapsed = 0,
-        estimated = 8 * 3600,
-        running = false,
-        startTime = null,
-        auto = false;
-      let interval = null;
-
-      const format = (s) => {
-        const h = String(Math.floor(s / 3600)).padStart(2, "0");
-        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-        const sec = String(s % 60).padStart(2, "0");
-        return `${h}:${m}:${sec}`;
-      };
-
-      /* LOAD INITIAL */
+      /* LOAD SETTINGS */
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
-        const card = (await t.get("card", "shared")) || {};
 
-        elapsed = card.elapsed || 0;
-        estimated = card.estimated || 8 * 3600;
-        running = card.running || false;
-        startTime = card.startTime || null;
-        auto = card.auto || false;
-
-        document.getElementById("elapsedLabel").textContent = format(elapsed);
-        document.getElementById("trackerElapsed").textContent = format(elapsed);
-        document.getElementById("estimatedDisplay").textContent =
-          format(estimated) + " ✏️";
-
-        document.getElementById("autoTrack").checked = auto;
         document.getElementById("hideBadges").checked =
           board.hideBadges || false;
         document.getElementById("hideDetail").checked =
@@ -384,140 +230,29 @@
         document.getElementById("autoTrackMode").value =
           board.autoTrackMode || "off";
 
-        if (running) startTick();
-
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
 
-      function saveCard() {
-        t.set("card", "shared", {
-          elapsed,
-          estimated,
-          running,
-          startTime,
-          auto,
-        });
-      }
-
+      /* SAVE FUNCTIONS */
       function saveBoard(k, v) {
         t.set("board", "shared", k, v).then(() => t.refresh());
       }
 
-      /* LIVE TIMER UPDATE */
-      function startTick() {
-        if (interval) return;
-        interval = setInterval(() => {
-          if (running) {
-            const now = Date.now();
-            const live = elapsed + Math.floor((now - startTime) / 1000);
-            document.getElementById("elapsedLabel").textContent = format(live);
-            document.getElementById("trackerElapsed").textContent =
-              format(live);
-          }
-        }, 1000);
-      }
-
-      /* START/STOP */
-      document.getElementById("trackBtn").onclick = () => {
-        if (running) {
-          const now = Date.now();
-          elapsed += Math.floor((now - startTime) / 1000);
-          running = false;
-          startTime = null;
-        } else {
-          running = true;
-          startTime = Date.now();
-          startTick();
-
-          t.get("board", "shared", "autoFocus").then((v) => {
-            if (v) t.set("card", "shared", "focusMode", true);
-          });
-        }
-        saveCard();
-        document.getElementById("trackBtn").textContent = running
-          ? "⏸ Stop Tracking"
-          : "▶ Start Tracking";
-      };
-
-      /* RESET */
-      document.getElementById("resetBtn").onclick = () => {
-        elapsed = 0;
-        running = false;
-        startTime = null;
-        saveCard();
-        document.getElementById("elapsedLabel").textContent = "00:00:00";
-        document.getElementById("trackerElapsed").textContent = "00:00:00";
-      };
-
-      /* OPEN/CLOSE TRACKER */
-      document.getElementById("trackerHeader").onclick = () => {
-        const box = document.getElementById("trackerBox");
-        const arrow = document.getElementById("arrow");
-
-        const isOpen = box.classList.contains("open");
-
-        if (isOpen) {
-          box.classList.remove("open");
-          arrow.textContent = "⯈";
-
-          setTimeout(() => {
-            if (!box.classList.contains("open")) {
-              box.style.display = "none";
-            }
-          }, 350);
-        } else {
-          box.style.display = "block";
-          box.classList.add("open");
-          arrow.textContent = "⯆";
-        }
-
-        setTimeout(() => t.sizeTo(document.body).done(), 350);
-      };
-
-      /* ESTIMATED EDIT — SIMPLE PROMPT */
-      document.getElementById("estimatedDisplay").onclick = () => {
-        const current = document
-          .getElementById("estimatedDisplay")
-          .textContent.replace(" ✏️", "");
-        const updated = prompt("Enter new estimate (HH:MM:SS):", current);
-
-        if (!updated) return;
-
-        const [h, m, s] = updated.split(":").map(Number);
-        estimated = h * 3600 + m * 60 + (s || 0);
-        saveCard();
-
-        document.getElementById("estimatedDisplay").textContent =
-          updated + " ✏️";
-      };
-
-      /* BOARD SETTINGS SAVE */
+      /* EVENTS */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
+
       document.getElementById("hideDetail").onchange = (e) =>
         saveBoard("hideDetailBadges", e.target.checked);
+
       document.getElementById("hideBars").onchange = (e) =>
         saveBoard("hideProgressBars", e.target.checked);
+
       document.getElementById("focusMode").onchange = (e) =>
         saveBoard("autoFocus", e.target.checked);
 
-      document.getElementById("autoTrackMode").onchange = (e) => {
-        saveBoard("autoTrackMode", e.target.value).then(() => {
-          if (e.target.value === "list" || e.target.value === "both") {
-            t.popup({
-              title: "Select Lists",
-              url: "./auto-track-lists.html",
-              height: 350,
-            });
-          }
-        });
-      };
-
-      /* TOGGLE AUTO TRACKING */
-      document.getElementById("autoTrack").onchange = (e) => {
-        auto = e.target.checked;
-        saveCard();
-      };
+      document.getElementById("autoTrackMode").onchange = (e) =>
+        saveBoard("autoTrackMode", e.target.value);
 
       /* REMOVE POWER-UP */
       document.getElementById("removeBtn").onclick = async () => {
