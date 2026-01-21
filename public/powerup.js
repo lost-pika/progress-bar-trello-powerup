@@ -21,16 +21,14 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  // CARD BACK SECTION (iframe)
+  // CARD BACK SECTION (iframe) - Detail view progress tracker
   "card-back-section": function (t, opts) {
     return Promise.all([
       t.get("card", "shared", "progress"),
       t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideBadges"),
-    ]).then(([progress, hideDetailBadges, hideProgressBars, hideBadges]) => {
-      // Hide card-back module if both detail and progress are toggled off
-      if (hideDetailBadges || hideProgressBars || hideBadges) {
+    ]).then(([progress, hideDetailBadges]) => {
+      // Hide card-back module if detail badges are toggled off
+      if (hideDetailBadges) {
         return null; // Removes the entire section
       }
 
@@ -46,15 +44,14 @@ TrelloPowerUp.initialize({
     });
   },
 
-  // CARD BADGES (front)
+  // CARD BADGES (front) - Shows on card in board view
   "card-badges": function (t, opts) {
     return Promise.all([
       t.get("card", "shared", "progress"),
       t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-    ]).then(function ([progress, hideBadges, hideProgressBars]) {
+    ]).then(function ([progress, hideBadges]) {
+      // If hide badges is ON, don't show anything
       if (hideBadges) return [];
-      if (hideProgressBars) return [];
 
       if (progress !== undefined && progress !== null) {
         const pct = Math.max(0, Math.min(progress, 100));
@@ -72,16 +69,16 @@ TrelloPowerUp.initialize({
     });
   },
 
-  // CARD DETAIL BADGES
+  // CARD DETAIL BADGES - Shows in expanded card view
   "card-detail-badges": function (t, opts) {
     return Promise.all([
       t.get("card", "shared", "progress"),
       t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-    ]).then(([progress, hideDetailBadges, hideProgressBars]) => {
+    ]).then(([progress, hideDetailBadges]) => {
+      // If hide detail badges is ON, don't show anything
       if (hideDetailBadges) return [];
-      if (hideProgressBars) return [];
-      if (progress != null)
+
+      if (progress != null) {
         return [
           {
             title: "Progress",
@@ -89,16 +86,20 @@ TrelloPowerUp.initialize({
             color: "blue",
           },
         ];
+      }
 
       return [];
     });
   },
 
-  // POWER-UPS MENU - HIDE/SHOW BUTTON
+  // POWER-UPS MENU - Time tracker section in card detail
   'card-detail-section': function(t) {
     return Promise.all([
-      t.get('board', 'shared', 'hideProgressBars'),
-    ]).then(([hideProgressBars]) => {
+      t.get('board', 'shared', 'hideDetailBadges'),
+    ]).then(([hideDetailBadges]) => {
+      // Don't show time tracker if detail badges are hidden
+      if (hideDetailBadges) return null;
+
       return {
         title: 'Time Tracker',
         icon: ICON,

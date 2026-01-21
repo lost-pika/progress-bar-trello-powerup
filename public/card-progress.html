@@ -197,6 +197,13 @@
       input:checked + .toggle-slider::after {
         transform: translateX(20px);
       }
+
+      /* Hide these elements when hideProgressBars is true */
+      .hide-progress-bar .bar-bg,
+      .hide-progress-bar .label,
+      .hide-progress-bar .line {
+        display: none;
+      }
     </style>
   </head>
 
@@ -213,10 +220,12 @@
         running: false,
         startTime: null,
         auto: false,
+        hideProgressBars: false,
       };
 
       async function loadState() {
         const data = await t.get("card", "shared");
+        const hideProgressBars = await t.get("board", "shared", "hideProgressBars");
 
         state.progress = data.progress || 0;
         state.elapsed = data.elapsed || 0;
@@ -224,6 +233,7 @@
         state.running = data.running || false;
         state.startTime = data.startTime || null;
         state.auto = data.auto || false;
+        state.hideProgressBars = hideProgressBars || false;
 
         if (state.running) startTimerTick();
 
@@ -293,6 +303,23 @@
 
         const behind = elapsed > state.estimated;
 
+        const progressSection = state.hideProgressBars 
+          ? '' 
+          : `
+          <div class="label">Adjust progress manually</div>
+          <div class="line">
+            <span class="range-label">0%</span>
+            <input type="range" id="slider" min="0" max="100" value="${state.progress}">
+            <span class="range-label">100%</span>
+          </div>
+          `;
+
+        const progressBar = state.hideProgressBars
+          ? ''
+          : `<div class="bar-bg">
+        <div class="bar-fill" style="width:${state.progress}%"></div>
+      </div>`;
+
         document.getElementById("root").innerHTML = `
     <div class="container">
       <div class="header">
@@ -300,17 +327,8 @@
         <div class="percent">${state.progress}%</div>
       </div>
 
-      <div class="bar-bg">
-        <div class="bar-fill" style="width:${state.progress}%"></div>
-      </div>
-
-      <div class="label">Adjust progress manually</div>
-
-      <div class="line">
-        <span class="range-label">0%</span>
-        <input type="range" id="slider" min="0" max="100" value="${state.progress}">
-        <span class="range-label">100%</span>
-      </div>
+      ${progressBar}
+      ${progressSection}
 
       <div class="time-box">
         <div class="time-row">
@@ -344,11 +362,13 @@
     </div>
   `;
 
-        document.getElementById("slider").addEventListener("input", (e) => {
-          state.progress = parseInt(e.target.value);
-          save();
-          render();
-        });
+        if (!state.hideProgressBars) {
+          document.getElementById("slider").addEventListener("input", (e) => {
+            state.progress = parseInt(e.target.value);
+            save();
+            render();
+          });
+        }
 
         document.getElementById("trackBtn").addEventListener("click", toggleTimer);
         document.getElementById("resetBtn").addEventListener("click", resetTimer);

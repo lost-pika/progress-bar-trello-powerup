@@ -312,10 +312,11 @@
 
       <!-- Customize Section -->
       <div class="settings-section">
+        <!-- Toggle 1: Hide card badges -->
         <div class="setting-item">
           <div class="setting-content">
             <span class="setting-label">Hide card badges</span>
-            <span class="setting-desc">Remove all badges from cards</span>
+            <span class="setting-desc">Remove all badges from board view cards</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideBadges" />
@@ -323,10 +324,11 @@
           </label>
         </div>
 
+        <!-- Toggle 2: Hide card detail badges -->
         <div class="setting-item">
           <div class="setting-content">
             <span class="setting-label">Hide card detail badges</span>
-            <span class="setting-desc">Remove badges from expanded view</span>
+            <span class="setting-desc">Remove badges from expanded card view</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideDetailBadges" />
@@ -334,15 +336,11 @@
           </label>
         </div>
 
-        <!-- Progress Bar Setting with Status -->
+        <!-- Toggle 3: Hide progress bar from card badges -->
         <div class="setting-item highlight">
           <div class="setting-content">
-            <span class="setting-label"
-              >Hide progress bar from card badges</span
-            >
-            <span class="setting-desc"
-              >Remove progress bars from all cards</span
-            >
+            <span class="setting-label">Hide progress bar from card badges</span>
+            <span class="setting-desc">Show only percentage, hide the progress bar</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="hideProgressBars" />
@@ -355,6 +353,7 @@
           <span class="status-text">Progress bars hidden on all cards</span>
         </div>
 
+        <!-- Toggle 4: Auto-enable Focus Mode -->
         <div class="setting-item">
           <div class="setting-content">
             <span class="setting-label">Auto-enable Focus Mode</span>
@@ -392,9 +391,9 @@
           </div>
           <div class="preview-content">
             <p class="preview-message" id="previewMessage">
-              Progress bars are currently hidden
+              Progress at 65%
             </p>
-            <div class="preview-progress hidden" id="previewProgress">
+            <div class="preview-progress" id="previewProgress">
               <div class="progress-bar"></div>
             </div>
             <div class="preview-meta">
@@ -432,27 +431,25 @@
       }
 
       function updatePreview() {
-        // Hide progress bar preview
+        // If hide progress bars is enabled, show only percentage
         if (hideProgressBars.checked) {
           previewProgress.classList.add("hidden");
-          previewMessage.textContent = "Progress bars are currently hidden";
+          previewMessage.textContent = "Progress at 65%";
           statusMessage.classList.remove("hidden");
         } else {
           previewProgress.classList.remove("hidden");
-          previewMessage.textContent = "";
+          previewMessage.textContent = "Progress at 65%";
           statusMessage.classList.add("hidden");
         }
 
-        // Hide badge preview
-        previewBadge.style.display = hideBadges.checked
-          ? "none"
-          : "inline-block";
+        // Hide badge preview if hide badges is enabled
+        previewBadge.style.display = hideBadges.checked ? "none" : "inline-block";
       }
 
-      // SAVE + AUTO REFRESH TREELO UI
+      // SAVE + AUTO REFRESH TRELLO UI
       function save(key, value) {
         t.set("board", "shared", key, value).then(() => {
-          t.refresh(); // 🔥 force refresh card badges
+          t.refresh(); // Force refresh card badges
         });
       }
 
