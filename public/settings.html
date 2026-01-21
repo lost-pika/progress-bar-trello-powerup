@@ -5,226 +5,234 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-/* RESET */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+      /* RESET */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  background: transparent !important;
-  color: #ffffff;
-}
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", sans-serif;
+        background: transparent !important;
+        color: #ffffff;
+      }
 
-/* WRAPPER */
-.settings-wrapper {
-  padding: 20px;
-  width: 360px;
-  max-width: 100%;
-}
+      /* WRAPPER */
+      .settings-wrapper {
+        padding: 20px;
+        width: 360px;
+        max-width: 100%;
+      }
 
-/* HEADER */
-.settings-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
+      /* HEADER */
+      .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
 
-.settings-header .icon {
-  font-size: 24px;
-}
+      .settings-header .icon {
+        font-size: 24px;
+      }
 
-.settings-header h1 {
-  font-size: 18px;
-  font-weight: 600;
-}
+      .settings-header h1 {
+        font-size: 18px;
+        font-weight: 600;
+      }
 
-/* COLLAPSIBLE */
-.collapsible {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
+      /* COLLAPSIBLE */
+      .collapsible {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
 
-/* SECTION DIVIDER */
-.section {
-  margin-top: 18px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
+      /* SECTION DIVIDER */
+      .section {
+        margin-top: 18px;
+        padding-top: 4px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-/* ITEM — PERFECT TRELL0-STYLE SPACING */
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;   /* <— IMPORTANT: lets text wrap to 2 lines */
-  gap: 12px;                  /* space between content & toggle */
-  padding: 15px 0;
-}
+      /* ITEM — PERFECT TRELL0-STYLE SPACING */
+      .item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start; /* <— IMPORTANT: lets text wrap to 2 lines */
+        gap: 12px; /* space between content & toggle */
+        padding: 15px 0;
+      }
 
-/* CONTENT WRAPPER (LABEL + DESCRIPTION) */
-.item > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;  /* Required so wrapping works properly */
-}
+      /* CONTENT WRAPPER (LABEL + DESCRIPTION) */
+      .item > div {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1;
+        min-width: 0; /* Required so wrapping works properly */
+      }
 
-.label {
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.35;
-  color: #ffffff;
-  white-space: normal;  /* allow wrapping */
-}
+      .label {
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.35;
+        color: #ffffff;
+        white-space: normal; /* allow wrapping */
+      }
 
-.desc {
-  font-size: 13px;
-  opacity: 0.75;
-  line-height: 1.32;
-  white-space: normal; /* allow wrapping */
-}
+      .desc {
+        font-size: 13px;
+        opacity: 0.75;
+        line-height: 1.32;
+        white-space: normal; /* allow wrapping */
+      }
 
-/* TOGGLE */
-.toggle {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: 3px; /* aligns with label vertically */
-}
+      /* TOGGLE */
+      .toggle {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        margin-top: 3px; /* aligns with label vertically */
+      }
 
-.toggle input {
-  display: none;
-}
+      .toggle input {
+        display: none;
+      }
 
-/* TOGGLE VISUAL */
-.toggle-slider {
-  width: 46px;
-  height: 24px;
-  background: #bfbfbf;
-  border-radius: 24px;
-  position: relative;
-  transition: 0.2s ease;
-}
+      /* TOGGLE VISUAL */
+      .toggle-slider {
+        width: 46px;
+        height: 24px;
+        background: #bfbfbf;
+        border-radius: 24px;
+        position: relative;
+        transition: 0.2s ease;
+      }
 
-.toggle-slider::after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: 0.25s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-}
+      .toggle-slider::after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: 0.25s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      }
 
-.toggle input:checked + .toggle-slider {
-  background: #00c2ff;
-}
+      .toggle input:checked + .toggle-slider {
+        background: #00c2ff;
+      }
 
-.toggle input:checked + .toggle-slider::after {
-  transform: translateX(22px);
-}
+      .toggle input:checked + .toggle-slider::after {
+        transform: translateX(22px);
+      }
 
-/* DROPDOWN */
-select {
-  padding: 10px;
-  background: #3a3a3a;
-  border: 1px solid #555;
-  border-radius: 6px;
-  color: white;
-  font-size: 15px;
-}
+      /* DROPDOWN */
+      select {
+        padding: 10px;
+        background: #3a3a3a;
+        border: 1px solid #555;
+        border-radius: 6px;
+        color: white;
+        font-size: 15px;
+      }
 
-/* REMOVE BUTTON */
-.remove-btn {
-  width: 100%;
-  padding: 14px;
-  margin-top: 26px;
-  background: transparent;
-  border: 2px solid #ff6b6b;
-  color: #ff6b6b;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-}
+      /* REMOVE BUTTON */
+      .remove-btn {
+        width: 100%;
+        padding: 14px;
+        margin-top: 26px;
+        background: transparent;
+        border: 2px solid #ff6b6b;
+        color: #ff6b6b;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+      }
 
-/* ============================================================
-   FIX: Restore Time Tracker EXACT layout (undo changes)
-   ============================================================ */
+      /* ------------------------------------------------------------
+   RESTORE COLORFUL ORIGINAL TIME TRACKER STYLING
+   ------------------------------------------------------------ */
 
-/* Prevent global .item rules from affecting time tracker */
-#trackerBox .item {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 10px 0 !important;
-}
+      /* Tracker box — light card background */
+      #trackerBox {
+        background: rgba(
+          71,
+          85,
+          105,
+          0.32
+        ) !important; /* slate/turquoise tint */
+        border: 1px solid rgba(148, 163, 184, 0.35) !important;
+        border-radius: 10px !important;
+        padding: 16px !important;
+        margin-top: 10px !important;
+      }
 
-/* Restore proper column layout in tracker rows */
-#trackerBox .time-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  margin-bottom: 12px !important;
-}
+      /* Title and elapsed label */
+      #trackerHeader {
+        color: #ddecf8 !important; /* soft bluish text */
+        font-weight: 600 !important;
+      }
 
-/* Restore correct font sizes */
-#trackerBox .elapsed-label,
-#trackerBox .estimated-label {
-  font-size: 12px !important;
-  opacity: 0.7 !important;
-}
+      /* Elapsed & Estimated labels */
+      #trackerBox .elapsed-label,
+      #trackerBox .estimated-label {
+        color: #bcd2e6 !important; /* soft pastel blue */
+        font-weight: 500 !important;
+      }
 
-#trackerBox .elapsed {
-  font-size: 22px !important;
-  font-weight: 600 !important;
-}
+      /* Actual time values */
+      #trackerBox .elapsed,
+      #trackerBox .estimated {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+      }
 
-#trackerBox .estimated {
-  font-size: 18px !important;
-  cursor: pointer !important;
-}
+      /* Pencil icon highlight */
+      #estimatedDisplay {
+        color: #ffd45a !important; /* warm highlight */
+      }
 
-/* Restore buttons inline */
-#trackerBox #trackBtn,
-#trackerBox #resetBtn {
-  display: inline-block !important;
-  margin-right: 6px !important;
-  width: auto !important;
-}
+      /* Buttons — restore your colourful UI */
+      #trackBtn {
+        background: #34d1c8 !important;
+        color: #0a1f2b !important;
+        border-radius: 6px !important;
+        padding: 10px 14px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        border: none !important;
+      }
 
-/* Restore estimated EDIT input behavior */
-#trackerBox #estimatedInput {
-  display: none !important;
-  width: 110px !important;
-  padding: 4px !important;
-  margin-top: 4px !important;
-}
+      #resetBtn {
+        background: #ff5f56 !important;
+        color: white !important;
+        border-radius: 6px !important;
+        padding: 10px 14px !important;
+        font-size: 14px !important;
+        border: none !important;
+        margin-left: 6px !important;
+      }
 
-/* Restore correct text wrapping behavior */
-#trackerBox * {
-  white-space: normal !important;
-}
+      /* Toggle inside tracker */
+      #trackerBox .toggle-slider {
+        background: #9ca3af !important; /* light gray */
+      }
 
-/* VERY IMPORTANT:
-   Stop global spacing / alignment from leaking into tracker */
-#trackerHeader,
-#trackerBox {
-  isolation: isolate !important;
-}
-
-
-
+      #trackerBox input:checked + .toggle-slider {
+        background: #34d1c8 !important; /* turquoise */
+      }
     </style>
   </head>
 
