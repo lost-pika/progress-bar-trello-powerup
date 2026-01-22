@@ -216,6 +216,20 @@
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       }
 
+      load().then(() => {
+        t.get("board", "shared", "autoTrackMode").then((mode) => {
+          if (mode === "open" || mode === "both") {
+            if (!state.running) {
+              state.running = true;
+              state.startTime = Date.now();
+              save();
+              startTick();
+              render();
+            }
+          }
+        });
+      });
+
       /* SAVE */
       function save() {
         t.set("card", "shared", state);

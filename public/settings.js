@@ -174,8 +174,28 @@ document.getElementById("removeBtn").onclick = async () => {
   const ok = confirm("Remove and clear all saved data?");
   if (!ok) return;
 
-  await t.set("board", "shared", null);
-  await t.set("card", "shared", null);
+  // 1️⃣ CLEAR BOARD DATA
+  const board = (await t.get("board", "shared")) || {};
+  for (const key of Object.keys(board)) {
+    await t.remove("board", "shared", key);
+  }
 
+  // 2️⃣ CLEAR CARD DATA
+  const card = (await t.get("card", "shared")) || {};
+  for (const key of Object.keys(card)) {
+    await t.remove("card", "shared", key);
+  }
+
+  // 3️⃣ CLEAR MEMBER DATA
+  const mem = (await t.get("member", "private")) || {};
+  for (const key of Object.keys(mem)) {
+    await t.remove("member", "private", key);
+  }
+
+  // 4️⃣ MARK POWER-UP AS DISABLED
+  await t.set("board", "shared", "disabled", true);
+
+  alert("Power-Up removed. Now UI will disappear.");
   t.closePopup();
 };
+

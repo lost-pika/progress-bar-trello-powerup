@@ -31,28 +31,46 @@ function computeElapsed(data) {
 ---------------------------------------- */
 
 TrelloPowerUp.initialize({
-
   /* Board Button → Settings popup */
   "board-buttons": function (t) {
-  return [
-    {
-      icon: ICON,
-      text: "Progress",
-      callback: function (t, opts) {
-        return t.popup({
-          title: "Progress Settings",
-          url: "./settings.html",
-          height: 620,
-          mouseEvent: opts.mouseEvent   // ← REQUIRED FIX
-        });
-      }
-    }
-  ];
-},
+    return [
+      {
+        icon: ICON,
+        text: "Progress",
+        callback: function (t, opts) {
+          return t.popup({
+            title: "Progress Settings",
+            url: "./settings.html",
+            height: 620,
+            mouseEvent: opts.mouseEvent, // ← REQUIRED FIX
+          });
+        },
+      },
+    ];
+  },
 
+  "show-authorization": function (t) {
+    const disabled = t.get("board", "shared", "disabled");
+    if (disabled) {
+      return t.popup({
+        title: "Authorize Power-Up",
+        url: "./auth.html",
+        height: 200,
+      });
+    }
+
+    return t.popup({
+      title: "Authorize Power-Up",
+      url: "./auth.html",
+      height: 200,
+    });
+  },
 
   /* Card Back Section → Timer iframe */
-  "card-back-section": function (t) {
+  "card-back-section": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return null;
+
     return {
       title: "Progress",
       icon: ICON,
@@ -65,14 +83,14 @@ TrelloPowerUp.initialize({
   },
 
   /* Card Badges → Timer + Progress + Focus */
-  "card-badges": function (t) {
+  "card-badges": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
     return Promise.all([
       t.get("card", "shared"),
       t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars")
-    ])
-    .then(([data, hideBadges, hideBars]) => {
-
+      t.get("board", "shared", "hideProgressBars"),
+    ]).then(([data, hideBadges, hideBars]) => {
       if (hideBadges) return [];
       if (!data) return [];
 
@@ -89,7 +107,7 @@ TrelloPowerUp.initialize({
 
         badges.push({
           text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-          color: "blue"
+          color: "blue",
         });
       }
 
@@ -100,7 +118,10 @@ TrelloPowerUp.initialize({
             if (!d) return { text: "" };
             const el = computeElapsed(d);
             const est = d.estimated || 8 * 3600;
-            return { text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`, color: "blue" };
+            return {
+              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              color: "blue",
+            };
           });
         },
         refresh: 1000,
@@ -111,15 +132,15 @@ TrelloPowerUp.initialize({
   },
 
   /* Inside card detail view */
-  "card-detail-badges": function (t) {
+  "card-detail-badges": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
     return Promise.all([
       t.get("card", "shared", "progress"),
       t.get("card", "shared", "focusMode"),
       t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars")
-    ])
-    .then(([progress, focusMode, hideDetail, hideBars]) => {
-
+      t.get("board", "shared", "hideProgressBars"),
+    ]).then(([progress, focusMode, hideDetail, hideBars]) => {
       if (hideDetail) return [];
 
       const out = [];
@@ -128,7 +149,7 @@ TrelloPowerUp.initialize({
         out.push({
           title: "Focus",
           text: "🎯 Focus ON",
-          color: "red"
+          color: "red",
         });
       }
 
@@ -139,7 +160,7 @@ TrelloPowerUp.initialize({
       out.push({
         title: "Progress",
         text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-        color: "blue"
+        color: "blue",
       });
 
       return out;
@@ -156,22 +177,20 @@ TrelloPowerUp.initialize({
           return Promise.all([
             t.get("card", "shared"),
             t.get("board", "shared", "autoTrackMode"),
-            t.card("id")
-          ])
-          .then(([data, mode, card]) => {
-
+            t.card("id"),
+          ]).then(([data, mode, card]) => {
             if ((mode === "open" || mode === "both") && !data?.running) {
               t.set("card", "shared", {
                 ...data,
                 running: true,
-                startTime: Date.now()
+                startTime: Date.now(),
               });
             }
 
             return t.navigate({ url: `https://trello.com/c/${card.id}` });
           });
-        }
-      }
+        },
+      },
     ];
   },
 
@@ -181,9 +200,7 @@ TrelloPowerUp.initialize({
       t.get("card", "shared"),
       t.get("board", "shared", "autoTrackMode"),
       t.get("board", "shared", "autoTrackLists"),
-    ])
-    .then(([data, mode, lists]) => {
-
+    ]).then(([data, mode, lists]) => {
       if (!data) return;
       if (mode !== "list" && mode !== "both") return;
       if (!lists || lists.length === 0) return;
@@ -196,61 +213,60 @@ TrelloPowerUp.initialize({
         return t.set("card", "shared", {
           ...data,
           running: true,
-          startTime: Date.now()
+          startTime: Date.now(),
         });
       }
 
       /* Was running → ask user */
-      return t.popup({
-        title: "Restart Timer?",
-        url: "./confirm-restart.html",
-        height: 150,
-        args: { cardData: data }
-      })
-      .then(result => {
-        if (!result || result.restart !== true) return;
+      return t
+        .popup({
+          title: "Restart Timer?",
+          url: "./confirm-restart.html",
+          height: 150,
+          args: { cardData: data },
+        })
+        .then((result) => {
+          if (!result || result.restart !== true) return;
 
-        return t.set("card", "shared", {
-          ...data,
-          elapsed: 0,
-          running: true,
-          startTime: Date.now()
+          return t.set("card", "shared", {
+            ...data,
+            elapsed: 0,
+            running: true,
+            startTime: Date.now(),
+          });
         });
-      });
     });
   },
 
   "on-card-clicked": function (t, opts) {
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "autoTrackMode")
-  ])
-  .then(([data, mode]) => {
-
-    if (mode === "open" || mode === "both") {
-      if (!data?.running) {
-        return t.set("card", "shared", {
-          ...data,
-          running: true,
-          startTime: Date.now()
-        });
+    return Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "autoTrackMode"),
+    ]).then(([data, mode]) => {
+      if (mode === "open" || mode === "both") {
+        if (!data?.running) {
+          return t.set("card", "shared", {
+            ...data,
+            running: true,
+            startTime: Date.now(),
+          });
+        }
       }
-    }
-  });
-},
-
+    });
+  },
 
   /* Auth */
   "authorization-status": function (t) {
-    return t.get("member", "private", "authorized")
-      .then(a => ({ authorized: a === true }));
+    return t
+      .get("member", "private", "authorized")
+      .then((a) => ({ authorized: a === true }));
   },
 
   "show-authorization": function (t) {
     return t.popup({
       title: "Authorize Progress Power-Up",
       url: "./auth.html",
-      height: 200
+      height: 200,
     });
-  }
+  },
 });
