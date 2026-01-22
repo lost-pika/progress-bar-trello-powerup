@@ -82,6 +82,7 @@ document.getElementById("trackBtn").onclick = () => {
     elapsed += Math.floor((now - startTime) / 1000);
     running = false;
     startTime = null;
+    t.set("card", "shared", "focusMode", false);
   } else {
     running = true;
     startTime = Date.now();
