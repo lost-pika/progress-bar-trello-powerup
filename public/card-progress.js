@@ -1,17 +1,22 @@
 const t = TrelloPowerUp.iframe();
 
+/* ----------------------------------------
+   STATE
+---------------------------------------- */
 let state = {
   progress: 0,
   elapsed: 0,
   estimated: 8 * 3600,
   running: false,
   startTime: null,
-  auto: false,
   hideProgressBars: false,
 };
 
 let timer = null;
 
+/* ----------------------------------------
+   HELPERS
+---------------------------------------- */
 function format(sec) {
   const h = String(Math.floor(sec / 3600)).padStart(2, "0");
   const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
@@ -19,6 +24,31 @@ function format(sec) {
   return `${h}:${m}:${s}`;
 }
 
+async function computeProgress() {
+  const card = await t.card("checklists");
+
+  let total = 0;
+  let done = 0;
+
+  card.checklists.forEach((cl) => {
+    cl.checkItems.forEach((item) => {
+      total++;
+      if (item.state === "complete") done++;
+    });
+  });
+
+  if (total === 0) return 0;
+
+  return Math.round((done / total) * 100);
+}
+
+function save() {
+  return t.set("card", "shared", state);
+}
+
+/* ----------------------------------------
+   LOAD
+---------------------------------------- */
 async function load() {
   const card = (await t.get("card", "shared")) || {};
   const hideBars = await t.get("board", "shared", "hideProgressBars");
@@ -29,8 +59,8 @@ async function load() {
   state.startTime = card.startTime || null;
   state.hideProgressBars = hideBars || false;
 
-  // 🔥 NEW — sync progress with checklist
-  state.progress = await computeProgressFromChecklists(t);
+  // Always sync progress with checklist
+  state.progress = await computeProgress();
 
   render();
   if (state.running) startTick();
@@ -38,31 +68,45 @@ async function load() {
   setTimeout(() => t.sizeTo(document.body).done(), 40);
 }
 
-function save() {
-  t.set("card", "shared", state);
-}
-
+/* ----------------------------------------
+   TIMER
+---------------------------------------- */
 function startTick() {
   if (timer) return;
 
   timer = setInterval(() => {
-    if (state.running) {
-      const live =
-        state.elapsed + Math.floor((Date.now() - state.startTime) / 1000);
-      document.getElementById("elapsed").textContent = format(live);
-    }
+    if (!state.running) return;
+
+    const live =
+      state.elapsed + Math.floor((Date.now() - state.startTime) / 1000);
+
+    const el = document.getElementById("elapsed");
+    if (el) el.textContent = format(live);
   }, 1000);
 }
 
 function toggleTimer() {
   if (state.running) {
-    state.elapsed += Math.floor((Date.now() - state.startTime) / 1000);
+    // STOP
+    const now = Date.now();
+    state.elapsed += Math.floor((now - state.startTime) / 1000);
     state.running = false;
     state.startTime = null;
+
+    // REMOVE focusMode on stop
+    t.set("card", "shared", "focusMode", false);
   } else {
+    // START
     state.running = true;
     state.startTime = Date.now();
     startTick();
+
+    // auto focus mode
+    t.get("board", "shared", "autoFocus").then((f) => {
+      if (f) t.set("card", "shared", "focusMode", true);
+    });
+
+    t.refresh(); // update badges immediately
   }
 
   save();
@@ -73,10 +117,17 @@ function resetTimer() {
   state.elapsed = 0;
   state.running = false;
   state.startTime = null;
+
+  // also remove focus
+  t.set("card", "shared", "focusMode", false);
+
   save();
   render();
 }
 
+/* ----------------------------------------
+   RENDER
+---------------------------------------- */
 function render() {
   const live = state.running
     ? state.elapsed + Math.floor((Date.now() - state.startTime) / 1000)
@@ -84,25 +135,20 @@ function render() {
 
   const behind = live > state.estimated;
 
-  const progressSection = state.hideProgressBars
-    ? ""
-    : `
-      <div class="progress-section">
-        <div class="bar-bg">
-          <div class="bar-fill" style="width:${state.progress}%"></div>
-        </div>
-        <div class="manual-progress">Progress: ${state.progress}%</div>
-      </div>
-    `;
-
   document.getElementById("root").innerHTML = `
     <div class="container">
+
       <div class="header">
         <div class="title">⚡ Progress</div>
         <div class="percent">${state.progress}%</div>
       </div>
 
-      ${progressSection}
+      <div class="progress-section ${state.hideProgressBars ? "hidden" : ""}">
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${state.progress}%"></div>
+        </div>
+        <div class="manual-progress">Progress: ${state.progress}%</div>
+      </div>
 
       <div class="time-box">
         <div class="time-row">
@@ -113,7 +159,18 @@ function render() {
 
           <div>
             <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-            <div class="estimated">${format(state.estimated)}</div>
+            <input id="estimatedInput"
+              class="estimated"
+              value="${format(state.estimated)}"
+              style="
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 6px;
+                padding: 4px 6px;
+                font-size: 15px;
+                width: 90px;
+                color: #fff;
+                text-align: center;">
           </div>
         </div>
 
@@ -124,32 +181,45 @@ function render() {
         </button>
 
         <button id="resetBtn" class="reset-btn">Reset</button>
-
-        <div class="auto-row">
-          <span>Enable automatic tracking</span>
-          <label class="toggle">
-            <input type="checkbox" id="autoToggle" ${state.auto ? "checked" : ""}>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
       </div>
+
     </div>
   `;
 
   document.getElementById("trackBtn").onclick = toggleTimer;
   document.getElementById("resetBtn").onclick = resetTimer;
-  document.getElementById("autoToggle").onchange = (e) => {
-    state.auto = e.target.checked;
-    save();
-  };
 
-  // 🔥 Sync checklist progress on every render
-  computeProgressFromChecklists(t).then((pct) => {
-    if (pct !== state.progress) {
-      state.progress = pct;
-      render();
+  document.getElementById("estimatedInput").onchange = (e) => {
+    const parts = e.target.value.split(":").map(Number);
+
+    let h = 0, m = 0, s = 0;
+    if (parts.length === 3) [h, m, s] = parts;
+    else if (parts.length === 2) { m = parts[0]; s = parts[1]; }
+    else if (parts.length === 1) s = parts[0];
+
+    const total = h * 3600 + m * 60 + s;
+
+    if (isNaN(total) || total <= 0) {
+      e.target.value = format(state.estimated);
+      return;
     }
-  });
+
+    state.estimated = total;
+    save();
+    render();
+  };
 }
 
+/* ----------------------------------------
+   AUTO REFRESH OF PROGRESS ON CHECKLIST CHANGE
+---------------------------------------- */
+t.render(async function () {
+  const pct = await computeProgress();
+  if (pct !== state.progress) {
+    state.progress = pct;
+    render();
+  }
+});
+
+/* INIT */
 load();
