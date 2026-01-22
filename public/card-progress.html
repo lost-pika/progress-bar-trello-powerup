@@ -255,18 +255,18 @@
           state.running = false;
           state.startTime = null;
         } else {
-          state.running = true;
-          state.startTime = Date.now();
-          startTick();
+  state.running = true;
+  state.startTime = Date.now();
+  startTick();
 
-          t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) t.set("card", "shared", "focusMode", true);
-          });
-        }
+  // Focus Mode
+  t.get("board","shared","autoFocus").then((f)=>{
+    if (f) t.set("card","shared","focusMode",true);
+  });
 
-        save();
-        render();
-      }
+  // 🔥 NEW — force badges to refresh instantly
+  t.refresh();
+}
 
       function resetTimer() {
         state.elapsed = 0;

@@ -33,42 +33,39 @@ function computeElapsed(data) {
 TrelloPowerUp.initialize({
   /* Board Button → Settings popup */
   "board-buttons": async function (t) {
-  const disabled = await t.get("board", "shared", "disabled");
+    const disabled = await t.get("board", "shared", "disabled");
 
-  if (disabled)
+    if (disabled)
+      return [
+        {
+          icon: ICON,
+          text: "Authorize",
+          callback: function () {
+            return t.popup({
+              title: "Authorize power up",
+              url: "./auth.html",
+              height: 200,
+            });
+          },
+        },
+      ];
+
+    // If not disabled → normal settings
     return [
       {
         icon: ICON,
-        text: "Authorize",
-        callback: function () {
+        text: "Progress",
+        callback: function (t, opts) {
           return t.popup({
-            title: "Authorize power up",
-            url: "./auth.html",
-            height: 200
+            title: "Progress Settings",
+            url: "./settings.html",
+            height: 620,
+            mouseEvent: opts.mouseEvent,
           });
-        }
-      }
+        },
+      },
     ];
-
-  // If not disabled → normal settings
-  return [
-    {
-      icon: ICON,
-      text: "Progress",
-      callback: function (t, opts) {
-        return t.popup({
-          title: "Progress Settings",
-          url: "./settings.html",
-          height: 620,
-          mouseEvent: opts.mouseEvent
-        });
-      }
-    }
-  ];
-}
-,
-
-
+  },
   /* Card Back Section → Timer iframe */
   "card-back-section": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
@@ -100,8 +97,15 @@ TrelloPowerUp.initialize({
       const badges = [];
 
       /* Focus Mode badge */
-      if (data.focusMode === true) {
-        badges.push({ text: "🎯 Focus ON", color: "red" });
+      // if (data.focusMode === true) {
+      //   badges.push({ text: "🎯 Focus ON", color: "red" });
+      // }
+
+      if (data.focusMode) {
+        badges.push({
+          text: "🎯 Focus",
+          color: "red",
+        });
       }
 
       /* Progress */
@@ -166,6 +170,22 @@ TrelloPowerUp.initialize({
         color: "blue",
       });
 
+      out.push({
+        title: "Timer",
+        dynamic: function (t) {
+          return t.get("card", "shared").then((d) => {
+            if (!d) return { text: "" };
+            const el = computeElapsed(d);
+            const est = d.estimated || 8 * 3600;
+            return {
+              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              color: "blue",
+            };
+          });
+        },
+        refresh: 1000,
+      });
+
       return out;
     });
   },
@@ -187,7 +207,8 @@ TrelloPowerUp.initialize({
                 ...data,
                 running: true,
                 startTime: Date.now(),
-              });
+                focusMode: true,
+              }).then(() => t.refresh());
             }
 
             return t.navigate({ url: `https://trello.com/c/${card.id}` });
@@ -208,12 +229,9 @@ TrelloPowerUp.initialize({
       if (mode !== "list" && mode !== "both") return;
       if (!lists || lists.length === 0) return;
 
-     const destListName = opts.to.list.name;
+      const destListId = opts.to.list.id;
 
-if (!lists.includes(destListName)) {
-  return;
-}
-
+      if (!lists.includes(destListId)) return;
 
       /* Was not running → start automatically */
       if (!data.running) {
@@ -264,16 +282,16 @@ if (!lists.includes(destListName)) {
 
   /* Auth */
   "authorization-status": function (t) {
-  return t.get("member", "private", "authorized")
-    .then(a => ({ authorized: a === true }));
-},
+    return t
+      .get("member", "private", "authorized")
+      .then((a) => ({ authorized: a === true }));
+  },
 
-"show-authorization": function (t) {
-  return t.popup({
-    title: "Authorize Progress Power-Up",
-    url: "./auth.html",
-    height: 200,
-  });
-},
-
+  "show-authorization": function (t) {
+    return t.popup({
+      title: "Authorize Progress Power-Up",
+      url: "./auth.html",
+      height: 200,
+    });
+  },
 });
