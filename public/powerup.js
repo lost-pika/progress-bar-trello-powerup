@@ -39,7 +39,7 @@ TrelloPowerUp.initialize({
       return [
         {
           icon: ICON,
-          text: "Authorize",
+          text: "Progress",
           callback: function (t, opts) {
             return t.popup({
               title: "Authorize power up",
@@ -192,32 +192,35 @@ TrelloPowerUp.initialize({
   },
 
   /* Auto-track on card open */
-  "card-buttons": function (t) {
-    return [
-      {
-        icon: ICON,
-        text: "Open Card",
-        callback: function () {
-          return Promise.all([
-            t.get("card", "shared"),
-            t.get("board", "shared", "autoTrackMode"),
-            t.card("id"),
-          ]).then(([data, mode, card]) => {
-            if ((mode === "open" || mode === "both") && !data?.running) {
-              t.set("card", "shared", {
-                ...data,
-                running: true,
-                startTime: Date.now(),
-                focusMode: true,
-              }).then(() => t.refresh());
-            }
+  "card-buttons": async function (t, opts) {
+  const data = await t.get("card", "shared");
 
-            return t.navigate({ url: `https://trello.com/c/${card.id}` });
-          });
-        },
+  const hasProgress = !!data;
+
+  return [
+    {
+      icon: ICON,
+      text: hasProgress ? "Hide Progress" : "Add Progress",
+      callback: function (t, opts) {
+        if (hasProgress) {
+          // Remove/hide
+          return t.set("card", "shared", null).then(() => t.refresh());
+        } else {
+          // Add progress
+          return t.set("card", "shared", {
+            progress: 0,
+            elapsed: 0,
+            estimated: 8 * 3600,
+            running: false,
+            startTime: null,
+            focusMode: false,
+          }).then(() => t.refresh());
+        }
       },
-    ];
-  },
+    },
+  ];
+},
+
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
