@@ -1,327 +1,337 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      background: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #e0e0e0;
-      padding: 4px 10px;
-    }
-
-    .container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .title {
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .percent {
-      font-size: 14px;
-      font-weight: 600;
-      color: #2ec4b6;
-    }
-
-    .progress-section.hidden {
-      display: none;
-    }
-
-    .bar-bg {
-      width: 100%;
-      height: 8px;
-      border-radius: 5px;
-      background: rgba(46, 196, 182, 0.18);
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      background: #2ec4b6;
-      transition: width 0.25s ease;
-    }
-
-    .manual-progress {
-      font-size: 13px;
-      margin-top: 8px;
-    }
-
-    .time-box {
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .time-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .elapsed {
-      font-size: 20px;
-      font-weight: 600;
-      color: #38e1d3;
-    }
-
-    .estimated {
-      font-size: 16px;
-      color: #fff;
-    }
-
-    .status-warning {
-      margin: 6px 0 10px 0;
-      padding: 8px 12px;
-      background: rgba(255,189,67,0.16);
-      border-left: 3px solid #ffb84a;
-      color: #ffcb7a;
-      border-radius: 4px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .track-btn {
-      width: 100%;
-      padding: 12px;
-      background: #2ec4b6;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 8px;
-    }
-
-    .reset-btn {
-      width: 100%;
-      padding: 10px;
-      background: #b23838;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .auto-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 14px;
-      font-size: 13px;
-    }
-
-    .toggle input { display: none; }
-
-    .toggle-slider {
-      width: 40px;
-      height: 20px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      position: relative;
-      transition: 0.25s ease;
-    }
-
-    .toggle-slider::after {
-      content: "";
-      width: 16px;
-      height: 16px;
-      background: #fff;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      border-radius: 50%;
-      transition: 0.25s ease;
-    }
-
-    input:checked + .toggle-slider {
-      background: #2ec4b6 !important;
-    }
-
-    input:checked + .toggle-slider::after {
-      transform: translateX(20px);
-    }
-  </style>
-</head>
-
-<body>
-  <div id="root"></div>
-
-  <script>
-    const t = TrelloPowerUp.iframe();
-
-    let state = {
-      progress: 0,
-      elapsed: 0,
-      estimated: 8 * 3600,
-      running: false,
-      startTime: null,
-      auto: false,
-      hideProgressBars: false
-    };
-
-    let timer = null;
-
-    /* FORMATTER */
-    function format(s) {
-      const h = String(Math.floor(s/3600)).padStart(2,"0");
-      const m = String(Math.floor((s%3600)/60)).padStart(2,"0");
-      const sec = String(s%60).padStart(2,"0");
-      return `${h}:${m}:${sec}`;
-    }
-
-    /* LOAD STATE */
-    async function load() {
-      const card = await t.get("card","shared") || {};
-      const hideBars = await t.get("board","shared","hideProgressBars");
-
-      state.progress = card.progress || 0;
-      state.elapsed = card.elapsed || 0;
-      state.estimated = card.estimated || 8*3600;
-      state.running = card.running || false;
-      state.startTime = card.startTime || null;
-      state.auto = card.auto || false;
-      state.hideProgressBars = hideBars || false;
-
-      render();
-
-      if(state.running) startTick();
-
-      setTimeout(()=>t.sizeTo(document.body).done(),40);
-    }
-
-    /* SAVE */
-    function save() {
-      t.set("card","shared",state);
-    }
-
-    /* TIMER */
-    function startTick() {
-      if(timer) return;
-      timer = setInterval(() => {
-        if(state.running) {
-          const now = Date.now();
-          const live = state.elapsed + Math.floor((now - state.startTime)/1000);
-          document.getElementById("elapsed").textContent = format(live);
-        }
-      }, 1000);
-    }
-
-    function toggleTimer() {
-      if(state.running) {
-        const now = Date.now();
-        state.elapsed += Math.floor((now - state.startTime)/1000);
-        state.running = false;
-        state.startTime = null;
-      } else {
-        state.running = true;
-        state.startTime = Date.now();
-        startTick();
-
-        t.get("board","shared","autoFocus").then(f=>{
-          if(f) t.set("card","shared","focusMode",true);
-        });
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      save();
-      render();
-    }
+      html,
+      body {
+        background: transparent;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #e0e0e0;
+        padding: 4px 10px;
+      }
 
-    function resetTimer() {
-      state.elapsed = 0;
-      state.running = false;
-      state.startTime = null;
-      save();
-      render();
-    }
+      .container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-    /* RENDER UI */
-    function render() {
-      const live = state.running
-        ? state.elapsed + Math.floor((Date.now() - state.startTime)/1000)
-        : state.elapsed;
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-      const behind = live > state.estimated;
+      .title {
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
 
-      document.getElementById("root").innerHTML = `
-        <div class="container">
+      .percent {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2ec4b6;
+      }
 
-          <div class="header">
-            <div class="title">⚡ Progress</div>
-            <div class="percent">${state.progress}%</div>
-          </div>
+      .progress-section.hidden {
+        display: none;
+      }
 
-          <div class="progress-section ${ state.hideProgressBars ? "hidden":""}">
-            <div class="bar-bg">
-              <div class="bar-fill" style="width:${state.progress}%"></div>
-            </div>
-            <div class="manual-progress">Progress: ${state.progress}%</div>
-          </div>
+      .bar-bg {
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: rgba(46, 196, 182, 0.18);
+        overflow: hidden;
+      }
 
-          <div class="time-box">
-            <div class="time-row">
-              <div>
-                <div style="opacity:.6;font-size:12px">Elapsed</div>
-                <div id="elapsed" class="elapsed">${format(live)}</div>
-              </div>
+      .bar-fill {
+        height: 100%;
+        background: #2ec4b6;
+        transition: width 0.25s ease;
+      }
 
-              <div>
-                <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-                <div class="estimated">${format(state.estimated)}</div>
-              </div>
-            </div>
+      .manual-progress {
+        font-size: 13px;
+        margin-top: 8px;
+      }
 
-            ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+      .time-box {
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
 
-            <button id="trackBtn" class="track-btn">
-              ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-            </button>
+      .time-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
 
-            <button id="resetBtn" class="reset-btn">Reset</button>
+      .elapsed {
+        font-size: 20px;
+        font-weight: 600;
+        color: #38e1d3;
+      }
 
-            // <div class="auto-row">
-            //   <span>Enable automatic tracking</span>
-            //   <label class="toggle">
-            //     <input type="checkbox" id="autoToggle" ${state.auto ? "checked":""}>
-            //     <span class="toggle-slider"></span>
-            //   </label>
-            // </div>
-          </div>
+      .estimated {
+        font-size: 16px;
+        color: #fff;
+      }
 
-        </div>
-      `;
+      .status-warning {
+        margin: 6px 0 10px 0;
+        padding: 8px 12px;
+        background: rgba(255, 189, 67, 0.16);
+        border-left: 3px solid #ffb84a;
+        color: #ffcb7a;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+      }
 
-      document.getElementById("trackBtn").onclick = toggleTimer;
-      document.getElementById("resetBtn").onclick = resetTimer;
+      .track-btn {
+        width: 100%;
+        padding: 12px;
+        background: #2ec4b6;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: 8px;
+      }
 
-      document.getElementById("autoToggle").onchange = (e)=>{
-        state.auto = e.target.checked;
-        save();
+      .reset-btn {
+        width: 100%;
+        padding: 10px;
+        background: #b23838;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .auto-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        font-size: 13px;
+      }
+
+      .toggle input {
+        display: none;
+      }
+
+      .toggle-slider {
+        width: 40px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        position: relative;
+        transition: 0.25s ease;
+      }
+
+      .toggle-slider::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        border-radius: 50%;
+        transition: 0.25s ease;
+      }
+
+      input:checked + .toggle-slider {
+        background: #2ec4b6 !important;
+      }
+
+      input:checked + .toggle-slider::after {
+        transform: translateX(20px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script>
+      const t = TrelloPowerUp.iframe();
+
+      let state = {
+        progress: 0,
+        elapsed: 0,
+        estimated: 8 * 3600,
+        running: false,
+        startTime: null,
+        auto: false,
+        hideProgressBars: false,
       };
-    }
 
-    load();
-  </script>
-</body>
+      let timer = null;
+
+      /* FORMATTER */
+      function format(s) {
+        const h = String(Math.floor(s / 3600)).padStart(2, "0");
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+        const sec = String(s % 60).padStart(2, "0");
+        return `${h}:${m}:${sec}`;
+      }
+
+      /* LOAD STATE */
+      async function load() {
+        const card = (await t.get("card", "shared")) || {};
+        const hideBars = await t.get("board", "shared", "hideProgressBars");
+
+        state.progress = card.progress || 0;
+        state.elapsed = card.elapsed || 0;
+        state.estimated = card.estimated || 8 * 3600;
+        state.running = card.running || false;
+        state.startTime = card.startTime || null;
+        state.auto = card.auto || false;
+        state.hideProgressBars = hideBars || false;
+
+        render();
+
+        if (state.running) startTick();
+
+        setTimeout(() => t.sizeTo(document.body).done(), 40);
+      }
+
+      /* SAVE */
+      function save() {
+        t.set("card", "shared", state);
+      }
+
+      /* TIMER */
+      function startTick() {
+        if (timer) return;
+        timer = setInterval(() => {
+          if (state.running) {
+            const now = Date.now();
+            const live =
+              state.elapsed + Math.floor((now - state.startTime) / 1000);
+            document.getElementById("elapsed").textContent = format(live);
+          }
+        }, 1000);
+      }
+
+      function toggleTimer() {
+        if (state.running) {
+          const now = Date.now();
+          state.elapsed += Math.floor((now - state.startTime) / 1000);
+          state.running = false;
+          state.startTime = null;
+        } else {
+          state.running = true;
+          state.startTime = Date.now();
+          startTick();
+
+          t.get("board", "shared", "autoFocus").then((f) => {
+            if (f) t.set("card", "shared", "focusMode", true);
+          });
+        }
+
+        save();
+        render();
+      }
+
+      function resetTimer() {
+        state.elapsed = 0;
+        state.running = false;
+        state.startTime = null;
+        save();
+        render();
+      }
+
+      /* RENDER UI */
+      function render() {
+        const live = state.running
+          ? state.elapsed + Math.floor((Date.now() - state.startTime) / 1000)
+          : state.elapsed;
+
+        const behind = live > state.estimated;
+
+        document.getElementById("root").innerHTML = `
+              <div class="container">
+
+                <div class="header">
+                  <div class="title">⚡ Progress</div>
+                  <div class="percent">${state.progress}%</div>
+                </div>
+
+                <div class="progress-section ${state.hideProgressBars ? "hidden" : ""}">
+                  <div class="bar-bg">
+                    <div class="bar-fill" style="width:${state.progress}%"></div>
+                  </div>
+                  <div class="manual-progress">Progress: ${state.progress}%</div>
+                </div>
+
+                <div class="time-box">
+                  <div class="time-row">
+                    <div>
+                      <div style="opacity:.6;font-size:12px">Elapsed</div>
+                      <div id="elapsed" class="elapsed">${format(live)}</div>
+                    </div>
+
+                    <div>
+                      <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
+                      <div class="estimated">${format(state.estimated)}</div>
+                    </div>
+                  </div>
+
+                  ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+
+                  <button id="trackBtn" class="track-btn">
+                    ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+                  </button>
+
+                  <button id="resetBtn" class="reset-btn">Reset</button>
+
+
+                </div>
+
+              </div>
+            `;
+
+        // <div class="auto-row">
+        //               <span>Enable automatic tracking</span>
+        //               <label class="toggle">
+        //                 <input type="checkbox" id="autoToggle" ${state.auto ? "checked":""}>
+        //                 <span class="toggle-slider"></span>
+        //               </label>
+        //             </div>
+
+        document.getElementById("trackBtn").onclick = toggleTimer;
+        document.getElementById("resetBtn").onclick = resetTimer;
+
+        document.getElementById("autoToggle").onchange = (e) => {
+          state.auto = e.target.checked;
+          save();
+        };
+      }
+
+      load();
+    </script>
+  </body>
 </html>
