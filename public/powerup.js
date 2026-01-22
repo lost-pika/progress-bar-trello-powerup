@@ -32,22 +32,41 @@ function computeElapsed(data) {
 
 TrelloPowerUp.initialize({
   /* Board Button → Settings popup */
-  "board-buttons": function (t) {
+  "board-buttons": async function (t) {
+  const disabled = await t.get("board", "shared", "disabled");
+
+  if (disabled)
     return [
       {
         icon: ICON,
-        text: "Progress",
-        callback: function (t, opts) {
+        text: "Authorize",
+        callback: function () {
           return t.popup({
-            title: "Progress Settings",
-            url: "./settings.html",
-            height: 620,
-            mouseEvent: opts.mouseEvent, // ← REQUIRED FIX
+            title: "Authorize power up",
+            url: "./auth.html",
+            height: 200
           });
-        },
-      },
+        }
+      }
     ];
-  },
+
+  // If not disabled → normal settings
+  return [
+    {
+      icon: ICON,
+      text: "Progress",
+      callback: function (t, opts) {
+        return t.popup({
+          title: "Progress Settings",
+          url: "./settings.html",
+          height: 620,
+          mouseEvent: opts.mouseEvent
+        });
+      }
+    }
+  ];
+}
+,
 
 
   /* Card Back Section → Timer iframe */

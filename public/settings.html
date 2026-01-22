@@ -211,11 +211,43 @@
       </div>
 
       <!-- REMOVE -->
-      <button class="remove-btn" id="removeBtn">⚠️ Remove Power-Up</button>
+      <button class="remove-btn" id="unauthBtn">⚠️ Unauthorize Power-Up
+</button>
     </div>
 
     <script>
       const t = TrelloPowerUp.iframe();
+
+      (async function checkDisabled() {
+  const disabled = await t.get("board", "shared", "disabled");
+  if (disabled) {
+    // Replace the whole UI with only an authorize button
+    document.body.innerHTML = `
+      <div style="padding:20px;text-align:center">
+        <h3>Power-Up disabled</h3>
+        <button id="authBtn" style="
+          padding:12px 18px;
+          margin-top:20px;
+          border:none;
+          background:#00c2ff;
+          color:#fff;
+          border-radius:6px;
+          font-size:15px;
+          cursor:pointer;">
+          Click to Authorize
+        </button>
+      </div>
+    `;
+
+    document.getElementById("authBtn").onclick = function () {
+      t.set("board", "shared", "disabled", false).then(() => {
+        t.refresh();
+        t.closePopup();
+      });
+    };
+  }
+})();
+
 
       /* LOAD SETTINGS */
       (async function load() {
@@ -256,7 +288,7 @@
         saveBoard("autoTrackMode", e.target.value);
 
       /* REMOVE POWER-UP */
-      document.getElementById("removeBtn").onclick = async () => {
+      document.getElementById("unauthBtn").onclick = async () => {
         const ok = confirm("Remove and clear all saved data?");
         if (!ok) return;
 

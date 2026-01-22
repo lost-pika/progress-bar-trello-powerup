@@ -28,10 +28,12 @@ button {
 <script>
   var t = TrelloPowerUp.iframe();
 
-  document.getElementById("authBtn").onclick = function(){
-    t.set('member','private','authorized',true)
-      .then(() => t.closePopup());
-  };
+  document.getElementById("authBtn").onclick = async () => {
+  await t.set("board", "shared", "disabled", false);
+  t.closePopup();
+  t.refresh();
+};
+
 </script>
 
 </body>
