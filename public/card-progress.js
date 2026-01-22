@@ -61,8 +61,10 @@ async function load() {
 
   // Always sync progress with checklist
   state.progress = await computeProgress();
+await save();
+t.refresh();   // 🔥 forces card-badges to re-render immediately
+render();
 
-  render();
   if (state.running) startTick();
 
   setTimeout(() => t.sizeTo(document.body).done(), 40);
