@@ -49,22 +49,6 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  "show-authorization": function (t) {
-    const disabled = t.get("board", "shared", "disabled");
-    if (disabled) {
-      return t.popup({
-        title: "Authorize Power-Up",
-        url: "./auth.html",
-        height: 200,
-      });
-    }
-
-    return t.popup({
-      title: "Authorize Power-Up",
-      url: "./auth.html",
-      height: 200,
-    });
-  },
 
   /* Card Back Section → Timer iframe */
   "card-back-section": async function (t) {
@@ -205,8 +189,12 @@ TrelloPowerUp.initialize({
       if (mode !== "list" && mode !== "both") return;
       if (!lists || lists.length === 0) return;
 
-      const destList = opts.to.list;
-      if (!lists.includes(destList)) return;
+     const destListName = opts.to.list.name;
+
+if (!lists.includes(destListName)) {
+  return;
+}
+
 
       /* Was not running → start automatically */
       if (!data.running) {
@@ -257,16 +245,16 @@ TrelloPowerUp.initialize({
 
   /* Auth */
   "authorization-status": function (t) {
-    return t
-      .get("member", "private", "authorized")
-      .then((a) => ({ authorized: a === true }));
-  },
+  return t.get("member", "private", "authorized")
+    .then(a => ({ authorized: a === true }));
+},
 
-  "show-authorization": function (t) {
-    return t.popup({
-      title: "Authorize Progress Power-Up",
-      url: "./auth.html",
-      height: 200,
-    });
-  },
+"show-authorization": function (t) {
+  return t.popup({
+    title: "Authorize Progress Power-Up",
+    url: "./auth.html",
+    height: 200,
+  });
+},
+
 });

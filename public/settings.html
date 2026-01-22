@@ -12,7 +12,8 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", sans-serif;
         background: transparent !important;
         color: #ffffff;
@@ -235,7 +236,7 @@
 
       /* SAVE FUNCTIONS */
       function saveBoard(k, v) {
-        t.set("board", "shared", k, v).then(() => t.refresh());
+        return t.set("board", "shared", k, v);
       }
 
       /* EVENTS */
@@ -256,32 +257,34 @@
 
       /* REMOVE POWER-UP */
       document.getElementById("removeBtn").onclick = async () => {
-  const ok = confirm("Remove and clear all saved data?");
-  if (!ok) return;
+        const ok = confirm("Remove and clear all saved data?");
+        if (!ok) return;
 
-  // 1️⃣ REMOVE BOARD DATA
-  const board = (await t.get("board", "shared")) || {};
-  for (const key of Object.keys(board)) {
-    await t.remove("board", "shared", key);
-  }
+        // 1️⃣ REMOVE BOARD DATA
+        const board = (await t.get("board", "shared")) || {};
+        for (const key of Object.keys(board)) {
+          await t.remove("board", "shared", key);
+        }
 
-  // 2️⃣ REMOVE CARD DATA (only keys for current card)
-  const card = (await t.get("card", "shared")) || {};
-  for (const key of Object.keys(card)) {
-    await t.remove("card", "shared", key);
-  }
+        // 2️⃣ REMOVE CARD DATA (only keys for current card)
+        const card = (await t.get("card", "shared")) || {};
+        for (const key of Object.keys(card)) {
+          await t.remove("card", "shared", key);
+        }
 
-  // 3️⃣ REMOVE MEMBER PRIVATE DATA
-  const mem = (await t.get("member", "private")) || {};
-  for (const key of Object.keys(mem)) {
-    await t.remove("member", "private", key);
-  }
+        // 3️⃣ REMOVE MEMBER PRIVATE DATA
+        const mem = (await t.get("member", "private")) || {};
+        for (const key of Object.keys(mem)) {
+          await t.remove("member", "private", key);
+        }
 
-  alert("Power-Up data cleared. You may now remove it from Trello settings.");
+        // 4️⃣ SET DISABLED FLAG  ← ← ADD THIS
+        await t.set("board", "shared", "disabled", true);
 
-  t.closePopup();
-};
+        alert("Power-Up data cleared. UI will disappear now.");
 
+        t.closePopup();
+      };
     </script>
   </body>
 </html>
