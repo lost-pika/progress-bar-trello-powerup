@@ -217,11 +217,17 @@ function render() {
 ---------------------------------------- */
 t.render(async function () {
   const pct = await computeProgress();
+
   if (pct !== state.progress) {
     state.progress = pct;
+
+    await save();     // ← required!
+    t.refresh();      // ← force Trello to re-render badges
+
     render();
   }
 });
+
 
 /* INIT */
 load();
