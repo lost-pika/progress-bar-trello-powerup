@@ -220,6 +220,26 @@ TrelloPowerUp.initialize({
     });
   },
 
+  "on-card-clicked": function (t, opts) {
+  return Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "autoTrackMode")
+  ])
+  .then(([data, mode]) => {
+
+    if (mode === "open" || mode === "both") {
+      if (!data?.running) {
+        return t.set("card", "shared", {
+          ...data,
+          running: true,
+          startTime: Date.now()
+        });
+      }
+    }
+  });
+},
+
+
   /* Auth */
   "authorization-status": function (t) {
     return t.get("member", "private", "authorized")
