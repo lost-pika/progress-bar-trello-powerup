@@ -192,32 +192,33 @@ TrelloPowerUp.initialize({
   },
 
   "card-buttons": async function (t, opts) {
-    const data = await t.get("card", "shared");
-    const hasProgress = !!data;
+  const data = await t.get("card", "shared");
+  const hasProgress = !!data;
 
-    return [
-      {
-        icon: ICON,
-        text: hasProgress ? "Hide Progress" : "Add Progress",
-        callback: function (t) {
-          if (hasProgress) {
-            return t.set("card", "shared", null).then(() => t.refresh());
-          } else {
-            return t
-              .set("card", "shared", {
-                progress: 0,
-                elapsed: 0,
-                estimated: 8 * 3600,
-                running: false,
-                startTime: null,
-                focusMode: false,
-              })
-              .then(() => t.refresh());
-          }
-        },
+  return [
+    {
+      icon: ICON,
+      text: hasProgress ? "Hide Progress" : "Add Progress",
+      callback: function (t) {
+        if (hasProgress) {
+          // COMPLETELY REMOVE PROGRESS DATA
+          return t.remove("card", "shared").then(() => t.refresh());
+        } else {
+          // ADD INITIAL DATA
+          return t.set("card", "shared", {
+            progress: 0,
+            elapsed: 0,
+            estimated: 8 * 3600,
+            running: false,
+            startTime: null,
+            focusMode: false,
+          }).then(() => t.refresh());
+        }
       },
-    ];
-  },
+    },
+  ];
+},
+
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
