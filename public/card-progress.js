@@ -61,9 +61,9 @@ async function load() {
 
   // Always sync progress with checklist
   state.progress = await computeProgress();
-await save();
-t.refresh();   // 🔥 forces card-badges to re-render immediately
-render();
+  await save();
+  t.refresh(); // 🔥 forces card-badges to re-render immediately
+  render();
 
   if (state.running) startTick();
 
@@ -194,10 +194,14 @@ function render() {
   document.getElementById("estimatedInput").onchange = (e) => {
     const parts = e.target.value.split(":").map(Number);
 
-    let h = 0, m = 0, s = 0;
+    let h = 0,
+      m = 0,
+      s = 0;
     if (parts.length === 3) [h, m, s] = parts;
-    else if (parts.length === 2) { m = parts[0]; s = parts[1]; }
-    else if (parts.length === 1) s = parts[0];
+    else if (parts.length === 2) {
+      m = parts[0];
+      s = parts[1];
+    } else if (parts.length === 1) s = parts[0];
 
     const total = h * 3600 + m * 60 + s;
 
@@ -221,13 +225,12 @@ t.render(async function () {
   if (pct !== state.progress) {
     state.progress = pct;
 
-    await save();     // ← required!
-    t.refresh();      // ← force Trello to re-render badges
+    await save(); // ← required!
+    t.refresh(); // ← force Trello to re-render badges
 
     render();
   }
 });
-
 
 /* INIT */
 load();

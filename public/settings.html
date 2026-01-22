@@ -284,13 +284,10 @@
       /* EVENTS */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
+        
       document.getElementById("hideTimer").onchange = async (e) => {
-        const hide = e.target.checked;
-
-        await t.set("board", "shared", "hideTimerBadges", hide);
-
-        // Immediately update the cards
-        t.refresh();
+        await t.set("board", "shared", "hideTimerBadges", e.target.checked);
+        t.refresh(); // ← REQUIRED
       };
 
       document.getElementById("hideDetail").onchange = (e) =>

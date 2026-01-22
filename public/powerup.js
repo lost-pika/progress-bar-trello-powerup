@@ -107,35 +107,37 @@ TrelloPowerUp.initialize({
 
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+  const disabled = await t.get("board", "shared", "disabled");
+  if (disabled) return [];
 
-    return Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-    ]).then(([data, hideBadges, hideBars]) => {
-      if (hideBadges || !data) return [];
-      if (data.disabledProgress) return [];
+  return Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "hideBadges"),
+    t.get("board", "shared", "hideProgressBars"),
+    t.get("board", "shared", "hideTimerBadges"), // ← REQUIRED
+  ]).then(([data, hideBadges, hideBars, hideTimer]) => {
+    if (hideBadges || !data) return [];
+    if (data.disabledProgress) return [];
 
-      const badges = [];
+    const badges = [];
 
-      /* FOCUS BADGE */
-      if (data.focusMode) {
-        badges.push({
-          text: "🎯 Focus",
-          color: "red",
-        });
-      }
+    // Focus badge
+    if (data.focusMode) {
+      badges.push({
+        text: "🎯 Focus",
+        color: "red",
+      });
+    }
 
-      /* NOW -> ASYNC CHECKLIST PROGRESS */
-      return computeProgressFromChecklists(t).then((pct) => {
-        badges.push({
-          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-          color: "blue",
-        });
+    // Checklist progress
+    return computeProgressFromChecklists(t).then((pct) => {
+      badges.push({
+        text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+        color: "blue",
+      });
 
-        /* TIMER BADGE */
+      // Timer badge — MUST respect hideTimer flag
+      if (!hideTimer) {
         badges.push({
           dynamic: function (t) {
             return t.get("card", "shared").then((d) => {
@@ -150,11 +152,13 @@ TrelloPowerUp.initialize({
           },
           refresh: 1000,
         });
+      }
 
-        return badges; // <-- FINAL RETURN
-      });
+      return badges;
     });
-  },
+  });
+},
+
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
@@ -249,7 +253,7 @@ TrelloPowerUp.initialize({
       },
     ];
   },
-  
+
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
     return Promise.all([
