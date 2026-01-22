@@ -92,9 +92,7 @@ TrelloPowerUp.initialize({
 
     const cardData = await t.get("card", "shared");
 
-    if (!cardData || cardData.disabledProgress) {
-      return null; // hide progress panel
-    }
+    if (!cardData || cardData.disabledProgress === true) return null;
 
     return {
       title: "Progress",
@@ -118,6 +116,7 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideProgressBars"),
     ]).then(([data, hideBadges, hideBars]) => {
       if (hideBadges || !data) return [];
+      if (data.disabledProgress) return [];
 
       const badges = [];
 
@@ -215,20 +214,15 @@ TrelloPowerUp.initialize({
 
   "card-buttons": async function (t, opts) {
     const data = await t.get("card", "shared");
-    const hasProgress = !!data;
+    const isHidden = data?.disabledProgress === true;
 
     return [
       {
         icon: ICON,
-        text: hasProgress ? "Hide Progress" : "Add Progress",
+        text: isHidden ? "Add Progress" : "Hide Progress",
         callback: function (t) {
-          if (hasProgress) {
-            // Set board-level flag so ALL progress UI hides
-            return t
-              .set("card", "shared", "disabledProgress", true)
-              .then(() => t.refresh());
-          } else {
-            // ADD INITIAL DATA
+          if (!data) {
+            // Progress has never been added
             return t.set("card", "shared", {
               progress: 0,
               elapsed: 0,
@@ -236,14 +230,26 @@ TrelloPowerUp.initialize({
               running: false,
               startTime: null,
               focusMode: false,
-              disabledProgress: false, // ← ADD THIS
+              disabledProgress: false,
             });
           }
+
+          if (!isHidden) {
+            // Hide UI
+            return t
+              .set("card", "shared", "disabledProgress", true)
+              .then(() => t.refresh());
+          }
+
+          // Show UI again
+          return t
+            .set("card", "shared", "disabledProgress", false)
+            .then(() => t.refresh());
         },
       },
     ];
   },
-
+  
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
     return Promise.all([
