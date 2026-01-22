@@ -162,38 +162,40 @@ TrelloPowerUp.initialize({
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
-    return Promise.all([
-      t.get("card", "shared", "progress"),
-      t.get("card", "shared", "focusMode"),
-      t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-    ]).then(([progress, focusMode, hideDetail, hideBars]) => {
-      if (hideDetail) return [];
+  const disabled = await t.get("board", "shared", "disabled");
+  if (disabled) return [];
 
-      const out = [];
+  return Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "hideDetailBadges"),
+    t.get("board", "shared", "hideProgressBars"),
+    t.get("board", "shared", "hideTimerBadges"),
+  ]).then(([data, hideDetail, hideBars, hideTimer]) => {
 
-      if (focusMode) {
-        out.push({
-          title: "Focus",
-          text: "🎯 Focus ON",
-          color: "red",
-        });
-      }
+    if (hideDetail || !data) return [];
 
-      if (progress == null) return out;
+    const badges = [];
 
-      const pct = Math.max(0, Math.min(100, parseInt(progress)));
+    /* Focus badge */
+    if (data.focusMode) {
+      badges.push({
+        title: "Focus",
+        text: "🎯 Focus ON",
+        color: "red",
+      });
+    }
 
-      out.push({
+    /* 🔥 Checklist progress (NEW) */
+    return computeProgressFromChecklists(t).then((pct) => {
+      badges.push({
         title: "Progress",
         text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
         color: "blue",
       });
 
-      if (!hideDetail && !boardSettings.hideTimerBadges) {
-        out.push({
+      /* Timer badge */
+      if (!hideTimer) {
+        badges.push({
           title: "Timer",
           dynamic: function (t) {
             return t.get("card", "shared").then((d) => {
@@ -210,9 +212,11 @@ TrelloPowerUp.initialize({
         });
       }
 
-      return out;
+      return badges; // FINAL return
     });
-  },
+  });
+},
+
 
   "card-buttons": async function (t, opts) {
     const data = await t.get("card", "shared");

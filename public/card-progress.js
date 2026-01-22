@@ -7,7 +7,7 @@ let state = {
   running: false,
   startTime: null,
   auto: false,
-  hideProgressBars: false
+  hideProgressBars: false,
 };
 
 let timer = null;
@@ -20,20 +20,21 @@ function format(sec) {
 }
 
 async function load() {
-  const data = await t.get("card", "shared") || {};
+  const card = (await t.get("card", "shared")) || {};
   const hideBars = await t.get("board", "shared", "hideProgressBars");
 
-  state.progress = data.progress || 0;
-  state.elapsed = data.elapsed || 0;
-  state.estimated = data.estimated || 8 * 3600;
-  state.running = data.running || false;
-  state.startTime = data.startTime || null;
-  state.auto = data.auto || false;
+  state.elapsed = card.elapsed || 0;
+  state.estimated = card.estimated || 8 * 3600;
+  state.running = card.running || false;
+  state.startTime = card.startTime || null;
   state.hideProgressBars = hideBars || false;
 
-  render();
+  // 🔥 NEW — sync progress with checklist
+  state.progress = await computeProgressFromChecklists(t);
 
+  render();
   if (state.running) startTick();
+
   setTimeout(() => t.sizeTo(document.body).done(), 40);
 }
 
@@ -46,7 +47,8 @@ function startTick() {
 
   timer = setInterval(() => {
     if (state.running) {
-      const live = state.elapsed + Math.floor((Date.now() - state.startTime) / 1000);
+      const live =
+        state.elapsed + Math.floor((Date.now() - state.startTime) / 1000);
       document.getElementById("elapsed").textContent = format(live);
     }
   }, 1000);
@@ -126,7 +128,7 @@ function render() {
         <div class="auto-row">
           <span>Enable automatic tracking</span>
           <label class="toggle">
-            <input type="checkbox" id="autoToggle" ${state.auto ? "checked":""}>
+            <input type="checkbox" id="autoToggle" ${state.auto ? "checked" : ""}>
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -136,11 +138,18 @@ function render() {
 
   document.getElementById("trackBtn").onclick = toggleTimer;
   document.getElementById("resetBtn").onclick = resetTimer;
-
-  document.getElementById("autoToggle").onchange = (e)=>{
+  document.getElementById("autoToggle").onchange = (e) => {
     state.auto = e.target.checked;
     save();
   };
+
+  // 🔥 Sync checklist progress on every render
+  computeProgressFromChecklists(t).then((pct) => {
+    if (pct !== state.progress) {
+      state.progress = pct;
+      render();
+    }
+  });
 }
 
 load();
