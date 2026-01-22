@@ -40,11 +40,12 @@ TrelloPowerUp.initialize({
         {
           icon: ICON,
           text: "Authorize",
-          callback: function () {
+          callback: function (t, opts) {
             return t.popup({
               title: "Authorize power up",
               url: "./auth.html",
               height: 200,
+              mouseEvent: opts.mouseEvent, // ← REQUIRED
             });
           },
         },
@@ -235,11 +236,14 @@ TrelloPowerUp.initialize({
 
       /* Was not running → start automatically */
       if (!data.running) {
-        return t.set("card", "shared", {
-          ...data,
-          running: true,
-          startTime: Date.now(),
-        });
+        return t
+          .set("card", "shared", {
+            ...data,
+            running: true,
+            startTime: Date.now(),
+            focusMode: true, // ← REQUIRED
+          })
+          .then(() => t.refresh()); // ← REQUIRED for immediate badge update
       }
 
       /* Was running → ask user */
@@ -253,12 +257,15 @@ TrelloPowerUp.initialize({
         .then((result) => {
           if (!result || result.restart !== true) return;
 
-          return t.set("card", "shared", {
-            ...data,
-            elapsed: 0,
-            running: true,
-            startTime: Date.now(),
-          });
+          return t
+            .set("card", "shared", {
+              ...data,
+              elapsed: 0,
+              running: true,
+              startTime: Date.now(),
+              focusMode: true,
+            })
+            .then(() => t.refresh());
         });
     });
   },
@@ -270,11 +277,14 @@ TrelloPowerUp.initialize({
     ]).then(([data, mode]) => {
       if (mode === "open" || mode === "both") {
         if (!data?.running) {
-          return t.set("card", "shared", {
-            ...data,
-            running: true,
-            startTime: Date.now(),
-          });
+          return t
+            .set("card", "shared", {
+              ...data,
+              running: true,
+              startTime: Date.now(),
+              focusMode: true, // ← REQUIRED
+            })
+            .then(() => t.refresh());
         }
       }
     });
