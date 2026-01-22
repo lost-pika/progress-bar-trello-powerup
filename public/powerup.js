@@ -72,6 +72,11 @@ TrelloPowerUp.initialize({
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return null;
 
+    const cardData = await t.get("card", "shared");
+
+    // ❗ If no progress data → hide the entire progress UI
+    if (!cardData) return null;
+
     return {
       title: "Progress",
       icon: ICON,
@@ -86,6 +91,8 @@ TrelloPowerUp.initialize({
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
+    const boardSettings = await t.get("board", "shared");
+
     if (disabled) return [];
     return Promise.all([
       t.get("card", "shared"),
@@ -120,20 +127,22 @@ TrelloPowerUp.initialize({
       }
 
       /* Timer (dynamic) */
-      badges.push({
-        dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
-            return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-              color: "blue",
-            };
-          });
-        },
-        refresh: 1000,
-      });
+      if (!hideBadges && !boardSettings.hideTimerBadges) {
+        badges.push({
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
+        });
+      }
 
       return badges;
     });
@@ -171,54 +180,57 @@ TrelloPowerUp.initialize({
         color: "blue",
       });
 
-      out.push({
-        title: "Timer",
-        dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
-            return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-              color: "blue",
-            };
-          });
-        },
-        refresh: 1000,
-      });
+      if (!hideDetail && !boardSettings.hideTimerBadges) {
+        out.push({
+          title: "Timer",
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
+        });
+      }
 
       return out;
     });
   },
 
   "card-buttons": async function (t, opts) {
-  const data = await t.get("card", "shared");
-  const hasProgress = !!data;
+    const data = await t.get("card", "shared");
+    const hasProgress = !!data;
 
-  return [
-    {
-      icon: ICON,
-      text: hasProgress ? "Hide Progress" : "Add Progress",
-      callback: function (t) {
-        if (hasProgress) {
-          // COMPLETELY REMOVE PROGRESS DATA
-          return t.remove("card", "shared").then(() => t.refresh());
-        } else {
-          // ADD INITIAL DATA
-          return t.set("card", "shared", {
-            progress: 0,
-            elapsed: 0,
-            estimated: 8 * 3600,
-            running: false,
-            startTime: null,
-            focusMode: false,
-          }).then(() => t.refresh());
-        }
+    return [
+      {
+        icon: ICON,
+        text: hasProgress ? "Hide Progress" : "Add Progress",
+        callback: function (t) {
+          if (hasProgress) {
+            // COMPLETELY REMOVE PROGRESS DATA
+            return t.remove("card", "shared").then(() => t.refresh());
+          } else {
+            // ADD INITIAL DATA
+            return t
+              .set("card", "shared", {
+                progress: 0,
+                elapsed: 0,
+                estimated: 8 * 3600,
+                running: false,
+                startTime: null,
+                focusMode: false,
+              })
+              .then(() => t.refresh());
+          }
+        },
       },
-    },
-  ];
-},
-
+    ];
+  },
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {

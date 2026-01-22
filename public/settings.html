@@ -164,6 +164,17 @@
 
         <div class="item">
           <div>
+            <div class="label">Hide timer badges</div>
+            <div class="desc">Hide ⏱ timer from card</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hideTimer" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="item">
+          <div>
             <div class="label">Hide card detail badges</div>
             <div class="desc">In detailed card view</div>
           </div>
@@ -209,18 +220,17 @@
       </div>
 
       <!-- REMOVE -->
-      <button class="remove-btn" id="unauthBtn">⚠️ Unauthorize Power-Up
-</button>
+      <button class="remove-btn" id="unauthBtn">⚠️ Unauthorize Power-Up</button>
     </div>
 
     <script>
       const t = TrelloPowerUp.iframe();
 
       (async function checkDisabled() {
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) {
-    // Replace the whole UI with only an authorize button
-    document.body.innerHTML = `
+        const disabled = await t.get("board", "shared", "disabled");
+        if (disabled) {
+          // Replace the whole UI with only an authorize button
+          document.body.innerHTML = `
       <div style="padding:20px;text-align:center">
         <h3>Power-Up disabled</h3>
         <button id="authBtn" style="
@@ -237,15 +247,14 @@
       </div>
     `;
 
-    document.getElementById("authBtn").onclick = function () {
-      t.set("board", "shared", "disabled", false).then(() => {
-        t.refresh();
-        t.closePopup();
-      });
-    };
-  }
-})();
-
+          document.getElementById("authBtn").onclick = function () {
+            t.set("board", "shared", "disabled", false).then(() => {
+              t.refresh();
+              t.closePopup();
+            });
+          };
+        }
+      })();
 
       /* LOAD SETTINGS */
       (async function load() {
@@ -261,6 +270,9 @@
         document.getElementById("autoTrackMode").value =
           board.autoTrackMode || "off";
 
+        document.getElementById("hideTimer").checked =
+          board.hideTimerBadges || false;
+
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
 
@@ -272,6 +284,9 @@
       /* EVENTS */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
+
+      document.getElementById("hideTimer").onchange = (e) =>
+        saveBoard("hideTimerBadges", e.target.checked);
 
       document.getElementById("hideDetail").onchange = (e) =>
         saveBoard("hideDetailBadges", e.target.checked);
