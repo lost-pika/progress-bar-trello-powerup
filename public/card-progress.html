@@ -235,53 +235,41 @@
         t.set("card", "shared", state);
       }
 
-      /* TIMER */
-      function startTick() {
-        if (timer) return;
-        timer = setInterval(() => {
-          if (state.running) {
-            const now = Date.now();
-            const live =
-              state.elapsed + Math.floor((now - state.startTime) / 1000);
-            document.getElementById("elapsed").textContent = format(live);
-          }
-        }, 1000);
-      }
-
       function toggleTimer() {
-        // STOP
-const now = Date.now();
-state.elapsed += Math.floor((now - state.startTime) / 1000);
-state.running = false;
-state.startTime = null;
+        /* --------------------------
+        STOP TIMER
+  --------------------------- */
+        if (state.running) {
+          const now = Date.now();
+          state.elapsed += Math.floor((now - state.startTime) / 1000);
+          state.running = false;
+          state.startTime = null;
 
-t.set("card", "shared", "focusMode", false).then(() => {
-  t.refresh();   // ← REQUIRED
-});
-
-// START
-state.running = true;
-state.startTime = Date.now();
-startTick();
-
-// Auto Focus Mode
-t.get("board", "shared", "autoFocus").then((enabled) => {
-  if (enabled) {
-    t.set("card", "shared", "focusMode", true).then(() => {
-      t.refresh();  // ← REQUIRED
-    });
-  }
-});
-
-
-          // Focus Mode
-          t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) t.set("card", "shared", "focusMode", true);
+          // turn off focus mode
+          t.set("card", "shared", "focusMode", false).then(() => {
+            t.refresh(); // refresh badge
           });
 
-          // Immediate badge refresh
-          t.refresh();
+          save();
+          render();
+          return; // ← very important
         }
+
+        /* --------------------------
+        START TIMER
+  --------------------------- */
+        state.running = true;
+        state.startTime = Date.now();
+        startTick();
+
+        // Auto Focus Mode (board setting)
+        t.get("board", "shared", "autoFocus").then((enabled) => {
+          if (enabled) {
+            t.set("card", "shared", "focusMode", true).then(() => {
+              t.refresh(); // refresh badge
+            });
+          }
+        });
 
         save();
         render();
@@ -304,44 +292,44 @@ t.get("board", "shared", "autoFocus").then((enabled) => {
         const behind = live > state.estimated;
 
         document.getElementById("root").innerHTML = `
-  <div class="container">
+        <div class="container">
 
-    <div class="time-box">
-      <div class="time-row">
-        <div>
-          <div style="opacity:.6;font-size:12px">Elapsed</div>
-          <div id="elapsed" class="elapsed">${format(live)}</div>
+          <div class="time-box">
+            <div class="time-row">
+              <div>
+                <div style="opacity:.6;font-size:12px">Elapsed</div>
+                <div id="elapsed" class="elapsed">${format(live)}</div>
+              </div>
+
+              <div>
+                <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
+                <input id="estimatedInput"
+                  class="estimated"
+                  value="${format(state.estimated)}"
+                  style="
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.12);
+                    border-radius: 6px;
+                    padding: 4px 6px;
+                    font-size: 15px;
+                    width: 90px;
+                    color: #fff;
+                    text-align: center;
+                  ">
+              </div>
+            </div>
+
+            ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+
+            <button id="trackBtn" class="track-btn">
+              ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+            </button>
+
+            <button id="resetBtn" class="reset-btn">Reset</button>
+          </div>
+
         </div>
-
-        <div>
-          <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-          <input id="estimatedInput"
-            class="estimated"
-            value="${format(state.estimated)}"
-            style="
-              background: rgba(255,255,255,0.05);
-              border: 1px solid rgba(255,255,255,0.12);
-              border-radius: 6px;
-              padding: 4px 6px;
-              font-size: 15px;
-              width: 90px;
-              color: #fff;
-              text-align: center;
-            ">
-        </div>
-      </div>
-
-      ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
-
-      <button id="trackBtn" class="track-btn">
-        ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-      </button>
-
-      <button id="resetBtn" class="reset-btn">Reset</button>
-    </div>
-
-  </div>
-`;
+      `;
 
         document.getElementById("trackBtn").onclick = toggleTimer;
         document.getElementById("resetBtn").onclick = resetTimer;
