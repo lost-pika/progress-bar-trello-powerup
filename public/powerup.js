@@ -25,12 +25,12 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ TIMER-BASED PROGRESS (instead of checklist)
+// ⭐ TIMER-BASED PROGRESS
 function computeTimerProgress(data) {
   if (!data) return 0;
   
   const elapsed = computeElapsed(data);
-  const estimated = data.estimated || 8 * 3600; // 8 hours default
+  const estimated = data.estimated || 8 * 3600;
   
   const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
   return progress;
@@ -121,7 +121,8 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ TIMER-BASED PROGRESS BADGE - Updates with timer!
+    // ⭐ TIMER-BASED PROGRESS BADGE - FIXED!
+    // Simple dynamic badge, no background computation
     badges.push({
       title: "Progress",
       dynamic: function (t) {
@@ -136,7 +137,7 @@ TrelloPowerUp.initialize({
           };
         });
       },
-      refresh: 500, // Updates every 500ms as timer runs
+      refresh: 500, // Updates every 500ms
     });
 
     // Timer badge
