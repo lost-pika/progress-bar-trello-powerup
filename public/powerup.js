@@ -35,15 +35,13 @@ function computeElapsed(data) {
 
 // ⭐ TIMER-BASED PROGRESS
 function computeTimerProgress(data) {
-  if (!data || !data.estimated || data.estimated <= 0) return 0;
+  if (!data) return 0;
   
   const elapsed = computeElapsed(data);
   const estimated = data.estimated || 8 * 3600;
   
-  if (isNaN(elapsed) || isNaN(estimated)) return 0;
-  
   const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
-  return isNaN(progress) ? 0 : progress;
+  return progress;
 }
 
 // ⭐ POLLING: Removed - Trello API doesn't support t.refresh()
@@ -97,111 +95,81 @@ TrelloPowerUp.initialize({
 
 
   /* Card Back Section → Timer iframe */
-  "card-back-section": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return null;
+  "card-back-section": async function (t, opts) {
+    const card = await t.get("card", "shared");
+    const board = await t.get("board", "shared");
 
+    const elapsed = card?.elapsed || 0;
+    const estimated = card?.estimated || 8 * 3600;
+    let running = card?.running || false;
+    let startTime = card?.startTime || null;
 
-    const cardData = await t.get("card", "shared");
-    if (!cardData || cardData.disabledProgress === true) return null;
+    const autoTrackMode = board?.autoTrackMode || "off";
+    const autoFocus = board?.autoFocus || false;
 
-    // ⭐ AUTO-TRACK ON CARD OPEN: Start timer when card opens
-    const autoTrackMode = await t.get("board", "shared", "autoTrackMode");
-    if ((autoTrackMode === "open" || autoTrackMode === "both") && !cardData.running) {
+    /* ----------------------------------------
+       AUTO TRACK ON CARD OPEN  (ONLY FIX ADDED)
+    ---------------------------------------- */
+    if (autoTrackMode === "open" && !running) {
+      running = true;
+      startTime = Date.now();
+
       await t.set("card", "shared", {
-        ...cardData,
+        ...card,
         running: true,
-        startTime: Date.now(),
-        focusMode: true,
+        startTime,
       });
+
+      if (autoFocus) {
+        await t.set("card", "shared", "focusMode", true);
+      }
     }
 
+    /* ---- Rest of your card-back UI ---- */
     return {
-      title: "Progress",
+      title: "Progress Tracker",
       icon: ICON,
-      content: {
-        type: "iframe",
-        url: t.signUrl("./card-progress.html"),
-        height: 180,
-      },
+      url: "./card.html",
+      height: 310,
     };
   },
 
 
   /* Card Badges → Timer + Progress + Focus */
-  "card-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+   "card-badges": async function (t) {
+    const card = await t.get("card", "shared");
+    const board = await t.get("board", "shared");
 
+    if (!card) return [];
 
-    const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideTimerBadges"),
-    ]);
+    const elapsed = card.elapsed || 0;
+    const estimated = card.estimated || 8 * 3600;
+    const running = card.running || false;
 
+    const hideBadges = board?.hideBadges || false;
+    const hideTimer = board?.hideTimerBadges || false;
+    const hideBars = board?.hideProgressBars || false;
 
-    if (hideBadges || !data) return [];
-    if (data.disabledProgress) return [];
+    if (hideBadges) return [];
 
-    // Dynamic badges handle timer updates automatically
+    const pct = Math.min(100, Math.round((elapsed / estimated) * 100));
+
     const badges = [];
 
-
-    // Focus badge
-    if (data.focusMode) {
-      badges.push({
-        text: "🎯 Focus",
-        color: "red",
-      });
-    }
-
-
-    // ⭐ TIMER-BASED PROGRESS BADGE
-    // Static + Dynamic for maximum responsiveness
-    badges.push({
-      title: "Progress",
-      text: (() => {
-        const pct = computeTimerProgress(data);
-        return (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`;
-      })(),
-      color: "blue",
-      dynamic: function (t) {
-        return t.get("card", "shared").then((cardData) => {
-          if (!cardData || !cardData.running) return { text: "0%", color: "blue" };
-          
-          const pct = computeTimerProgress(cardData);
-          if (isNaN(pct)) return { text: "0%", color: "blue" };
-          
-          return {
-            text: (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          };
-        });
-      },
-      refresh: 250,
-    });
-
-
-    // Timer badge
     if (!hideTimer) {
       badges.push({
-        dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
-            return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-              color: "blue",
-            };
-          });
-        },
-        refresh: 100,
+        text: formatMinutes(elapsed),
+        icon: ICON,
+        color: running ? "green" : "blue",
       });
     }
 
+    if (!hideBars) {
+      badges.push({
+        text: pct + "%",
+        color: "blue",
+      });
+    }
 
     return badges;
   },
@@ -239,13 +207,12 @@ TrelloPowerUp.initialize({
         title: "Progress",
         dynamic: function (t) {
           return t.get("card", "shared").then((cardData) => {
-            if (!cardData || !cardData.running) return { text: "0%", color: "blue" };
+            if (!cardData) return { text: "0%", color: "blue" };
             
             const pct = computeTimerProgress(cardData);
-            if (isNaN(pct)) return { text: "0%", color: "blue" };
             
             return {
-              text: (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
           });
