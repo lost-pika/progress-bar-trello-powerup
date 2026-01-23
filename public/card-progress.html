@@ -328,19 +328,6 @@
 
         const behind = live > state.estimated;
 
-        // ⭐ NEW: Progress bar HTML
-        const progressBarHTML = `
-          <div class="progress-section">
-            <div class="progress-header">
-              <span>Progress</span>
-              <span class="percent">${state.progress}%</span>
-            </div>
-            <div class="bar-bg">
-              <div class="bar-fill" style="width: ${state.progress}%"></div>
-            </div>
-          </div>
-        `;
-
         document.getElementById("root").innerHTML = `
           <div class="container">
             ${progressBarHTML}
