@@ -25,15 +25,32 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ TIMER-BASED PROGRESS
-function computeTimerProgress(data) {
-  if (!data) return 0;
-  
-  const elapsed = computeElapsed(data);
-  const estimated = data.estimated || 8 * 3600;
-  
-  const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
-  return progress;
+// ⭐ CHECKLIST-BASED PROGRESS
+async function computeChecklistProgress(t) {
+  try {
+    const card = await t.card("all");
+    
+    if (!card || !card.checklists || card.checklists.length === 0) {
+      return 0;
+    }
+
+    let total = 0;
+    let done = 0;
+
+    card.checklists.forEach((cl) => {
+      if (cl.checkItems && Array.isArray(cl.checkItems)) {
+        cl.checkItems.forEach((item) => {
+          total++;
+          if (item.state === "complete") done++;
+        });
+      }
+    });
+
+    return total === 0 ? 0 : Math.round((done / total) * 100);
+  } catch (err) {
+    console.error("Error computing progress:", err);
+    return 0;
+  }
 }
 
 /* ----------------------------------------
@@ -113,6 +130,11 @@ TrelloPowerUp.initialize({
 
     const badges = [];
 
+    // ⭐ On card load, compute fresh checklist progress
+    computeChecklistProgress(t).then(async (freshProgress) => {
+      await t.set("card", "shared", "progress", freshProgress);
+    }).catch(err => console.error("Progress load error:", err));
+
     // Focus badge
     if (data.focusMode) {
       badges.push({
@@ -121,23 +143,19 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ TIMER-BASED PROGRESS BADGE - FIXED!
-    // Simple dynamic badge, no background computation
+    // ⭐ CHECKLIST-BASED PROGRESS BADGE
+    // Very aggressive refresh (100ms) to catch manual check/uncheck
     badges.push({
       title: "Progress",
       dynamic: function (t) {
-        return t.get("card", "shared").then((cardData) => {
-          if (!cardData) return { text: "0%", color: "blue" };
-          
-          const pct = computeTimerProgress(cardData);
-          
+        return computeChecklistProgress(t).then((pct) => {
           return {
             text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
             color: "blue",
           };
         });
       },
-      refresh: 500, // Updates every 500ms
+      refresh: 100, // ⭐ Very fast - catches manual changes
     });
 
     // Timer badge
@@ -176,6 +194,11 @@ TrelloPowerUp.initialize({
 
       const badges = [];
 
+      // ⭐ On card detail load, compute fresh checklist progress
+      computeChecklistProgress(t).then(async (freshProgress) => {
+        await t.set("card", "shared", "progress", freshProgress);
+      }).catch(err => console.error("Progress load error:", err));
+
       if (data.focusMode) {
         badges.push({
           title: "Focus",
@@ -184,22 +207,18 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
+      // ⭐ CHECKLIST-BASED PROGRESS BADGE (card detail)
       badges.push({
         title: "Progress",
         dynamic: function (t) {
-          return t.get("card", "shared").then((cardData) => {
-            if (!cardData) return { text: "0%", color: "blue" };
-            
-            const pct = computeTimerProgress(cardData);
-            
+          return computeChecklistProgress(t).then((pct) => {
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
           });
         },
-        refresh: 500,
+        refresh: 100, // ⭐ Very fast
       });
 
       if (!hideTimer) {
