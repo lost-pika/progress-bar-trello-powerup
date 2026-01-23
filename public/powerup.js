@@ -35,15 +35,13 @@ function computeElapsed(data) {
 
 // ⭐ TIMER-BASED PROGRESS
 function computeTimerProgress(data) {
-  if (!data || !data.estimated || data.estimated <= 0) return 0;
+  if (!data) return 0;
   
   const elapsed = computeElapsed(data);
   const estimated = data.estimated || 8 * 3600;
   
-  if (isNaN(elapsed) || isNaN(estimated)) return 0;
-  
   const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
-  return isNaN(progress) ? 0 : progress;
+  return progress;
 }
 
 // ⭐ POLLING: Removed - Trello API doesn't support t.refresh()
@@ -152,18 +150,17 @@ TrelloPowerUp.initialize({
       title: "Progress",
       text: (() => {
         const pct = computeTimerProgress(data);
-        return (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`;
+        return hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`;
       })(),
       color: "blue",
       dynamic: function (t) {
         return t.get("card", "shared").then((cardData) => {
-          if (!cardData || !cardData.running) return { text: "0%", color: "blue" };
+          if (!cardData) return { text: "0%", color: "blue" };
           
           const pct = computeTimerProgress(cardData);
-          if (isNaN(pct)) return { text: "0%", color: "blue" };
           
           return {
-            text: (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
             color: "blue",
           };
         });
@@ -227,13 +224,12 @@ TrelloPowerUp.initialize({
         title: "Progress",
         dynamic: function (t) {
           return t.get("card", "shared").then((cardData) => {
-            if (!cardData || !cardData.running) return { text: "0%", color: "blue" };
+            if (!cardData) return { text: "0%", color: "blue" };
             
             const pct = computeTimerProgress(cardData);
-            if (isNaN(pct)) return { text: "0%", color: "blue" };
             
             return {
-              text: (hideBars === true) ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
           });
