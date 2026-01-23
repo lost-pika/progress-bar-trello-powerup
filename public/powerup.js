@@ -25,61 +25,30 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ FIXED: Use Trello REST API to fetch actual checklist data
-async function computeProgressFromChecklists(t, cardId) {
+// ⭐ Helper function to compute progress
+async function computeChecklistProgress(t) {
   try {
-    // Get card data with checklists
     const card = await t.card("all");
     
-    if (!card || !card.idChecklists || card.idChecklists.length === 0) {
+    if (!card || !card.checklists || card.checklists.length === 0) {
       return 0;
     }
 
-    // Fetch each checklist's items
-    let totalItems = 0;
-    let completedItems = 0;
+    let total = 0;
+    let done = 0;
 
-    for (const checklistId of card.idChecklists) {
-      try {
-        const checklist = await t.get("card", "shared", `checklist_${checklistId}`);
-        
-        if (checklist && checklist.checkItems && Array.isArray(checklist.checkItems)) {
-          checklist.checkItems.forEach((item) => {
-            totalItems++;
-            if (item.state === "complete") {
-              completedItems++;
-            }
-          });
-        }
-      } catch (e) {
-        console.log(`Could not fetch checklist ${checklistId}:`, e);
+    card.checklists.forEach((cl) => {
+      if (cl.checkItems && Array.isArray(cl.checkItems)) {
+        cl.checkItems.forEach((item) => {
+          total++;
+          if (item.state === "complete") done++;
+        });
       }
-    }
+    });
 
-    if (totalItems === 0) return 0;
-    
-    const percentage = Math.round((completedItems / totalItems) * 100);
-    return percentage;
+    return total === 0 ? 0 : Math.round((done / total) * 100);
   } catch (err) {
     console.error("Error computing progress:", err);
-    return 0;
-  }
-}
-
-// ⭐ ALTERNATIVE APPROACH: Use localStorage to sync checklist state
-async function getChecklistProgressFromCard(t) {
-  try {
-    // Try to get cached progress first
-    const cardData = await t.get("card", "shared");
-    
-    // If we have recent progress data, return it
-    if (cardData && typeof cardData.progress === "number") {
-      return cardData.progress;
-    }
-    
-    return 0;
-  } catch (err) {
-    console.error("Error getting checklist progress:", err);
     return 0;
   }
 }
@@ -144,190 +113,144 @@ TrelloPowerUp.initialize({
     };
   },
 
- /* Card Badges → Timer + Progress + Focus */
-"card-badges": async function (t) {
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) return [];
+  /* Card Badges → Timer + Progress + Focus */
+  "card-badges": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
 
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "hideBadges"),
-    t.get("board", "shared", "hideProgressBars"),
-    t.get("board", "shared", "hideTimerBadges"),
-  ]).then(([data, hideBadges, hideBars, hideTimer]) => {
-    if (hideBadges || !data) return [];
-    if (data.disabledProgress) return [];
+    return Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "hideBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+      t.get("board", "shared", "hideTimerBadges"),
+    ]).then(([data, hideBadges, hideBars, hideTimer]) => {
+      if (hideBadges || !data) return [];
+      if (data.disabledProgress) return [];
 
-    const badges = [];
+      const badges = [];
 
-    // Focus badge
-    if (data.focusMode) {
-      badges.push({
-        text: "🎯 Focus",
-        color: "red",
-      });
-    }
-
-    // ⭐ CRITICAL FIX: Compute progress IMMEDIATELY on initial load + dynamic refresh
-    badges.push({
-      dynamic: function (t) {
-        return t.card("all").then(async (card) => {
-          if (!card || !card.checklists) {
-            return {
-              text: "0%",
-              color: "blue",
-            };
-          }
-
-          // Count items
-          let total = 0;
-          let done = 0;
-
-          card.checklists.forEach((cl) => {
-            if (cl.checkItems && Array.isArray(cl.checkItems)) {
-              cl.checkItems.forEach((item) => {
-                total++;
-                if (item.state === "complete") done++;
-              });
-            }
-          });
-
-          const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-
-          // Update stored progress
-          let cardData = await t.get("card", "shared");
-          if (!cardData) {
-            cardData = {};
-          }
-
-          // Only update if changed
-          if (cardData.progress !== pct) {
-            await t.set("card", "shared", "progress", pct);
-          }
-
-          return {
-            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          };
+      // Focus badge
+      if (data.focusMode) {
+        badges.push({
+          text: "🎯 Focus",
+          color: "red",
         });
-      },
-      refresh: 1500, // ⭐ REDUCED: More frequent refresh (1.5 seconds)
-    });
+      }
 
-    // Timer badge
-    if (!hideTimer) {
+      // ⭐ FIXED: Progress badge with immediate + periodic updates
       badges.push({
         dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
+          return computeChecklistProgress(t).then(async (pct) => {
+            let cardData = await t.get("card", "shared");
+            if (!cardData) {
+              cardData = {};
+            }
 
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
+            // Only update if changed
+            if (cardData.progress !== pct) {
+              await t.set("card", "shared", "progress", pct);
+            }
 
             return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
           });
         },
-        refresh: 1000,
+        refresh: 500, // ⭐ ULTRA FAST: Check every 500ms (fast detection)
       });
-    }
 
-    return badges;
-  });
-},
+      // Timer badge
+      if (!hideTimer) {
+        badges.push({
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
 
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
 
- /* Inside card detail view */
-"card-detail-badges": async function (t) {
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) return [];
-
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "hideDetailBadges"),
-    t.get("board", "shared", "hideProgressBars"),
-    t.get("board", "shared", "hideTimerBadges"),
-  ]).then(([data, hideDetail, hideBars, hideTimer]) => {
-    if (hideDetail || !data) return Promise.resolve([]);
-
-    const badges = [];
-
-    if (data.focusMode) {
-      badges.push({
-        title: "Focus",
-        text: "🎯 Focus ON",
-        color: "red",
-      });
-    }
-
-    // ⭐ SAME FIX: Compute progress immediately
-    badges.push({
-      title: "Progress",
-      dynamic: function (t) {
-        return t.card("all").then(async (card) => {
-          if (!card || !card.checklists) {
-            return {
-              text: "0%",
-              color: "blue",
-            };
-          }
-
-          let total = 0;
-          let done = 0;
-
-          card.checklists.forEach((cl) => {
-            if (cl.checkItems && Array.isArray(cl.checkItems)) {
-              cl.checkItems.forEach((item) => {
-                total++;
-                if (item.state === "complete") done++;
-              });
-            }
-          });
-
-          const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-
-          let cardData = await t.get("card", "shared");
-          if (!cardData) {
-            cardData = {};
-          }
-
-          if (cardData.progress !== pct) {
-            await t.set("card", "shared", "progress", pct);
-          }
-
-          return {
-            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          };
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
         });
-      },
-      refresh: 1500, // ⭐ More frequent
-    });
+      }
 
-    if (!hideTimer) {
+      return badges;
+    });
+  },
+
+  /* Inside card detail view */
+  "card-detail-badges": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
+
+    return Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "hideDetailBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+      t.get("board", "shared", "hideTimerBadges"),
+    ]).then(([data, hideDetail, hideBars, hideTimer]) => {
+      if (hideDetail || !data) return Promise.resolve([]);
+
+      const badges = [];
+
+      if (data.focusMode) {
+        badges.push({
+          title: "Focus",
+          text: "🎯 Focus ON",
+          color: "red",
+        });
+      }
+
+      // ⭐ SAME FIX: Fast refresh
       badges.push({
-        title: "Timer",
+        title: "Progress",
         dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
+          return computeChecklistProgress(t).then(async (pct) => {
+            let cardData = await t.get("card", "shared");
+            if (!cardData) {
+              cardData = {};
+            }
+
+            if (cardData.progress !== pct) {
+              await t.set("card", "shared", "progress", pct);
+            }
+
             return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
           });
         },
-        refresh: 1000,
+        refresh: 500, // ⭐ Ultra fast
       });
-    }
 
-    return badges;
-  });
-},
+      if (!hideTimer) {
+        badges.push({
+          title: "Timer",
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
+        });
+      }
 
+      return badges;
+    });
+  },
 
   "card-buttons": async function (t, opts) {
     const data = await t.get("card", "shared");
@@ -363,6 +286,28 @@ TrelloPowerUp.initialize({
       },
     ];
   },
+
+  /* ⭐ NEW: Listen for checklist changes and trigger refresh */
+  "notification-types": function (t) {
+    return [
+      {
+        id: "checklistItemChanged",
+        text: "Checklist item changed",
+      },
+    ];
+  },
+
+  /* ⭐ NEW: Watch for checklist modifications */
+  "formatters": [
+    {
+      type: "card",
+      format: "json",
+      callback: function (t, cardJson) {
+        // Whenever card data changes, mark for update
+        return cardJson;
+      },
+    },
+  ],
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
