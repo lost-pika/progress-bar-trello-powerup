@@ -44,21 +44,9 @@ function computeTimerProgress(data) {
   return progress;
 }
 
-// ⭐ POLLING: Force badge refresh while timer running
-function startTimerPolling(t) {
-  if (timerInterval) clearInterval(timerInterval);
-  
-  timerInterval = setInterval(async () => {
-    const data = await t.get("card", "shared");
-    if (data && data.running) {
-      // Force Trello to refresh badges
-      t.refresh();
-    } else {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-  }, 100); // Force refresh every 100ms while running
-}
+// ⭐ POLLING: Removed - Trello API doesn't support t.refresh()
+// Dynamic badges automatically refresh via the refresh property
+// No polling needed - Trello handles badge updates internally
 
 
 /* ----------------------------------------
@@ -113,11 +101,7 @@ TrelloPowerUp.initialize({
 
 
     const cardData = await t.get("card", "shared");
-    if (!cardData || cardData.disabledProgress === true) return null;
-
-    // ⭐ Start polling when card back opens
-    startTimerPolling(t);
-
+    if (!cardData || cardData.disabledProgress === true) return null;    // Card back renders, dynamic badges auto-update
     return {
       title: "Progress",
       icon: ICON,
@@ -147,11 +131,7 @@ TrelloPowerUp.initialize({
     if (hideBadges || !data) return [];
     if (data.disabledProgress) return [];
 
-    // ⭐ Start polling if timer running
-    if (data.running) {
-      startTimerPolling(t);
-    }
-
+    // Dynamic badges handle timer updates automatically
     const badges = [];
 
 
@@ -185,7 +165,7 @@ TrelloPowerUp.initialize({
           };
         });
       },
-      refresh: 100,
+      refresh: 250,
     });
 
 
@@ -335,9 +315,6 @@ TrelloPowerUp.initialize({
           running: true,
           startTime: Date.now(),
           focusMode: true,
-        }).then(() => {
-          // ⭐ Start polling after starting timer
-          startTimerPolling(t);
         });
       }
 
@@ -359,9 +336,6 @@ TrelloPowerUp.initialize({
             running: true,
             startTime: Date.now(),
             focusMode: true,
-          }).then(() => {
-            // ⭐ Start polling after restart
-            startTimerPolling(t);
           });
         });
     });
