@@ -96,7 +96,8 @@ function toggleTimer() {
     state.startTime = null;
 
     // REMOVE focusMode on stop
-    t.set("card", "shared", "focusMode", false);
+    t.set("card", "shared", "focusMode", false).then(() => t.refresh());
+
   } else {
     // START
     state.running = true;
@@ -121,7 +122,8 @@ function resetTimer() {
   state.startTime = null;
 
   // also remove focus
-  t.set("card", "shared", "focusMode", false);
+t.set("card", "shared", "focusMode", false).then(() => t.refresh());
+
 
   save();
   render();
@@ -234,3 +236,14 @@ t.render(async function () {
 
 /* INIT */
 load();
+
+// Prevent timer stop when card is closed
+window.addEventListener("beforeunload", () => {
+  if (running) {
+    const now = Date.now();
+    elapsed += Math.floor((now - startTime) / 1000);
+    startTime = Date.now();
+    saveCard();
+  }
+});
+
