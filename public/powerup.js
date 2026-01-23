@@ -141,21 +141,26 @@ TrelloPowerUp.initialize({
     });
 
     // ⭐ TIMER BADGE (YOU MISSED THIS)
-    if (!hideTimer) {
-      badges.push({
-        dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            return {
-              text: `⏱ ${formatHM(el)}`,
-              color: "blue",
-            };
-          });
-        },
-        refresh: 1000,
+   // Timer badge (live update)
+if (!hideTimer) {
+  badges.push({
+    dynamic: function (t) {
+      return t.get("card", "shared").then((d) => {
+        if (!d) return { text: "" };
+
+        const el = computeElapsed(d); // live elapsed
+        const est = d.estimated || 8 * 3600;
+
+        return {
+          text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+          color: "blue",
+        };
       });
-    }
+    },
+    refresh: 1000, // update every second
+  });
+}
+
 
     return badges;
   });
