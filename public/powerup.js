@@ -137,7 +137,7 @@ TrelloPowerUp.initialize({
           };
         });
       },
-      refresh: 500, // Updates every 500ms
+      refresh: 100, // Updates every 500ms
     });
 
     // Timer badge
