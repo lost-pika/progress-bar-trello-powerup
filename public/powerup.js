@@ -25,30 +25,40 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ FIXED: Properly compute checklist progress
-async function computeProgressFromChecklists(t) {
+// ⭐ FIXED: Use Trello REST API to fetch actual checklist data
+async function computeProgressFromChecklists(t, cardId) {
   try {
-    const card = await t.card("checklists");
+    // Get card data with checklists
+    const card = await t.card("all");
     
-    if (!card || !card.checklists || card.checklists.length === 0) {
+    if (!card || !card.idChecklists || card.idChecklists.length === 0) {
       return 0;
     }
 
-    let total = 0;
-    let done = 0;
+    // Fetch each checklist's items
+    let totalItems = 0;
+    let completedItems = 0;
 
-    card.checklists.forEach((cl) => {
-      if (!cl.checkItems || !Array.isArray(cl.checkItems)) return;
-      
-      cl.checkItems.forEach((item) => {
-        total++;
-        if (item.state === "complete") done++;
-      });
-    });
+    for (const checklistId of card.idChecklists) {
+      try {
+        const checklist = await t.get("card", "shared", `checklist_${checklistId}`);
+        
+        if (checklist && checklist.checkItems && Array.isArray(checklist.checkItems)) {
+          checklist.checkItems.forEach((item) => {
+            totalItems++;
+            if (item.state === "complete") {
+              completedItems++;
+            }
+          });
+        }
+      } catch (e) {
+        console.log(`Could not fetch checklist ${checklistId}:`, e);
+      }
+    }
 
-    if (total === 0) return 0;
+    if (totalItems === 0) return 0;
     
-    const percentage = Math.round((done / total) * 100);
+    const percentage = Math.round((completedItems / totalItems) * 100);
     return percentage;
   } catch (err) {
     console.error("Error computing progress:", err);
@@ -56,20 +66,21 @@ async function computeProgressFromChecklists(t) {
   }
 }
 
-// ⭐ NEW: Force refresh progress immediately (don't wait for badge refresh)
-async function updateProgressImmediately(t) {
+// ⭐ ALTERNATIVE APPROACH: Use localStorage to sync checklist state
+async function getChecklistProgressFromCard(t) {
   try {
-    const pct = await computeProgressFromChecklists(t);
-    const cardData = await t.get("card", "shared") || {};
+    // Try to get cached progress first
+    const cardData = await t.get("card", "shared");
     
-    // Only update if progress changed
-    if (cardData.progress !== pct) {
-      await t.set("card", "shared", "progress", pct);
-      // Refresh board view to show updated badges
-      await t.refresh();
+    // If we have recent progress data, return it
+    if (cardData && typeof cardData.progress === "number") {
+      return cardData.progress;
     }
+    
+    return 0;
   } catch (err) {
-    console.error("Error updating progress:", err);
+    console.error("Error getting checklist progress:", err);
+    return 0;
   }
 }
 
@@ -133,20 +144,6 @@ TrelloPowerUp.initialize({
     };
   },
 
-  /* ⭐ CRITICAL: Listen for checklist changes */
-  "notification-types": function (t) {
-    return [
-      {
-        id: "checklistItemCompleted",
-        text: "Checklist item completed",
-      },
-      {
-        id: "checklistItemIncompleted",
-        text: "Checklist item incompleted",
-      },
-    ];
-  },
-
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
@@ -171,14 +168,36 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // Checklist progress - ⭐ ALWAYS compute fresh from Trello
+      // ⭐ FIXED: Checklist progress badge
       badges.push({
         dynamic: function (t) {
-          return computeProgressFromChecklists(t).then(async (pct) => {
+          return t.card("all").then(async (card) => {
+            if (!card || !card.checklists) {
+              return {
+                text: "0%",
+                color: "blue",
+              };
+            }
+
+            // Count items
+            let total = 0;
+            let done = 0;
+
+            card.checklists.forEach((cl) => {
+              if (cl.checkItems && Array.isArray(cl.checkItems)) {
+                cl.checkItems.forEach((item) => {
+                  total++;
+                  if (item.state === "complete") done++;
+                });
+              }
+            });
+
+            const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+
+            // Update stored progress
             let cardData = await t.get("card", "shared");
             if (!cardData) cardData = {};
-
-            // Store the fresh percentage
+            
             if (cardData.progress !== pct) {
               await t.set("card", "shared", "progress", pct);
             }
@@ -189,7 +208,7 @@ TrelloPowerUp.initialize({
             };
           });
         },
-        refresh: 1000, // ⭐ REDUCED: Check every second instead of 3s
+        refresh: 2000, // Check every 2 seconds
       });
 
       // Timer badge
@@ -239,11 +258,32 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ SAME FIX HERE: Always compute fresh
+      // ⭐ SAME FIX: Use t.card("all")
       badges.push({
         title: "Progress",
         dynamic: function (t) {
-          return computeProgressFromChecklists(t).then(async (pct) => {
+          return t.card("all").then(async (card) => {
+            if (!card || !card.checklists) {
+              return {
+                text: "0%",
+                color: "blue",
+              };
+            }
+
+            let total = 0;
+            let done = 0;
+
+            card.checklists.forEach((cl) => {
+              if (cl.checkItems && Array.isArray(cl.checkItems)) {
+                cl.checkItems.forEach((item) => {
+                  total++;
+                  if (item.state === "complete") done++;
+                });
+              }
+            });
+
+            const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+
             let cardData = await t.get("card", "shared");
             if (!cardData) cardData = {};
 
@@ -257,7 +297,7 @@ TrelloPowerUp.initialize({
             };
           });
         },
-        refresh: 1000, // ⭐ REDUCED: 1s instead of 3s
+        refresh: 2000,
       });
 
       if (!hideTimer) {
