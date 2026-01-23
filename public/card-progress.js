@@ -61,7 +61,6 @@ async function load() {
 
   // Always sync progress with checklist
   state.progress = await computeProgress();
-  await save();
   t.refresh(); // 🔥 forces card-badges to re-render immediately
   render();
 
@@ -97,7 +96,6 @@ function toggleTimer() {
 
     // REMOVE focusMode on stop
     t.set("card", "shared", "focusMode", false).then(() => t.refresh());
-
   } else {
     // START
     state.running = true;
@@ -122,8 +120,7 @@ function resetTimer() {
   state.startTime = null;
 
   // also remove focus
-t.set("card", "shared", "focusMode", false).then(() => t.refresh());
-
+  t.set("card", "shared", "focusMode", false).then(() => t.refresh());
 
   save();
   render();
@@ -246,4 +243,3 @@ window.addEventListener("beforeunload", () => {
     saveCard();
   }
 });
-
