@@ -107,58 +107,42 @@ TrelloPowerUp.initialize({
 
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) return [];
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
 
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "hideBadges"),
-    t.get("board", "shared", "hideProgressBars"),
-    t.get("board", "shared", "hideTimerBadges"), // ← REQUIRED
-  ]).then(([data, hideBadges, hideBars, hideTimer]) => {
-    if (hideBadges || !data) return [];
-    if (data.disabledProgress) return [];
+    return Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "hideBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+      t.get("board", "shared", "hideTimerBadges"),
+    ]).then(([data, hideBadges, hideBars, hideTimer]) => {
+      if (hideBadges || !data) return [];
+      if (data.disabledProgress) return [];
 
-    const badges = [];
+      const badges = [];
 
-    // Focus badge
-    if (data.focusMode) {
-      badges.push({
-        text: "🎯 Focus",
-        color: "red",
-      });
-    }
-
-    // Checklist progress
-    return computeProgressFromChecklists(t).then((pct) => {
-      badges.push({
-        text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-        color: "blue",
-      });
-
-      // Timer badge — MUST respect hideTimer flag
-      if (!hideTimer) {
+      // Focus badge
+      if (data.focusMode) {
         badges.push({
-          dynamic: function (t) {
-            return t.get("card", "shared").then((d) => {
-              if (!d) return { text: "" };
-              const el = computeElapsed(d);
-              const est = d.estimated || 8 * 3600;
-              return {
-                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-                color: "blue",
-              };
-            });
-          },
-          refresh: 1000,
+          text: "🎯 Focus",
+          color: "red",
         });
       }
 
-      return badges;
-    });
-  });
-},
+      // Checklist progress (AUTO-REFRESH)
+      badges.push({
+        dynamic: function (t) {
+          return computeProgressFromChecklists(t).then((pct) => ({
+            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+            color: "blue",
+          }));
+        },
+        refresh: 3000,
+      });
 
+      return badges; // ← REQUIRED
+    });
+  },
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
@@ -184,35 +168,38 @@ TrelloPowerUp.initialize({
         });
       }
 
-      /* 🔥 Checklist progress (NEW) */
-      return computeProgressFromChecklists(t).then((pct) => {
-        badges.push({
-          title: "Progress",
-          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-          color: "blue",
-        });
-
-        /* Timer badge */
-        if (!hideTimer) {
-          badges.push({
-            title: "Timer",
-            dynamic: function (t) {
-              return t.get("card", "shared").then((d) => {
-                if (!d) return { text: "" };
-                const el = computeElapsed(d);
-                const est = d.estimated || 8 * 3600;
-                return {
-                  text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-                  color: "blue",
-                };
-              });
-            },
-            refresh: 1000,
-          });
-        }
-
-        return badges; // FINAL return
+      /* Checklist progress */
+      badges.push({
+        title: "Progress",
+        dynamic: function (t) {
+          return computeProgressFromChecklists(t).then((pct) => ({
+            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+            color: "blue",
+          }));
+        },
+        refresh: 3000,
       });
+
+      /* Timer badge */
+      if (!hideTimer) {
+        badges.push({
+          title: "Timer",
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
+        });
+      }
+
+      return badges; // ← REQUIRED
     });
   },
 

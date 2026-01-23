@@ -249,17 +249,30 @@
       }
 
       function toggleTimer() {
-        if (state.running) {
-          // STOP TIMER
-          const now = Date.now();
-          state.elapsed += Math.floor((now - state.startTime) / 1000);
-          state.running = false;
-          state.startTime = null;
-        } else {
-          // START TIMER
-          state.running = true;
-          state.startTime = Date.now();
-          startTick();
+        // STOP
+const now = Date.now();
+state.elapsed += Math.floor((now - state.startTime) / 1000);
+state.running = false;
+state.startTime = null;
+
+t.set("card", "shared", "focusMode", false).then(() => {
+  t.refresh();   // ← REQUIRED
+});
+
+// START
+state.running = true;
+state.startTime = Date.now();
+startTick();
+
+// Auto Focus Mode
+t.get("board", "shared", "autoFocus").then((enabled) => {
+  if (enabled) {
+    t.set("card", "shared", "focusMode", true).then(() => {
+      t.refresh();  // ← REQUIRED
+    });
+  }
+});
+
 
           // Focus Mode
           t.get("board", "shared", "autoFocus").then((f) => {
