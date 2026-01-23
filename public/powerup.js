@@ -25,49 +25,103 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ FIXED: Better error handling + retries for checklist data
-async function computeChecklistProgress(t, retries = 3) {
+// ⭐ COMPLETELY REWRITTEN: Proper error handling from scratch
+async function computeChecklistProgress(t) {
   try {
-    const card = await t.card("all");
-    
-    // Handle undefined/null card
+    // STEP 1: Wait for card to load with timeout
+    let retries = 5;
+    let card = null;
+
+    while (retries > 0 && !card) {
+      try {
+        card = await t.card("all");
+        if (card && card.checklists && Array.isArray(card.checklists)) {
+          break; // Success, exit loop
+        }
+      } catch (err) {
+        console.warn(`Retry ${6 - retries}: Card load failed`, err);
+      }
+      
+      if (!card || !card.checklists) {
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 300)); // Wait 300ms
+        }
+      }
+    }
+
+    // STEP 2: Validate card exists
     if (!card) {
-      console.warn("Card is null/undefined");
+      console.warn("⚠️ Card data unavailable after retries");
       return 0;
     }
 
-    // Handle missing checklists
-    if (!card.checklists || !Array.isArray(card.checklists)) {
-      console.warn("No checklists found on card");
+    // STEP 3: Validate checklists exist
+    if (!card.checklists || card.checklists.length === 0) {
+      console.log("ℹ️ No checklists on this card");
       return 0;
     }
 
+    // STEP 4: Count items safely
     let total = 0;
     let done = 0;
 
-    card.checklists.forEach((cl) => {
-      if (cl && cl.checkItems && Array.isArray(cl.checkItems)) {
-        cl.checkItems.forEach((item) => {
-          if (item) {
-            total++;
-            if (item.state === "complete") done++;
-          }
-        });
-      }
+    card.checklists.forEach((checklist) => {
+      if (!checklist || !checklist.checkItems) return;
+      
+      checklist.checkItems.forEach((item) => {
+        if (!item) return;
+        
+        total++;
+        if (item.state === "complete") {
+          done++;
+        }
+      });
     });
 
-    return total === 0 ? 0 : Math.round((done / total) * 100);
+    // STEP 5: Calculate percentage
+    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    console.log(`✅ Progress: ${done}/${total} = ${pct}%`);
+    return pct;
+
   } catch (err) {
-    console.error("Error computing progress:", err);
+    console.error("❌ CRITICAL ERROR in computeChecklistProgress:", err);
+    console.error("Stack:", err.stack);
+    return 0;
+  }
+}
+
+/* ----------------------------------------
+   INITIALIZE CARD DATA (if missing)
+---------------------------------------- */
+
+async function ensureCardDataExists(t) {
+  try {
+    let data = await t.get("card", "shared");
     
-    // ⭐ RETRY LOGIC: If failed, retry after short delay
-    if (retries > 0) {
-      console.log(`Retrying progress computation (${retries} retries left)...`);
-      await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms
-      return computeChecklistProgress(t, retries - 1);
+    // If no data exists, initialize it
+    if (!data) {
+      console.log("🔧 Initializing card data...");
+      const initialPct = await computeChecklistProgress(t);
+      
+      data = {
+        progress: initialPct,
+        elapsed: 0,
+        estimated: 8 * 3600,
+        running: false,
+        startTime: null,
+        focusMode: false,
+        disabledProgress: false,
+      };
+      
+      await t.set("card", "shared", data);
+      console.log("✅ Card data initialized:", data);
     }
     
-    return 0;
+    return data;
+  } catch (err) {
+    console.error("Error ensuring card data:", err);
+    return null;
   }
 }
 
@@ -133,103 +187,105 @@ TrelloPowerUp.initialize({
 
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+    try {
+      const disabled = await t.get("board", "shared", "disabled");
+      if (disabled) return [];
 
-    const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideTimerBadges"),
-    ]);
+      // ⭐ ENSURE DATA EXISTS FIRST
+      const data = await ensureCardDataExists(t);
+      if (!data) return [];
 
-    if (hideBadges || !data) return [];
-    if (data.disabledProgress) return [];
+      const [hideBadges, hideBars, hideTimer] = await Promise.all([
+        t.get("board", "shared", "hideBadges"),
+        t.get("board", "shared", "hideProgressBars"),
+        t.get("board", "shared", "hideTimerBadges"),
+      ]);
 
-    const badges = [];
+      if (hideBadges || data.disabledProgress) return [];
 
-    // Focus badge
-    if (data.focusMode) {
-      badges.push({
-        text: "🎯 Focus",
-        color: "red",
-      });
-    }
+      const badges = [];
 
-    // ⭐ FIXED: Use cached value + compute fresh with retry logic
-    let initialProgress = data.progress || 0;
-    
-    // Compute fresh in background with retries
-    computeChecklistProgress(t, 3).then(async (freshProgress) => {
-      if (freshProgress !== initialProgress) {
-        await t.set("card", "shared", "progress", freshProgress);
-        t.refresh();
-      }
-    }).catch(err => console.error("Background progress computation failed:", err));
-
-    // Add badge with initial value
-    badges.push({
-      text: hideBars 
-        ? initialProgress + "%" 
-        : `${makeBar(initialProgress)} ${initialProgress}%`,
-      color: "blue",
-      dynamic: function (t) {
-        return computeChecklistProgress(t, 3).then(async (pct) => {
-          let cardData = await t.get("card", "shared");
-          if (!cardData) cardData = {};
-
-          if (cardData.progress !== pct) {
-            await t.set("card", "shared", "progress", pct);
-          }
-
-          return {
-            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          };
-        }).catch(err => {
-          console.error("Dynamic badge error:", err);
-          return {
-            text: hideBars ? initialProgress + "%" : `${makeBar(initialProgress)} ${initialProgress}%`,
-            color: "blue",
-          };
+      // Focus badge
+      if (data.focusMode) {
+        badges.push({
+          text: "🎯 Focus",
+          color: "red",
         });
-      },
-      refresh: 500,
-    });
+      }
 
-    // Timer badge
-    if (!hideTimer) {
+      // ⭐ PROGRESS BADGE: Compute fresh from checklists
       badges.push({
+        text: hideBars 
+          ? (data.progress || 0) + "%" 
+          : `${makeBar(data.progress || 0)} ${data.progress || 0}%`,
+        color: "blue",
         dynamic: function (t) {
-          return t.get("card", "shared").then((d) => {
-            if (!d) return { text: "" };
-            const el = computeElapsed(d);
-            const est = d.estimated || 8 * 3600;
+          return computeChecklistProgress(t).then(async (freshPct) => {
+            // Only update if changed
+            const currentData = await t.get("card", "shared");
+            if (currentData && currentData.progress !== freshPct) {
+              await t.set("card", "shared", "progress", freshPct);
+            }
+
             return {
-              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              text: hideBars ? freshPct + "%" : `${makeBar(freshPct)} ${freshPct}%`,
+              color: "blue",
+            };
+          }).catch(err => {
+            console.error("Badge dynamic error:", err);
+            return {
+              text: hideBars 
+                ? (data.progress || 0) + "%" 
+                : `${makeBar(data.progress || 0)} ${data.progress || 0}%`,
               color: "blue",
             };
           });
         },
-        refresh: 1000,
+        refresh: 500, // Check every 500ms
       });
-    }
 
-    return badges;
+      // Timer badge
+      if (!hideTimer) {
+        badges.push({
+          dynamic: function (t) {
+            return t.get("card", "shared").then((d) => {
+              if (!d) return { text: "" };
+              const el = computeElapsed(d);
+              const est = d.estimated || 8 * 3600;
+              return {
+                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+                color: "blue",
+              };
+            });
+          },
+          refresh: 1000,
+        });
+      }
+
+      return badges;
+    } catch (err) {
+      console.error("❌ card-badges error:", err);
+      return [];
+    }
   },
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+    try {
+      const disabled = await t.get("board", "shared", "disabled");
+      if (disabled) return [];
 
-    return Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideDetailBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideTimerBadges"),
-    ]).then(([data, hideDetail, hideBars, hideTimer]) => {
-      if (hideDetail || !data) return Promise.resolve([]);
+      // ⭐ ENSURE DATA EXISTS FIRST
+      const data = await ensureCardDataExists(t);
+      if (!data) return [];
+
+      const [hideDetail, hideBars, hideTimer] = await Promise.all([
+        t.get("board", "shared", "hideDetailBadges"),
+        t.get("board", "shared", "hideProgressBars"),
+        t.get("board", "shared", "hideTimerBadges"),
+      ]);
+
+      if (hideDetail || data.disabledProgress) return [];
 
       const badges = [];
 
@@ -241,41 +297,30 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ FIXED: Same retry logic here
-      let initialProgress = data.progress || 0;
-      
-      computeChecklistProgress(t, 3).then(async (freshProgress) => {
-        if (freshProgress !== initialProgress) {
-          await t.set("card", "shared", "progress", freshProgress);
-          t.refresh();
-        }
-      }).catch(err => console.error("Background progress computation failed:", err));
-
+      // ⭐ PROGRESS BADGE (Detail View)
       badges.push({
         title: "Progress",
         text: hideBars 
-          ? initialProgress + "%" 
-          : `${makeBar(initialProgress)} ${initialProgress}%`,
+          ? (data.progress || 0) + "%" 
+          : `${makeBar(data.progress || 0)} ${data.progress || 0}%`,
         color: "blue",
         dynamic: function (t) {
-          return computeChecklistProgress(t, 3).then(async (pct) => {
-            let cardData = await t.get("card", "shared");
-            if (!cardData) {
-              cardData = {};
-            }
-
-            if (cardData.progress !== pct) {
-              await t.set("card", "shared", "progress", pct);
+          return computeChecklistProgress(t).then(async (freshPct) => {
+            const currentData = await t.get("card", "shared");
+            if (currentData && currentData.progress !== freshPct) {
+              await t.set("card", "shared", "progress", freshPct);
             }
 
             return {
-              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+              text: hideBars ? freshPct + "%" : `${makeBar(freshPct)} ${freshPct}%`,
               color: "blue",
             };
           }).catch(err => {
-            console.error("Dynamic detail badge error:", err);
+            console.error("Detail badge error:", err);
             return {
-              text: hideBars ? initialProgress + "%" : `${makeBar(initialProgress)} ${initialProgress}%`,
+              text: hideBars 
+                ? (data.progress || 0) + "%" 
+                : `${makeBar(data.progress || 0)} ${data.progress || 0}%`,
               color: "blue",
             };
           });
@@ -302,48 +347,44 @@ TrelloPowerUp.initialize({
       }
 
       return badges;
-    });
+    } catch (err) {
+      console.error("❌ card-detail-badges error:", err);
+      return [];
+    }
   },
 
   "card-buttons": async function (t, opts) {
-    const data = await t.get("card", "shared");
-    const isHidden = data?.disabledProgress === true;
+    try {
+      const data = await ensureCardDataExists(t);
+      if (!data) return [];
 
-    return [
-      {
-        icon: ICON,
-        text: isHidden ? "Add Progress" : "Hide Progress",
-        callback: function (t) {
-          if (!data) {
-            return t.set("card", "shared", {
-              progress: 0,
-              elapsed: 0,
-              estimated: 8 * 3600,
-              running: false,
-              startTime: null,
-              focusMode: false,
-              disabledProgress: false,
+      const isHidden = data.disabledProgress === true;
+
+      return [
+        {
+          icon: ICON,
+          text: isHidden ? "Add Progress" : "Hide Progress",
+          callback: function (t) {
+            return ensureCardDataExists(t).then((currentData) => {
+              if (!isHidden) {
+                return t.set("card", "shared", "disabledProgress", true).then(() => t.refresh());
+              }
+
+              return t.set("card", "shared", "disabledProgress", false).then(() => t.refresh());
             });
-          }
-
-          if (!isHidden) {
-            return t
-              .set("card", "shared", "disabledProgress", true)
-              .then(() => t.refresh());
-          }
-
-          return t
-            .set("card", "shared", "disabledProgress", false)
-            .then(() => t.refresh());
+          },
         },
-      },
-    ];
+      ];
+    } catch (err) {
+      console.error("❌ card-buttons error:", err);
+      return [];
+    }
   },
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
     return Promise.all([
-      t.get("card", "shared"),
+      ensureCardDataExists(t),
       t.get("board", "shared", "autoTrackMode"),
       t.get("board", "shared", "autoTrackLists"),
     ]).then(([data, mode, lists]) => {
