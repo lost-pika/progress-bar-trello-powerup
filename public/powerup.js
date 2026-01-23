@@ -25,32 +25,15 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ Compute checklist progress from card data
-async function computeChecklistProgress(t) {
-  try {
-    const card = await t.card("all");
-    
-    if (!card || !card.checklists || card.checklists.length === 0) {
-      return 0;
-    }
-
-    let total = 0;
-    let done = 0;
-
-    card.checklists.forEach((cl) => {
-      if (cl.checkItems && Array.isArray(cl.checkItems)) {
-        cl.checkItems.forEach((item) => {
-          total++;
-          if (item.state === "complete") done++;
-        });
-      }
-    });
-
-    return total === 0 ? 0 : Math.round((done / total) * 100);
-  } catch (err) {
-    console.error("Error computing progress:", err);
-    return 0;
-  }
+// ⭐ TIMER-BASED PROGRESS (instead of checklist)
+function computeTimerProgress(data) {
+  if (!data) return 0;
+  
+  const elapsed = computeElapsed(data);
+  const estimated = data.estimated || 8 * 3600; // 8 hours default
+  
+  const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
+  return progress;
 }
 
 /* ----------------------------------------
@@ -138,18 +121,22 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ Progress badge with dynamic refresh
+    // ⭐ TIMER-BASED PROGRESS BADGE - Updates with timer!
     badges.push({
       title: "Progress",
       dynamic: function (t) {
-        return computeChecklistProgress(t).then((pct) => {
+        return t.get("card", "shared").then((cardData) => {
+          if (!cardData) return { text: "0%", color: "blue" };
+          
+          const pct = computeTimerProgress(cardData);
+          
           return {
             text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
             color: "blue",
           };
         });
       },
-      refresh: 500, // Refreshes every 500ms - THIS IS KEY!
+      refresh: 500, // Updates every 500ms as timer runs
     });
 
     // Timer badge
@@ -196,11 +183,15 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ Progress badge
+      // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
       badges.push({
         title: "Progress",
         dynamic: function (t) {
-          return computeChecklistProgress(t).then((pct) => {
+          return t.get("card", "shared").then((cardData) => {
+            if (!cardData) return { text: "0%", color: "blue" };
+            
+            const pct = computeTimerProgress(cardData);
+            
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
@@ -283,22 +274,24 @@ TrelloPowerUp.initialize({
         });
       }
 
-      return t.popup({
-        title: "Restart Timer?",
-        url: "./confirm-restart.html",
-        height: 150,
-        args: { cardData: data },
-      }).then((result) => {
-        if (!result || result.restart !== true) return;
+      return t
+        .popup({
+          title: "Restart Timer?",
+          url: "./confirm-restart.html",
+          height: 150,
+          args: { cardData: data },
+        })
+        .then((result) => {
+          if (!result || result.restart !== true) return;
 
-        return t.set("card", "shared", {
-          ...data,
-          elapsed: 0,
-          running: true,
-          startTime: Date.now(),
-          focusMode: true,
+          return t.set("card", "shared", {
+            ...data,
+            elapsed: 0,
+            running: true,
+            startTime: Date.now(),
+            focusMode: true,
+          });
         });
-      });
     });
   },
 
