@@ -254,28 +254,27 @@
         }, 1000);
       }
 
-     function toggleTimer() {
-  if (state.running) {
-    const now = Date.now();
-    state.elapsed += Math.floor((now - state.startTime) / 1000);
-    state.running = false;
-    state.startTime = null;
+      function toggleTimer() {
+        if (state.running) {
+          const now = Date.now();
+          state.elapsed += Math.floor((now - state.startTime) / 1000);
+          state.running = false;
+          state.startTime = null;
 
-    t.set("card", "shared", "focusMode", false);
-  } else {
-    state.running = true;
-    state.startTime = Date.now();
-    startTick();
+          t.set("card", "shared", "focusMode", false);
+        } else {
+          state.running = true;
+          state.startTime = Date.now();
+          startTick();
 
-    t.get("board", "shared", "autoFocus").then((f) => {
-      if (f) t.set("card", "shared", "focusMode", true);
-    });
-  }
+          t.get("board", "shared", "autoFocus").then((f) => {
+            if (f) t.set("card", "shared", "focusMode", true);
+          });
+        }
 
-  save();
-  render();
-}
-
+        save();
+        render();
+      }
 
       function resetTimer() {
         state.elapsed = 0;

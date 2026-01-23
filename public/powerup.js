@@ -27,22 +27,26 @@ function computeElapsed(data) {
 }
 
 async function computeProgressFromChecklists(t) {
-  const card = await t.card("checklists");
+  return t.card('checklists')
+    .then(function(card) {
+      if (!card || !card.checklists) return 0;
 
-  let total = 0;
-  let done = 0;
+      let total = 0;
+      let done = 0;
 
-  card.checklists.forEach((cl) => {
-    cl.checkItems.forEach((item) => {
-      total++;
-      if (item.state === "complete") done++;
+      card.checklists.forEach(cl => {
+        if (!cl.checkItems) return;
+        cl.checkItems.forEach(item => {
+          total++;
+          if (item.state === "complete") done++;
+        });
+      });
+
+      if (total === 0) return 0;
+      return Math.round((done / total) * 100);
     });
-  });
-
-  if (total === 0) return 0;
-
-  return Math.round((done / total) * 100);
 }
+
 
 /* ----------------------------------------
    INITIALIZE POWER-UP
