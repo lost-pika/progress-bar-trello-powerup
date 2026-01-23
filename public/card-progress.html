@@ -291,59 +291,44 @@
         const behind = live > state.estimated;
 
         document.getElementById("root").innerHTML = `
-        <div class="container">
+  <div class="container">
 
-          <div class="header">
-            <div class="title">⚡ Progress</div>
-            <div class="percent">${state.progress}%</div>
-          </div>
-
-          <div class="progress-section ${state.hideProgressBars ? "hidden" : ""}">
-            <div class="bar-bg">
-              <div class="bar-fill" style="width:${state.progress}%"></div>
-            </div>
-            <div class="manual-progress">Progress: ${state.progress}%</div>
-          </div>
-
-          <div class="time-box">
-            <div class="time-row">
-              <div>
-                <div style="opacity:.6;font-size:12px">Elapsed</div>
-                <div id="elapsed" class="elapsed">${format(live)}</div>
-              </div>
-
-              <div>
-                <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-                <input id="estimatedInput"
-       class="estimated"
-       value="${format(state.estimated)}"
-       style="
-         background: rgba(255,255,255,0.05);
-         border: 1px solid rgba(255,255,255,0.12);
-         border-radius: 6px;
-         padding: 4px 6px;
-         font-size: 15px;
-         width: 90px;
-         color: #fff;
-         text-align: center;
-       ">
-
-              </div>
-            </div>
-
-            ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
-
-            <button id="trackBtn" class="track-btn">
-              ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-            </button>
-
-            <button id="resetBtn" class="reset-btn">Reset</button>
-
-            
-          </div>
-
+    <div class="time-box">
+      <div class="time-row">
+        <div>
+          <div style="opacity:.6;font-size:12px">Elapsed</div>
+          <div id="elapsed" class="elapsed">${format(live)}</div>
         </div>
-      `;
+
+        <div>
+          <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
+          <input id="estimatedInput"
+            class="estimated"
+            value="${format(state.estimated)}"
+            style="
+              background: rgba(255,255,255,0.05);
+              border: 1px solid rgba(255,255,255,0.12);
+              border-radius: 6px;
+              padding: 4px 6px;
+              font-size: 15px;
+              width: 90px;
+              color: #fff;
+              text-align: center;
+            ">
+        </div>
+      </div>
+
+      ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+
+      <button id="trackBtn" class="track-btn">
+        ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+      </button>
+
+      <button id="resetBtn" class="reset-btn">Reset</button>
+    </div>
+
+  </div>
+`;
 
         document.getElementById("trackBtn").onclick = toggleTimer;
         document.getElementById("resetBtn").onclick = resetTimer;
