@@ -154,7 +154,7 @@ TrelloPowerUp.initialize({
             };
           });
         },
-        refresh: 1000,
+        refresh: 100,
       });
     }
 
@@ -199,7 +199,7 @@ TrelloPowerUp.initialize({
             };
           });
         },
-        refresh: 500,
+        refresh: 100,
       });
 
       if (!hideTimer) {
@@ -216,7 +216,7 @@ TrelloPowerUp.initialize({
               };
             });
           },
-          refresh: 1000,
+          refresh: 100,
         });
       }
 
