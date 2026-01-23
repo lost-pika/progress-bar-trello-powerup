@@ -114,111 +114,87 @@ TrelloPowerUp.initialize({
   },
 
   /* Card Badges → Timer + Progress + Focus */
-  /* Card Badges → Timer + Progress + Focus */
-"card-badges": async function (t) {
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) return [];
+  "card-badges": async function (t) {
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return [];
 
-  const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "hideBadges"),
-    t.get("board", "shared", "hideProgressBars"),
-    t.get("board", "shared", "hideTimerBadges"),
-  ]);
+    const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
+      t.get("card", "shared"),
+      t.get("board", "shared", "hideBadges"),
+      t.get("board", "shared", "hideProgressBars"),
+      t.get("board", "shared", "hideTimerBadges"),
+    ]);
 
-  if (hideBadges || !data) return [];
-  if (data.disabledProgress) return [];
+    if (hideBadges || !data) return [];
+    if (data.disabledProgress) return [];
 
-  const badges = [];
+    const badges = [];
 
-  // Focus badge
-  if (data.focusMode) {
-    badges.push({
-      text: "🎯 Focus",
-      color: "red",
-    });
-  }
-
-  // ⭐ Compute immediately on load
-  const initialProgress = await computeChecklistProgress(t);
-  
-  let cardData = await t.get("card", "shared");
-  if (!cardData) cardData = {};
-  if (cardData.progress !== initialProgress) {
-    await t.set("card", "shared", "progress", initialProgress);
-  }
-
-  // ⭐ Notify iframe of progress change
-  t.card("id").then((card) => {
-    try {
-      window.parent.postMessage({
-        type: "PROGRESS_UPDATED",
-        cardId: card.id,
-        progress: initialProgress,
-      }, "*");
-    } catch (e) {
-      console.log("Could not notify iframe:", e);
-    }
-  });
-
-  // Add badge with initial value
-  badges.push({
-    text: hideBars 
-      ? initialProgress + "%" 
-      : `${makeBar(initialProgress)} ${initialProgress}%`,
-    color: "blue",
-    dynamic: function (t) {
-      return computeChecklistProgress(t).then(async (pct) => {
-        let cardData = await t.get("card", "shared");
-        if (!cardData) cardData = {};
-
-        if (cardData.progress !== pct) {
-          await t.set("card", "shared", "progress", pct);
-
-          // ⭐ Notify iframe of progress change
-          t.card("id").then((card) => {
-            try {
-              window.parent.postMessage({
-                type: "PROGRESS_UPDATED",
-                cardId: card.id,
-                progress: pct,
-              }, "*");
-            } catch (e) {
-              console.log("Could not notify iframe:", e);
-            }
-          });
-        }
-
-        return {
-          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-          color: "blue",
-        };
+    // Focus badge
+    if (data.focusMode) {
+      badges.push({
+        text: "🎯 Focus",
+        color: "red",
       });
-    },
-    refresh: 500,
-  });
+    }
 
-  // Timer badge
-  if (!hideTimer) {
+    // ⭐ CRITICAL FIX: Use cached value first, compute fresh in background
+    let initialProgress = data.progress || 0; // Use cached value first
+    
+    // Then compute fresh in background (non-blocking)
+    computeChecklistProgress(t).then(async (freshProgress) => {
+      if (freshProgress !== initialProgress) {
+        await t.set("card", "shared", "progress", freshProgress);
+        // Trigger refresh to update badge
+        t.refresh();
+      }
+    }).catch(err => console.error("Progress computation error:", err));
+
+    // Add badge with initial/cached value immediately
     badges.push({
+      text: hideBars 
+        ? initialProgress + "%" 
+        : `${makeBar(initialProgress)} ${initialProgress}%`,
+      color: "blue",
       dynamic: function (t) {
-        return t.get("card", "shared").then((d) => {
-          if (!d) return { text: "" };
-          const el = computeElapsed(d);
-          const est = d.estimated || 8 * 3600;
+        return computeChecklistProgress(t).then(async (pct) => {
+          let cardData = await t.get("card", "shared");
+          if (!cardData) cardData = {};
+
+          // Only update if changed
+          if (cardData.progress !== pct) {
+            await t.set("card", "shared", "progress", pct);
+          }
+
           return {
-            text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
             color: "blue",
           };
         });
       },
-      refresh: 1000,
+      refresh: 500, // Check every 500ms
     });
-  }
 
-  return badges;
-},
+    // Timer badge
+    if (!hideTimer) {
+      badges.push({
+        dynamic: function (t) {
+          return t.get("card", "shared").then((d) => {
+            if (!d) return { text: "" };
+            const el = computeElapsed(d);
+            const est = d.estimated || 8 * 3600;
+            return {
+              text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+              color: "blue",
+            };
+          });
+        },
+        refresh: 1000,
+      });
+    }
 
+    return badges;
+  },
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
@@ -263,7 +239,7 @@ TrelloPowerUp.initialize({
             };
           });
         },
-        refresh: 500, // ⭐ Ultra fast
+        refresh: 500,
       });
 
       if (!hideTimer) {
@@ -322,28 +298,6 @@ TrelloPowerUp.initialize({
       },
     ];
   },
-
-  /* ⭐ NEW: Listen for checklist changes and trigger refresh */
-  "notification-types": function (t) {
-    return [
-      {
-        id: "checklistItemChanged",
-        text: "Checklist item changed",
-      },
-    ];
-  },
-
-  /* ⭐ NEW: Watch for checklist modifications */
-  "formatters": [
-    {
-      type: "card",
-      format: "json",
-      callback: function (t, cardJson) {
-        // Whenever card data changes, mark for update
-        return cardJson;
-      },
-    },
-  ],
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
