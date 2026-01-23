@@ -25,12 +25,20 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ CHECKLIST-BASED PROGRESS
-async function computeChecklistProgress(t) {
+// ⭐ FIXED: Better error handling + retries for checklist data
+async function computeChecklistProgress(t, retries = 3) {
   try {
     const card = await t.card("all");
     
-    if (!card || !card.checklists || card.checklists.length === 0) {
+    // Handle undefined/null card
+    if (!card) {
+      console.warn("Card is null/undefined");
+      return 0;
+    }
+
+    // Handle missing checklists
+    if (!card.checklists || !Array.isArray(card.checklists)) {
+      console.warn("No checklists found on card");
       return 0;
     }
 
@@ -38,10 +46,12 @@ async function computeChecklistProgress(t) {
     let done = 0;
 
     card.checklists.forEach((cl) => {
-      if (cl.checkItems && Array.isArray(cl.checkItems)) {
+      if (cl && cl.checkItems && Array.isArray(cl.checkItems)) {
         cl.checkItems.forEach((item) => {
-          total++;
-          if (item.state === "complete") done++;
+          if (item) {
+            total++;
+            if (item.state === "complete") done++;
+          }
         });
       }
     });
@@ -49,6 +59,14 @@ async function computeChecklistProgress(t) {
     return total === 0 ? 0 : Math.round((done / total) * 100);
   } catch (err) {
     console.error("Error computing progress:", err);
+    
+    // ⭐ RETRY LOGIC: If failed, retry after short delay
+    if (retries > 0) {
+      console.log(`Retrying progress computation (${retries} retries left)...`);
+      await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms
+      return computeChecklistProgress(t, retries - 1);
+    }
+    
     return 0;
   }
 }
@@ -130,11 +148,6 @@ TrelloPowerUp.initialize({
 
     const badges = [];
 
-    // ⭐ On card load, compute fresh checklist progress
-    computeChecklistProgress(t).then(async (freshProgress) => {
-      await t.set("card", "shared", "progress", freshProgress);
-    }).catch(err => console.error("Progress load error:", err));
-
     // Focus badge
     if (data.focusMode) {
       badges.push({
@@ -143,19 +156,45 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ CHECKLIST-BASED PROGRESS BADGE
-    // Very aggressive refresh (100ms) to catch manual check/uncheck
+    // ⭐ FIXED: Use cached value + compute fresh with retry logic
+    let initialProgress = data.progress || 0;
+    
+    // Compute fresh in background with retries
+    computeChecklistProgress(t, 3).then(async (freshProgress) => {
+      if (freshProgress !== initialProgress) {
+        await t.set("card", "shared", "progress", freshProgress);
+        t.refresh();
+      }
+    }).catch(err => console.error("Background progress computation failed:", err));
+
+    // Add badge with initial value
     badges.push({
-      title: "Progress",
+      text: hideBars 
+        ? initialProgress + "%" 
+        : `${makeBar(initialProgress)} ${initialProgress}%`,
+      color: "blue",
       dynamic: function (t) {
-        return computeChecklistProgress(t).then((pct) => {
+        return computeChecklistProgress(t, 3).then(async (pct) => {
+          let cardData = await t.get("card", "shared");
+          if (!cardData) cardData = {};
+
+          if (cardData.progress !== pct) {
+            await t.set("card", "shared", "progress", pct);
+          }
+
           return {
             text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
             color: "blue",
           };
+        }).catch(err => {
+          console.error("Dynamic badge error:", err);
+          return {
+            text: hideBars ? initialProgress + "%" : `${makeBar(initialProgress)} ${initialProgress}%`,
+            color: "blue",
+          };
         });
       },
-      refresh: 100, // ⭐ Very fast - catches manual changes
+      refresh: 500,
     });
 
     // Timer badge
@@ -190,14 +229,9 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideProgressBars"),
       t.get("board", "shared", "hideTimerBadges"),
     ]).then(([data, hideDetail, hideBars, hideTimer]) => {
-      if (hideDetail || !data) return [];
+      if (hideDetail || !data) return Promise.resolve([]);
 
       const badges = [];
-
-      // ⭐ On card detail load, compute fresh checklist progress
-      computeChecklistProgress(t).then(async (freshProgress) => {
-        await t.set("card", "shared", "progress", freshProgress);
-      }).catch(err => console.error("Progress load error:", err));
 
       if (data.focusMode) {
         badges.push({
@@ -207,18 +241,46 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ CHECKLIST-BASED PROGRESS BADGE (card detail)
+      // ⭐ FIXED: Same retry logic here
+      let initialProgress = data.progress || 0;
+      
+      computeChecklistProgress(t, 3).then(async (freshProgress) => {
+        if (freshProgress !== initialProgress) {
+          await t.set("card", "shared", "progress", freshProgress);
+          t.refresh();
+        }
+      }).catch(err => console.error("Background progress computation failed:", err));
+
       badges.push({
         title: "Progress",
+        text: hideBars 
+          ? initialProgress + "%" 
+          : `${makeBar(initialProgress)} ${initialProgress}%`,
+        color: "blue",
         dynamic: function (t) {
-          return computeChecklistProgress(t).then((pct) => {
+          return computeChecklistProgress(t, 3).then(async (pct) => {
+            let cardData = await t.get("card", "shared");
+            if (!cardData) {
+              cardData = {};
+            }
+
+            if (cardData.progress !== pct) {
+              await t.set("card", "shared", "progress", pct);
+            }
+
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "blue",
             };
+          }).catch(err => {
+            console.error("Dynamic detail badge error:", err);
+            return {
+              text: hideBars ? initialProgress + "%" : `${makeBar(initialProgress)} ${initialProgress}%`,
+              color: "blue",
+            };
           });
         },
-        refresh: 100, // ⭐ Very fast
+        refresh: 500,
       });
 
       if (!hideTimer) {
@@ -243,8 +305,7 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* Card buttons */
-  "card-buttons": async function (t) {
+  "card-buttons": async function (t, opts) {
     const data = await t.get("card", "shared");
     const isHidden = data?.disabledProgress === true;
 
@@ -265,7 +326,15 @@ TrelloPowerUp.initialize({
             });
           }
 
-          return t.set("card", "shared", "disabledProgress", !isHidden);
+          if (!isHidden) {
+            return t
+              .set("card", "shared", "disabledProgress", true)
+              .then(() => t.refresh());
+          }
+
+          return t
+            .set("card", "shared", "disabledProgress", false)
+            .then(() => t.refresh());
         },
       },
     ];
@@ -286,12 +355,14 @@ TrelloPowerUp.initialize({
       if (!lists.includes(destListId)) return;
 
       if (!data.running) {
-        return t.set("card", "shared", {
-          ...data,
-          running: true,
-          startTime: Date.now(),
-          focusMode: true,
-        });
+        return t
+          .set("card", "shared", {
+            ...data,
+            running: true,
+            startTime: Date.now(),
+            focusMode: true,
+          })
+          .then(() => t.refresh());
       }
 
       return t
@@ -304,13 +375,15 @@ TrelloPowerUp.initialize({
         .then((result) => {
           if (!result || result.restart !== true) return;
 
-          return t.set("card", "shared", {
-            ...data,
-            elapsed: 0,
-            running: true,
-            startTime: Date.now(),
-            focusMode: true,
-          });
+          return t
+            .set("card", "shared", {
+              ...data,
+              elapsed: 0,
+              running: true,
+              startTime: Date.now(),
+              focusMode: true,
+            })
+            .then(() => t.refresh());
         });
     });
   },
