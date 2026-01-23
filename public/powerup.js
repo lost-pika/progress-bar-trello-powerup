@@ -139,7 +139,7 @@ TrelloPowerUp.initialize({
     }
 
     // ⭐ CRITICAL FIX: Use cached value first, compute fresh in background
-    let initialProgress = data.progress || 0; // Use cached value first
+    let initialProgress = data.progress; // Use cached value first
     
     // Then compute fresh in background (non-blocking)
     computeChecklistProgress(t).then(async (freshProgress) => {
