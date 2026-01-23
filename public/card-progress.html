@@ -332,7 +332,6 @@
 
                   <button id="resetBtn" class="reset-btn">Reset</button>
 
-
                 </div>
 
               </div>
@@ -370,21 +369,6 @@
           }
         };
       }
-
-      // Auto refresh when user ticks/unticks checklist items
-      t.render(async function () {
-        const pct = await computeProgressFromChecklists(t);
-
-        // fetch state again to avoid stale values
-        const cardData = await t.get("card", "shared");
-        const oldPct = cardData?.progress || 0;
-
-        // If changed → update shared state + refresh badges
-        if (pct !== oldPct) {
-          await t.set("card", "shared", "progress", pct);
-          t.refresh(); // refresh card badges immediately
-        }
-      });
 
       load();
     </script>
