@@ -1,11 +1,16 @@
 /* global TrelloPowerUp */
 
+
 var ICON = "https://cdn-icons-png.flaticon.com/512/992/992651.png";
 var Promise = TrelloPowerUp.Promise;
+
+// ⭐ TIMER POLLING: Force refresh on card badges
+var timerInterval = null;
 
 /* ----------------------------------------
    HELPERS
 ---------------------------------------- */
+
 
 function makeBar(pct) {
   const total = 10;
@@ -13,17 +18,20 @@ function makeBar(pct) {
   return "█".repeat(filled) + "▒".repeat(total - filled);
 }
 
+
 function formatHM(sec) {
   const h = String(Math.floor(sec / 3600)).padStart(2, "0");
   const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
   return `${h}:${m}`;
 }
 
+
 function computeElapsed(data) {
   if (!data || !data.running || !data.startTime) return data?.elapsed || 0;
   const now = Date.now();
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
+
 
 // ⭐ TIMER-BASED PROGRESS
 function computeTimerProgress(data) {
@@ -36,14 +44,33 @@ function computeTimerProgress(data) {
   return progress;
 }
 
+// ⭐ POLLING: Force badge refresh while timer running
+function startTimerPolling(t) {
+  if (timerInterval) clearInterval(timerInterval);
+  
+  timerInterval = setInterval(async () => {
+    const data = await t.get("card", "shared");
+    if (data && data.running) {
+      // Force Trello to refresh badges
+      t.refresh();
+    } else {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }, 100); // Force refresh every 100ms while running
+}
+
+
 /* ----------------------------------------
    INITIALIZE POWER-UP
 ---------------------------------------- */
+
 
 TrelloPowerUp.initialize({
   /* Board Button → Settings popup */
   "board-buttons": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
+
 
     if (disabled)
       return [
@@ -61,6 +88,7 @@ TrelloPowerUp.initialize({
         },
       ];
 
+
     return [
       {
         icon: ICON,
@@ -77,13 +105,18 @@ TrelloPowerUp.initialize({
     ];
   },
 
+
   /* Card Back Section → Timer iframe */
   "card-back-section": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return null;
 
+
     const cardData = await t.get("card", "shared");
     if (!cardData || cardData.disabledProgress === true) return null;
+
+    // ⭐ Start polling when card back opens
+    startTimerPolling(t);
 
     return {
       title: "Progress",
@@ -96,10 +129,12 @@ TrelloPowerUp.initialize({
     };
   },
 
+
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
+
 
     const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
       t.get("card", "shared"),
@@ -108,10 +143,17 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideTimerBadges"),
     ]);
 
+
     if (hideBadges || !data) return [];
     if (data.disabledProgress) return [];
 
+    // ⭐ Start polling if timer running
+    if (data.running) {
+      startTimerPolling(t);
+    }
+
     const badges = [];
+
 
     // Focus badge
     if (data.focusMode) {
@@ -121,10 +163,16 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ TIMER-BASED PROGRESS BADGE - FIXED!
-    // Simple dynamic badge, no background computation
+
+    // ⭐ TIMER-BASED PROGRESS BADGE
+    // Static + Dynamic for maximum responsiveness
     badges.push({
       title: "Progress",
+      text: (() => {
+        const pct = computeTimerProgress(data);
+        return hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`;
+      })(),
+      color: "blue",
       dynamic: function (t) {
         return t.get("card", "shared").then((cardData) => {
           if (!cardData) return { text: "0%", color: "blue" };
@@ -137,8 +185,9 @@ TrelloPowerUp.initialize({
           };
         });
       },
-      refresh: 100, // Updates every 500ms
+      refresh: 100,
     });
+
 
     // Timer badge
     if (!hideTimer) {
@@ -158,13 +207,16 @@ TrelloPowerUp.initialize({
       });
     }
 
+
     return badges;
   },
+
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
+
 
     return Promise.all([
       t.get("card", "shared"),
@@ -174,7 +226,9 @@ TrelloPowerUp.initialize({
     ]).then(([data, hideDetail, hideBars, hideTimer]) => {
       if (hideDetail || !data) return [];
 
+
       const badges = [];
+
 
       if (data.focusMode) {
         badges.push({
@@ -183,6 +237,7 @@ TrelloPowerUp.initialize({
           color: "red",
         });
       }
+
 
       // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
       badges.push({
@@ -202,6 +257,7 @@ TrelloPowerUp.initialize({
         refresh: 100,
       });
 
+
       if (!hideTimer) {
         badges.push({
           title: "Timer",
@@ -220,14 +276,17 @@ TrelloPowerUp.initialize({
         });
       }
 
+
       return badges;
     });
   },
+
 
   /* Card buttons */
   "card-buttons": async function (t) {
     const data = await t.get("card", "shared");
     const isHidden = data?.disabledProgress === true;
+
 
     return [
       {
@@ -246,11 +305,13 @@ TrelloPowerUp.initialize({
             });
           }
 
+
           return t.set("card", "shared", "disabledProgress", !isHidden);
         },
       },
     ];
   },
+
 
   /* Auto-track on list move */
   "card-moved": function (t, opts) {
@@ -263,8 +324,10 @@ TrelloPowerUp.initialize({
       if (mode !== "list" && mode !== "both") return;
       if (!lists || lists.length === 0) return;
 
+
       const destListId = opts.to.list.id;
       if (!lists.includes(destListId)) return;
+
 
       if (!data.running) {
         return t.set("card", "shared", {
@@ -272,8 +335,12 @@ TrelloPowerUp.initialize({
           running: true,
           startTime: Date.now(),
           focusMode: true,
+        }).then(() => {
+          // ⭐ Start polling after starting timer
+          startTimerPolling(t);
         });
       }
+
 
       return t
         .popup({
@@ -285,16 +352,21 @@ TrelloPowerUp.initialize({
         .then((result) => {
           if (!result || result.restart !== true) return;
 
+
           return t.set("card", "shared", {
             ...data,
             elapsed: 0,
             running: true,
             startTime: Date.now(),
             focusMode: true,
+          }).then(() => {
+            // ⭐ Start polling after restart
+            startTimerPolling(t);
           });
         });
     });
   },
+
 
   /* Auth */
   "authorization-status": function (t) {
@@ -302,6 +374,7 @@ TrelloPowerUp.initialize({
       .get("member", "private", "authorized")
       .then((a) => ({ authorized: a === true }));
   },
+
 
   "show-authorization": function (t) {
     return t.popup({
