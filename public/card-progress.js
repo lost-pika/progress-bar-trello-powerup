@@ -236,10 +236,11 @@ load();
 
 // Prevent timer stop when card is closed
 window.addEventListener("beforeunload", () => {
-  if (running) {
+  if (state.running) {
     const now = Date.now();
-    elapsed += Math.floor((now - startTime) / 1000);
-    startTime = Date.now();
-    saveCard();
+    state.elapsed += Math.floor((now - state.startTime) / 1000);
+    state.startTime = Date.now();
+    save();
   }
 });
+
