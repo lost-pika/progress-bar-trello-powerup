@@ -25,10 +25,11 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
+// ⭐ Helper function to compute progress
 async function computeChecklistProgress(t) {
   try {
     const card = await t.card("all");
-
+    
     if (!card || !card.checklists || card.checklists.length === 0) {
       return 0;
     }
@@ -57,7 +58,7 @@ async function computeChecklistProgress(t) {
 ---------------------------------------- */
 
 TrelloPowerUp.initialize({
-  /* BOARD BUTTONS */
+  /* Board Button → Settings popup */
   "board-buttons": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
 
@@ -93,7 +94,7 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* CARD BACK SECTION */
+  /* Card Back Section → Timer iframe */
   "card-back-section": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return null;
@@ -112,7 +113,7 @@ TrelloPowerUp.initialize({
     };
   },
 
-  /* CARD BADGES */
+  /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
@@ -129,7 +130,7 @@ TrelloPowerUp.initialize({
 
     const badges = [];
 
-    /* FOCUS MODE BADGE */
+    // Focus badge
     if (data.focusMode) {
       badges.push({
         text: "🎯 Focus",
@@ -137,11 +138,33 @@ TrelloPowerUp.initialize({
       });
     }
 
-    /* REAL-TIME PROGRESS BADGE — FIXED */
+    // ⭐ CRITICAL FIX: Use cached value first, compute fresh in background
+    let initialProgress = data.progress || 0; // Use cached value first
+    
+    // Then compute fresh in background (non-blocking)
+    computeChecklistProgress(t).then(async (freshProgress) => {
+      if (freshProgress !== initialProgress) {
+        await t.set("card", "shared", "progress", freshProgress);
+        // Trigger refresh to update badge
+        t.refresh();
+      }
+    }).catch(err => console.error("Progress computation error:", err));
+
+    // Add badge with initial/cached value immediately
     badges.push({
+      text: hideBars 
+        ? initialProgress + "%" 
+        : `${makeBar(initialProgress)} ${initialProgress}%`,
+      color: "blue",
       dynamic: function (t) {
         return computeChecklistProgress(t).then(async (pct) => {
-          await t.set("card", "shared", "progress", pct);
+          let cardData = await t.get("card", "shared");
+          if (!cardData) cardData = {};
+
+          // Only update if changed
+          if (cardData.progress !== pct) {
+            await t.set("card", "shared", "progress", pct);
+          }
 
           return {
             text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
@@ -149,10 +172,10 @@ TrelloPowerUp.initialize({
           };
         });
       },
-      refresh: 500, // fast update
+      refresh: 500, // Check every 500ms
     });
 
-    /* TIMER BADGE */
+    // Timer badge
     if (!hideTimer) {
       badges.push({
         dynamic: function (t) {
@@ -173,7 +196,7 @@ TrelloPowerUp.initialize({
     return badges;
   },
 
-  /* CARD DETAIL BADGES */
+  /* Inside card detail view */
   "card-detail-badges": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
@@ -184,7 +207,7 @@ TrelloPowerUp.initialize({
       t.get("board", "shared", "hideProgressBars"),
       t.get("board", "shared", "hideTimerBadges"),
     ]).then(([data, hideDetail, hideBars, hideTimer]) => {
-      if (hideDetail || !data) return [];
+      if (hideDetail || !data) return Promise.resolve([]);
 
       const badges = [];
 
@@ -196,11 +219,32 @@ TrelloPowerUp.initialize({
         });
       }
 
-      /* REAL-TIME PROGRESS BADGE (card detail) */
+      // ⭐ SAME FIX: Fast refresh with cached value fallback
+      let initialProgress = data.progress || 0;
+      
+      computeChecklistProgress(t).then(async (freshProgress) => {
+        if (freshProgress !== initialProgress) {
+          await t.set("card", "shared", "progress", freshProgress);
+          t.refresh();
+        }
+      }).catch(err => console.error("Progress computation error:", err));
+
       badges.push({
+        title: "Progress",
+        text: hideBars 
+          ? initialProgress + "%" 
+          : `${makeBar(initialProgress)} ${initialProgress}%`,
+        color: "blue",
         dynamic: function (t) {
           return computeChecklistProgress(t).then(async (pct) => {
-            await t.set("card", "shared", "progress", pct);
+            let cardData = await t.get("card", "shared");
+            if (!cardData) {
+              cardData = {};
+            }
+
+            if (cardData.progress !== pct) {
+              await t.set("card", "shared", "progress", pct);
+            }
 
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
@@ -211,7 +255,6 @@ TrelloPowerUp.initialize({
         refresh: 500,
       });
 
-      /* TIMER BADGE */
       if (!hideTimer) {
         badges.push({
           title: "Timer",
@@ -234,8 +277,7 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* CARD BUTTONS */
-  "card-buttons": async function (t) {
+  "card-buttons": async function (t, opts) {
     const data = await t.get("card", "shared");
     const isHidden = data?.disabledProgress === true;
 
@@ -256,15 +298,21 @@ TrelloPowerUp.initialize({
             });
           }
 
+          if (!isHidden) {
+            return t
+              .set("card", "shared", "disabledProgress", true)
+              .then(() => t.refresh());
+          }
+
           return t
-            .set("card", "shared", "disabledProgress", !isHidden)
+            .set("card", "shared", "disabledProgress", false)
             .then(() => t.refresh());
         },
       },
     ];
   },
 
-  /* AUTO-TRACK ON LIST MOVE */
+  /* Auto-track on list move */
   "card-moved": function (t, opts) {
     return Promise.all([
       t.get("card", "shared"),
@@ -312,7 +360,7 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* AUTH */
+  /* Auth */
   "authorization-status": function (t) {
     return t
       .get("member", "private", "authorized")
