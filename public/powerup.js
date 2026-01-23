@@ -114,75 +114,111 @@ TrelloPowerUp.initialize({
   },
 
   /* Card Badges → Timer + Progress + Focus */
-  "card-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+  /* Card Badges → Timer + Progress + Focus */
+"card-badges": async function (t) {
+  const disabled = await t.get("board", "shared", "disabled");
+  if (disabled) return [];
 
-    return Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideTimerBadges"),
-    ]).then(([data, hideBadges, hideBars, hideTimer]) => {
-      if (hideBadges || !data) return [];
-      if (data.disabledProgress) return [];
+  const [data, hideBadges, hideBars, hideTimer] = await Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "hideBadges"),
+    t.get("board", "shared", "hideProgressBars"),
+    t.get("board", "shared", "hideTimerBadges"),
+  ]);
 
-      const badges = [];
+  if (hideBadges || !data) return [];
+  if (data.disabledProgress) return [];
 
-      // Focus badge
-      if (data.focusMode) {
-        badges.push({
-          text: "🎯 Focus",
-          color: "red",
-        });
-      }
+  const badges = [];
 
-      // ⭐ FIXED: Progress badge with immediate + periodic updates
-      badges.push({
-        dynamic: function (t) {
-          return computeChecklistProgress(t).then(async (pct) => {
-            let cardData = await t.get("card", "shared");
-            if (!cardData) {
-              cardData = {};
-            }
-
-            // Only update if changed
-            if (cardData.progress !== pct) {
-              await t.set("card", "shared", "progress", pct);
-            }
-
-            return {
-              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-              color: "blue",
-            };
-          });
-        },
-        refresh: 500, // ⭐ ULTRA FAST: Check every 500ms (fast detection)
-      });
-
-      // Timer badge
-      if (!hideTimer) {
-        badges.push({
-          dynamic: function (t) {
-            return t.get("card", "shared").then((d) => {
-              if (!d) return { text: "" };
-
-              const el = computeElapsed(d);
-              const est = d.estimated || 8 * 3600;
-
-              return {
-                text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-                color: "blue",
-              };
-            });
-          },
-          refresh: 1000,
-        });
-      }
-
-      return badges;
+  // Focus badge
+  if (data.focusMode) {
+    badges.push({
+      text: "🎯 Focus",
+      color: "red",
     });
-  },
+  }
+
+  // ⭐ Compute immediately on load
+  const initialProgress = await computeChecklistProgress(t);
+  
+  let cardData = await t.get("card", "shared");
+  if (!cardData) cardData = {};
+  if (cardData.progress !== initialProgress) {
+    await t.set("card", "shared", "progress", initialProgress);
+  }
+
+  // ⭐ Notify iframe of progress change
+  t.card("id").then((card) => {
+    try {
+      window.parent.postMessage({
+        type: "PROGRESS_UPDATED",
+        cardId: card.id,
+        progress: initialProgress,
+      }, "*");
+    } catch (e) {
+      console.log("Could not notify iframe:", e);
+    }
+  });
+
+  // Add badge with initial value
+  badges.push({
+    text: hideBars 
+      ? initialProgress + "%" 
+      : `${makeBar(initialProgress)} ${initialProgress}%`,
+    color: "blue",
+    dynamic: function (t) {
+      return computeChecklistProgress(t).then(async (pct) => {
+        let cardData = await t.get("card", "shared");
+        if (!cardData) cardData = {};
+
+        if (cardData.progress !== pct) {
+          await t.set("card", "shared", "progress", pct);
+
+          // ⭐ Notify iframe of progress change
+          t.card("id").then((card) => {
+            try {
+              window.parent.postMessage({
+                type: "PROGRESS_UPDATED",
+                cardId: card.id,
+                progress: pct,
+              }, "*");
+            } catch (e) {
+              console.log("Could not notify iframe:", e);
+            }
+          });
+        }
+
+        return {
+          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        };
+      });
+    },
+    refresh: 500,
+  });
+
+  // Timer badge
+  if (!hideTimer) {
+    badges.push({
+      dynamic: function (t) {
+        return t.get("card", "shared").then((d) => {
+          if (!d) return { text: "" };
+          const el = computeElapsed(d);
+          const est = d.estimated || 8 * 3600;
+          return {
+            text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
+            color: "blue",
+          };
+        });
+      },
+      refresh: 1000,
+    });
+  }
+
+  return badges;
+},
+
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {

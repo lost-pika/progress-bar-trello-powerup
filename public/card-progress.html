@@ -47,8 +47,19 @@
         color: #2ec4b6;
       }
 
-      .progress-section.hidden {
-        display: none;
+      /* ⭐ NEW: Progress bar styles */
+      .progress-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
       }
 
       .bar-bg {
@@ -65,9 +76,8 @@
         transition: width 0.25s ease;
       }
 
-      .manual-progress {
-        font-size: 13px;
-        margin-top: 8px;
+      .progress-section.hidden {
+        display: none;
       }
 
       .time-box {
@@ -197,6 +207,22 @@
         return `${h}:${m}:${sec}`;
       }
 
+      // ⭐ NEW: Listen for progress updates from main power-up
+      window.addEventListener("message", async (event) => {
+        if (event.data && event.data.type === "PROGRESS_UPDATED") {
+          const { progress } = event.data;
+
+          // Update state with new progress
+          state.progress = progress;
+
+          // Update card data
+          await t.set("card", "shared", "progress", progress);
+
+          console.log("Iframe received progress update:", progress);
+          render();
+        }
+      });
+
       /* LOAD STATE */
       async function load() {
         const card = (await t.get("card", "shared")) || {};
@@ -287,6 +313,13 @@
         render();
       }
 
+      /* ⭐ NEW: Make bar visualization */
+      function makeBar(pct) {
+        const total = 10;
+        const filled = Math.round((pct / 100) * total);
+        return "█".repeat(filled) + "▒".repeat(total - filled);
+      }
+
       /* RENDER UI */
       function render() {
         const live = state.running
@@ -295,47 +328,61 @@
 
         const behind = live > state.estimated;
 
+        // ⭐ NEW: Progress bar HTML
+        const progressBarHTML = `
+          <div class="progress-section">
+            <div class="progress-header">
+              <span>Progress</span>
+              <span class="percent">${state.progress}%</span>
+            </div>
+            <div class="bar-bg">
+              <div class="bar-fill" style="width: ${state.progress}%"></div>
+            </div>
+          </div>
+        `;
+
         document.getElementById("root").innerHTML = `
-              <div class="container">
+          <div class="container">
+            ${progressBarHTML}
 
-                <div class="time-box">
-                  <div class="time-row">
-                    <div>
-                      <div style="opacity:.6;font-size:12px">Elapsed</div>
-                      <div id="elapsed" class="elapsed">${format(live)}</div>
-                    </div>
-
-                    <div>
-                      <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-                      <input id="estimatedInput"
-             class="estimated"
-             value="${format(state.estimated)}"
-             style="
-               background: rgba(255,255,255,0.05);
-               border: 1px solid rgba(255,255,255,0.12);
-               border-radius: 6px;
-               padding: 4px 6px;
-               font-size: 15px;
-               width: 90px;
-               color: #fff;
-               text-align: center;
-             ">
-
-                    </div>
-                  </div>
-
-                  ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
-
-                  <button id="trackBtn" class="track-btn">
-                    ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-                  </button>
-
-                  <button id="resetBtn" class="reset-btn">Reset</button>
-
+            <div class="time-box">
+              <div class="time-row">
+                <div>
+                  <div style="opacity:.6;font-size:12px">Elapsed</div>
+                  <div id="elapsed" class="elapsed">${format(live)}</div>
                 </div>
 
+                <div>
+                  <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
+                  <input id="estimatedInput"
+         class="estimated"
+         value="${format(state.estimated)}"
+         style="
+           background: rgba(255,255,255,0.05);
+           border: 1px solid rgba(255,255,255,0.12);
+           border-radius: 6px;
+           padding: 4px 6px;
+           font-size: 15px;
+           width: 90px;
+           color: #fff;
+           text-align: center;
+         ">
+
+                </div>
               </div>
-            `;
+
+              ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+
+              <button id="trackBtn" class="track-btn">
+                ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+              </button>
+
+              <button id="resetBtn" class="reset-btn">Reset</button>
+
+            </div>
+
+          </div>
+        `;
 
         document.getElementById("trackBtn").onclick = toggleTimer;
         document.getElementById("resetBtn").onclick = resetTimer;
@@ -344,7 +391,6 @@
           const val = e.target.value.trim();
           const parts = val.split(":").map(Number);
 
-          // supports hh:mm:ss or mm:ss or h:m:s etc.
           let h = 0,
             m = 0,
             s = 0;
@@ -362,9 +408,8 @@
           if (!isNaN(total) && total > 0) {
             state.estimated = total;
             save();
-            render(); // re-render UI
+            render();
           } else {
-            // Reset to last good value
             e.target.value = format(state.estimated);
           }
         };
