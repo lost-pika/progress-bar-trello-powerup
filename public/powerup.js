@@ -107,42 +107,60 @@ TrelloPowerUp.initialize({
 
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
-    const disabled = await t.get("board", "shared", "disabled");
-    if (disabled) return [];
+  const disabled = await t.get("board", "shared", "disabled");
+  if (disabled) return [];
 
-    return Promise.all([
-      t.get("card", "shared"),
-      t.get("board", "shared", "hideBadges"),
-      t.get("board", "shared", "hideProgressBars"),
-      t.get("board", "shared", "hideTimerBadges"),
-    ]).then(([data, hideBadges, hideBars, hideTimer]) => {
-      if (hideBadges || !data) return [];
-      if (data.disabledProgress) return [];
+  return Promise.all([
+    t.get("card", "shared"),
+    t.get("board", "shared", "hideBadges"),
+    t.get("board", "shared", "hideProgressBars"),
+    t.get("board", "shared", "hideTimerBadges"),
+  ]).then(([data, hideBadges, hideBars, hideTimer]) => {
+    if (hideBadges || !data) return [];
+    if (data.disabledProgress) return [];
 
-      const badges = [];
+    const badges = [];
 
-      // Focus badge
-      if (data.focusMode) {
-        badges.push({
-          text: "🎯 Focus",
-          color: "red",
-        });
-      }
+    // Focus badge
+    if (data.focusMode) {
+      badges.push({
+        text: "🎯 Focus",
+        color: "red",
+      });
+    }
 
-      // Checklist progress (AUTO-REFRESH)
+    // Checklist %
+    badges.push({
+      dynamic: function (t) {
+        return computeProgressFromChecklists(t).then((pct) => ({
+          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+          color: "blue",
+        }));
+      },
+      refresh: 3000,
+    });
+
+    // ⭐ TIMER BADGE (YOU MISSED THIS)
+    if (!hideTimer) {
       badges.push({
         dynamic: function (t) {
-          return computeProgressFromChecklists(t).then((pct) => ({
-            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          }));
+          return t.get("card", "shared").then((d) => {
+            if (!d) return { text: "" };
+            const el = computeElapsed(d);
+            return {
+              text: `⏱ ${formatHM(el)}`,
+              color: "blue",
+            };
+          });
         },
-        refresh: 3000,
+        refresh: 1000,
       });
+    }
 
-      return badges; // ← REQUIRED
-    });
-  },
+    return badges;
+  });
+},
+
 
   /* Inside card detail view */
   "card-detail-badges": async function (t) {

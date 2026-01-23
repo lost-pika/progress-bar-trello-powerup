@@ -175,22 +175,7 @@
   <body>
     <div id="root"></div>
 
-    
-
-
     <script>
-
-// Prevent timer stop when card is closed
-window.addEventListener("beforeunload", () => {
-  if (state.running) {
-    const now = Date.now();
-    state.elapsed += Math.floor((now - state.startTime) / 1000);
-    state.startTime = Date.now();
-    t.set("card", "shared", state);
-  }
-});
-
-
       const t = TrelloPowerUp.iframe();
 
       let state = {
@@ -234,7 +219,8 @@ window.addEventListener("beforeunload", () => {
       load().then(() => {
         t.get("board", "shared", "autoTrackMode").then((mode) => {
           if (mode === "open" || mode === "both") {
-            if (!state.running) {
+            // Only auto-start if timer is REALLY not running
+            if (!state.running && state.startTime === null) {
               state.running = true;
               state.startTime = Date.now();
               save();
@@ -274,13 +260,16 @@ window.addEventListener("beforeunload", () => {
           // START TIMER
           state.running = true;
           state.startTime = Date.now();
+
           startTick();
 
           // Focus Mode
-        t.get("board", "shared", "autoFocus").then((f) => {
-  if (f) t.set("card", "shared", "focusMode", true).then(() => t.refresh());
-});
-
+          t.get("board", "shared", "autoFocus").then((f) => {
+            if (f)
+              t.set("card", "shared", "focusMode", true).then(() =>
+                t.refresh(),
+              );
+          });
 
           // Immediate badge refresh
           t.refresh();
@@ -290,17 +279,16 @@ window.addEventListener("beforeunload", () => {
         render();
       }
 
-     function resetTimer() {
-  state.elapsed = 0;
-  state.running = false;
-  state.startTime = null;
+      function resetTimer() {
+        state.elapsed = 0;
+        state.running = false;
+        state.startTime = null;
 
-  t.set("card", "shared", "focusMode", false).then(() => t.refresh());
+        t.set("card", "shared", "focusMode", false).then(() => t.refresh());
 
-  save();
-  render();
-}
-
+        save();
+        render();
+      }
 
       /* RENDER UI */
       function render() {
