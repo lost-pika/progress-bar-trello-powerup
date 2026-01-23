@@ -310,21 +310,7 @@ TrelloPowerUp.initialize({
     });
   },
 
- "on-card-clicked": function (t, opts) {
-  return Promise.all([
-    t.get("card", "shared"),
-    t.get("board", "shared", "autoTrackMode"),
-  ]).then(([data, mode]) => {
 
-    // do NOT auto-start timer
-    if (mode === "open" || mode === "both") {
-      // do nothing
-      return;
-    }
-
-  });
-}
-,
 
   /* Auth */
   "authorization-status": function (t) {
