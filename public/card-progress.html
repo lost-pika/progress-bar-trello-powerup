@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
-    <script src="card-progress.js"></script>
 
     <style>
       * {
@@ -236,41 +235,40 @@
         t.set("card", "shared", state);
       }
 
+      /* TIMER */
+      function startTick() {
+        if (timer) return;
+        timer = setInterval(() => {
+          if (state.running) {
+            const now = Date.now();
+            const live =
+              state.elapsed + Math.floor((now - state.startTime) / 1000);
+            document.getElementById("elapsed").textContent = format(live);
+          }
+        }, 1000);
+      }
+
       function toggleTimer() {
-        /* --------------------------
-        STOP TIMER
-  --------------------------- */
         if (state.running) {
+          // STOP TIMER
           const now = Date.now();
           state.elapsed += Math.floor((now - state.startTime) / 1000);
           state.running = false;
           state.startTime = null;
+        } else {
+          // START TIMER
+          state.running = true;
+          state.startTime = Date.now();
+          startTick();
 
-          // turn off focus mode
-          t.set("card", "shared", "focusMode", false).then(() => {
-            t.refresh(); // refresh badge
+          // Focus Mode
+          t.get("board", "shared", "autoFocus").then((f) => {
+            if (f) t.set("card", "shared", "focusMode", true);
           });
 
-          save();
-          render();
-          return; // ← very important
+          // Immediate badge refresh
+          t.refresh();
         }
-
-        /* --------------------------
-        START TIMER
-  --------------------------- */
-        state.running = true;
-        state.startTime = Date.now();
-        startTick();
-
-        // Auto Focus Mode (board setting)
-        t.get("board", "shared", "autoFocus").then((enabled) => {
-          if (enabled) {
-            t.set("card", "shared", "focusMode", true).then(() => {
-              t.refresh(); // refresh badge
-            });
-          }
-        });
 
         save();
         render();
@@ -295,6 +293,18 @@
         document.getElementById("root").innerHTML = `
         <div class="container">
 
+          <div class="header">
+            <div class="title">⚡ Progress</div>
+            <div class="percent">${state.progress}%</div>
+          </div>
+
+          <div class="progress-section ${state.hideProgressBars ? "hidden" : ""}">
+            <div class="bar-bg">
+              <div class="bar-fill" style="width:${state.progress}%"></div>
+            </div>
+            <div class="manual-progress">Progress: ${state.progress}%</div>
+          </div>
+
           <div class="time-box">
             <div class="time-row">
               <div>
@@ -305,18 +315,19 @@
               <div>
                 <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
                 <input id="estimatedInput"
-                  class="estimated"
-                  value="${format(state.estimated)}"
-                  style="
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.12);
-                    border-radius: 6px;
-                    padding: 4px 6px;
-                    font-size: 15px;
-                    width: 90px;
-                    color: #fff;
-                    text-align: center;
-                  ">
+       class="estimated"
+       value="${format(state.estimated)}"
+       style="
+         background: rgba(255,255,255,0.05);
+         border: 1px solid rgba(255,255,255,0.12);
+         border-radius: 6px;
+         padding: 4px 6px;
+         font-size: 15px;
+         width: 90px;
+         color: #fff;
+         text-align: center;
+       ">
+
               </div>
             </div>
 
@@ -327,6 +338,8 @@
             </button>
 
             <button id="resetBtn" class="reset-btn">Reset</button>
+
+            
           </div>
 
         </div>
@@ -362,23 +375,8 @@
             // Reset to last good value
             e.target.value = format(state.estimated);
           }
-
-          
         };
       }
-
-          /* ----------------------------------------
-         AUTO REFRESH WHEN CHECKLIST CHANGES
-      ----------------------------------------- */
-      t.render(async function () {
-        const pct = await computeProgress();   // auto compute checklist % each rerender
-
-        if (pct !== state.progress) {
-          state.progress = pct;
-          save();      // store in Trello
-          render();    // update UI
-        }
-      });
 
       load();
     </script>
