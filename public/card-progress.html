@@ -361,8 +361,23 @@
             // Reset to last good value
             e.target.value = format(state.estimated);
           }
+
+          
         };
       }
+
+          /* ----------------------------------------
+         AUTO REFRESH WHEN CHECKLIST CHANGES
+      ----------------------------------------- */
+      t.render(async function () {
+        const pct = await computeProgress();   // auto compute checklist % each rerender
+
+        if (pct !== state.progress) {
+          state.progress = pct;
+          save();      // store in Trello
+          render();    // update UI
+        }
+      });
 
       load();
     </script>
