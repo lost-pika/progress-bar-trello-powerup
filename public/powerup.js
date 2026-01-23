@@ -136,10 +136,21 @@ TrelloPowerUp.initialize({
     // Checklist %
     badges.push({
       dynamic: function (t) {
-        return computeProgressFromChecklists(t).then((pct) => ({
-          text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-          color: "blue",
-        }));
+        return computeProgressFromChecklists(t).then(async (pct) => {
+  let cardData = await t.get("card", "shared");
+
+  if (!cardData) cardData = {};
+
+  if (cardData.progress !== pct) {
+    await t.set("card", "shared", "progress", pct);
+  }
+
+  return {
+    text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+    color: "blue",
+  };
+});
+
       },
       refresh: 3000,
     });
@@ -199,10 +210,21 @@ if (!hideTimer) {
       badges.push({
         title: "Progress",
         dynamic: function (t) {
-          return computeProgressFromChecklists(t).then((pct) => ({
-            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-            color: "blue",
-          }));
+          return computeProgressFromChecklists(t).then(async (pct) => {
+  let cardData = await t.get("card", "shared");
+
+  if (!cardData) cardData = {};
+
+  if (cardData.progress !== pct) {
+    await t.set("card", "shared", "progress", pct);
+  }
+
+  return {
+    text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+    color: "blue",
+  };
+});
+
         },
         refresh: 3000,
       });
