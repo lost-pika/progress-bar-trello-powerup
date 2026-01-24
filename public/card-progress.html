@@ -259,6 +259,14 @@
             state.elapsed = card?.elapsed || 0;
             startTick();
             save();
+
+            // AUTO-ENABLE FOCUS MODE if autoFocus setting is ON
+            t.get("board", "shared", "autoFocus").then((f) => {
+              if (f) {
+                t.set("card", "shared", "focusMode", true);
+              }
+            });
+
             render();
           }
         });
@@ -289,14 +297,18 @@
           state.running = false;
           state.startTime = null;
 
+          // DISABLE FOCUS MODE when stopping timer
           t.set("card", "shared", "focusMode", false);
         } else {
           state.running = true;
           state.startTime = Date.now();
           startTick();
 
+          // ENABLE FOCUS MODE if autoFocus setting is ON
           t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) t.set("card", "shared", "focusMode", true);
+            if (f) {
+              t.set("card", "shared", "focusMode", true);
+            }
           });
         }
 
