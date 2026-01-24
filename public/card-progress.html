@@ -248,15 +248,17 @@
 
           // Only auto-start if:
           // 1. auto mode is enabled
-          // 2. card was previously running
+          // 2. card has a timer (estimated time set)
           if (
             (mode === "open" || mode === "both") &&
-            card?.running === true &&
+            card?.estimated > 0 &&
             !state.running
           ) {
             state.running = true;
-            state.startTime = card.startTime || Date.now();
+            state.startTime = Date.now();
+            state.elapsed = card?.elapsed || 0;
             startTick();
+            save();
             render();
           }
         });
