@@ -181,49 +181,48 @@
       }
 
       .toggle-track-container {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 8px;
-}
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
 
-.toggle-track-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-}
+      .toggle-track-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+      }
 
-.toggle-track-switch {
-  width: 60px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  position: relative;
-  cursor: pointer;
-  transition: 0.25s ease;
-  flex: 1;
-}
+      .toggle-track-switch {
+        width: 60px;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: 0.25s ease;
+        flex: 1;
+      }
 
-.toggle-track-switch::after {
-  content: "";
-  width: 24px;
-  height: 24px;
-  background: #fff;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  border-radius: 50%;
-  transition: 0.25s ease;
-}
+      .toggle-track-switch::after {
+        content: "";
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        border-radius: 50%;
+        transition: 0.25s ease;
+      }
 
-.toggle-track-switch.active {
-  background: #2ec4b6;
-}
+      .toggle-track-switch.active {
+        background: #2ec4b6;
+      }
 
-.toggle-track-switch.active::after {
-  transform: translateX(30px);
-}
-
+      .toggle-track-switch.active::after {
+        transform: translateX(30px);
+      }
     </style>
   </head>
 
@@ -418,23 +417,49 @@
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
 
-            <div class="toggle-track-container" style="margin-top: 16px; padding-top: 6px;">
-  <span class="toggle-track-label" style="font-size: 15px; font-weight: 600;">
-    ${state.running ? "Stop Tracking" : "Start Tracking"}
-  </span>
+      <div class="toggle-track-container"
+     style="
+       display: flex;
+       align-items: center;
+       justify-content: space-between;
+       margin-top: 16px;
+     ">
 
-  <div id="trackToggle"
-       class="toggle-track-switch ${state.running ? "active" : ""}"
-       style="margin-left: 6px; margin-right: 6px;">
+  <!-- BOX holding text + toggle -->
+  <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        padding: 10px 14px;
+        border-radius: 10px;
+        flex: 1;
+      ">
+      
+    <span style="font-size: 15px; font-weight: 600;">
+      ${state.running ? "Stop Tracking" : "Start Tracking"}
+    </span>
+
+    <div id="trackToggle"
+         class="toggle-track-switch ${state.running ? "active" : ""}">
+    </div>
   </div>
 
+  <!-- RESET button -->
   <button id="resetBtn"
           class="reset-btn"
-          style="width: 85px; padding: 10px 0; font-size: 13px;">
+          style="
+            width: 90px;
+            padding: 10px 0;
+            margin-left: 12px;
+            font-size: 13px;
+          ">
     Reset
   </button>
-</div>
 
+</div>
 
 
 
@@ -445,7 +470,6 @@
 
         document.getElementById("resetBtn").onclick = resetTimer;
         document.getElementById("trackToggle").onclick = toggleTimer;
-
 
         document.getElementById("estimatedInput").onchange = (e) => {
           const val = e.target.value.trim();
