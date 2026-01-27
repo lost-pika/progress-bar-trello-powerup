@@ -223,21 +223,6 @@
       .toggle-track-switch.active::after {
         transform: translateX(30px);
       }
-
-      .toggle-track-switch {
-        width: 60px;
-        height: 30px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        position: relative;
-        cursor: pointer;
-        transition: 0.25s ease;
-        flex: 1;
-      }
-
-      .toggle-track-switch.active {
-        background: var(--toggle-color, #2ec4b6);
-      }
     </style>
   </head>
 
@@ -375,23 +360,6 @@
         render();
       }
 
-      /* RANDOM COLOR GENERATOR */
-      function getRandomColor() {
-        const colors = [
-          "#2ec4b6", // Teal
-          "#a855f7", // Purple
-          "#3b82f6", // Blue
-          "#22c55e", // Green
-          "#f97316", // Orange
-          "#ec4899", // Pink
-          "#06b6d4", // Cyan
-          "#eab308", // Yellow
-          "#ef4444", // Red
-          "#8b5cf6", // Violet
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
-      }
-
       function resetTimer() {
         state.elapsed = 0;
         state.running = false;
@@ -459,34 +427,49 @@
 
   <!-- START TRACKING BOX -->
   <div style="
-        width: 140px;    /* ⬅ SAME WIDTH */
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.12);
+        padding: 12px 16px;
+        background: linear-gradient(135deg, rgba(46, 196, 182, 0.1), rgba(46, 196, 182, 0.05));
+        border: 1.5px solid rgba(46, 196, 182, 0.3);
         border-radius: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
       ">
       
-    <span style="font-size: 16px; font-weight: 600;">
+    <span style="
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.3px;
+    ">
       ${state.running ? "Stop" : "Start"}
     </span>
 
     <div id="trackToggle"
          class="toggle-track-switch ${state.running ? "active" : ""}"
-         style="transform: scale(0.9);">
+         style="
+           width: 50px;
+           height: 26px;
+           margin: 0;
+         ">
     </div>
   </div>
 
-  <!-- RESET (same width as above) -->
+  <!-- RESET BUTTON -->
   <button id="resetBtn"
           class="reset-btn"
           style="
-            width: 140px;   /* ⬅ SAME WIDTH */
-            padding: 10px 0;
-            font-size: 16px;
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 15px;
             border-radius: 10px;
+            background: linear-gradient(135deg, #d32f2f, #b71c1c);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
           ">
     Reset
   </button>
