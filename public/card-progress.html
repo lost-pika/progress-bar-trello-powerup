@@ -8,9 +8,8 @@
     <style>
       :root {
         --primary: #2ec4b6;
-        --primary-dim: rgba(46, 196, 182, 0.15);
+        --primary-glow: rgba(46, 196, 182, 0.4);
         --danger: #b23838;
-        --danger-hover: #c94444;
         --text-main: #e0e0e0;
         --text-muted: rgba(255, 255, 255, 0.5);
         --bg-glass: rgba(255, 255, 255, 0.05);
@@ -36,7 +35,6 @@
         flex-direction: column;
         gap: 8px;
         width: 100%;
-        max-width: 100%;
       }
 
       .time-panel {
@@ -46,10 +44,10 @@
         padding: 10px 12px;
         display: flex;
         flex-direction: column;
-        gap: 12px; /* Increased gap slightly */
+        gap: 12px;
       }
 
-      /* Row 1: Timer & Estimate */
+      /* --- Row 1: Stats --- */
       .stats-row {
         display: flex;
         justify-content: space-between;
@@ -92,11 +90,9 @@
         text-align: right;
         transition: 0.2s;
       }
-
       .estimated-input:hover {
         background: rgba(255, 255, 255, 0.1);
       }
-
       .estimated-input:focus {
         background: rgba(0, 0, 0, 0.3);
         border-color: var(--primary);
@@ -104,33 +100,34 @@
         color: #fff;
       }
 
-      /* Row 2: Controls - INCREASED SIZE */
+      /* --- Row 2: Controls --- */
       .controls-row {
         display: flex;
         gap: 8px;
-        height: 42px; /* Taller row (was 36px) */
+        height: 44px; /* Big click target */
       }
 
-      /* Start/Stop Toggle - BIGGER */
+      /* MAIN TOGGLE BUTTON */
       .btn-toggle {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 12px; /* Space between switch and text */
         background: linear-gradient(
           135deg,
           rgba(60, 130, 120, 0.25),
           rgba(60, 130, 120, 0.15)
         );
         border: 1px solid rgba(46, 196, 182, 0.4);
-        border-radius: 8px; /* Slightly more rounded */
+        border-radius: 8px;
         cursor: pointer;
         color: #fff;
-        font-size: 15px; /* Larger Text (was 13px) */
-        font-weight: 700; /* Bolder Text */
+        font-size: 14px;
+        font-weight: 700;
         transition: all 0.2s;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .btn-toggle:hover {
@@ -144,23 +141,47 @@
         box-shadow: 0 0 12px rgba(46, 196, 182, 0.25);
       }
 
-      /* Larger circle indicator */
-      .toggle-indicator {
-        width: 10px;
-        height: 10px;
+      /* --- THE NEW TOGGLE SWITCH --- */
+      .toggle-switch {
+        width: 38px; /* Much wider */
+        height: 22px; /* Taller */
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 20px;
+        position: relative;
+        transition: 0.3s ease;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* The sliding knob */
+      .toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #b0b0b0;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        transition: 0.3s;
+        transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy effect */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
-      .btn-toggle.active .toggle-indicator {
-        background: #fff;
-        box-shadow: 0 0 6px #fff;
+      /* Active State for Switch */
+      .btn-toggle.active .toggle-switch {
+        background: rgba(46, 196, 182, 0.6);
+        border-color: var(--primary);
       }
 
-      /* Reset Button - MATCHING HEIGHT */
+      .btn-toggle.active .toggle-switch::after {
+        transform: translateX(16px);
+        background: #ffffff;
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+      }
+
+      /* RESET BUTTON */
       .btn-reset {
-        width: 42px; /* Square match */
+        width: 44px;
         background: linear-gradient(135deg, #b23838, #962e2e);
         border: none;
         border-radius: 8px;
@@ -172,19 +193,17 @@
         transition: 0.2s;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
-
       .btn-reset:hover {
         filter: brightness(1.2);
         transform: translateY(-1px);
       }
-
       .icon-svg {
-        width: 20px; /* Slightly larger icon */
+        width: 20px;
         height: 20px;
         fill: currentColor;
       }
 
-      /* Warning Box */
+      /* WARNING */
       .status-warning {
         font-size: 11px;
         background: rgba(255, 189, 67, 0.15);
@@ -209,7 +228,6 @@
         estimated: 8 * 3600,
         running: false,
         startTime: null,
-        hideProgressBars: false,
       };
 
       let timer = null;
@@ -223,26 +241,20 @@
 
       window.addEventListener("message", async (event) => {
         if (event.data && event.data.type === "PROGRESS_UPDATED") {
-          const { progress } = event.data;
-          state.progress = progress;
-          await t.set("card", "shared", "progress", progress);
+          state.progress = event.data.progress;
           render();
         }
       });
 
       async function load() {
         const card = (await t.get("card", "shared")) || {};
-        const hideBars = await t.get("board", "shared", "hideProgressBars");
-
         state.progress = card.progress || 0;
         state.elapsed = card.elapsed || 0;
         state.estimated = card.estimated || 8 * 3600;
         state.running = card.running || false;
         state.startTime = card.startTime || null;
-        state.hideProgressBars = hideBars || false;
 
         render();
-
         if (state.running) startTick();
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       }
@@ -260,9 +272,6 @@
             state.elapsed = card?.elapsed || 0;
             startTick();
             save();
-            t.get("board", "shared", "autoFocus").then((f) => {
-              if (f) t.set("card", "shared", "focusMode", true);
-            });
             render();
           }
         });
@@ -291,14 +300,10 @@
           state.elapsed += Math.floor((now - state.startTime) / 1000);
           state.running = false;
           state.startTime = null;
-          t.set("card", "shared", "focusMode", false);
         } else {
           state.running = true;
           state.startTime = Date.now();
           startTick();
-          t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) t.set("card", "shared", "focusMode", true);
-          });
         }
         save();
         render();
@@ -308,7 +313,6 @@
         state.elapsed = 0;
         state.running = false;
         state.startTime = null;
-        t.set("card", "shared", "focusMode", false);
         save();
         render();
       }
@@ -317,7 +321,6 @@
         const live = state.running
           ? state.elapsed + Math.floor((Date.now() - state.startTime) / 1000)
           : state.elapsed;
-
         const behind = live > state.estimated;
 
         const iconReset = `<svg class="icon-svg" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>`;
@@ -325,13 +328,11 @@
         document.getElementById("root").innerHTML = `
           <div class="compact-container">
             <div class="time-panel">
-              
               <div class="stats-row">
                 <div class="stat-group">
                   <span class="label">Elapsed</span>
                   <div id="elapsed" class="elapsed-time">${format(live)}</div>
                 </div>
-
                 <div class="stat-group" style="align-items: flex-end;">
                   <span class="label">Estimate</span>
                   <input id="estimatedInput" class="estimated-input" value="${format(state.estimated)}" />
@@ -342,15 +343,13 @@
 
               <div class="controls-row">
                 <button id="trackToggle" class="btn-toggle ${state.running ? "active" : ""}">
-                  <div class="toggle-indicator"></div>
+                  <div class="toggle-switch"></div>
                   <span>${state.running ? "STOP TRACKING" : "START TRACKING"}</span>
                 </button>
-
                 <button id="resetBtn" class="btn-reset" title="Reset">
                   ${iconReset}
                 </button>
               </div>
-
             </div>
           </div>
         `;
