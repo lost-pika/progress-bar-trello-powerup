@@ -39,8 +39,6 @@ function computeTimerProgress(data) {
   return progress;
 }
 
-
-
 // ⭐ POLLING: Removed - Trello API doesn't support t.refresh()
 // Dynamic badges automatically refresh via the refresh property
 // No polling needed - Trello handles badge updates internally
@@ -87,10 +85,10 @@ TrelloPowerUp.initialize({
   },
 
   /* Card Back Section → Timer iframe */
- "card-back-section": async function (t) {
-  // Inject custom CSS (badge colors)
-  var css = `
-    .badge-progress {
+  "card-back-section": async function (t) {
+    // Inject custom CSS (badge colors) with higher specificity
+    var css = `
+    .badge-progress, [data-test-id="card-badges"] .badge-progress {
       background: rgba(46, 204, 113, 0.15) !important;
       border: 1px solid rgba(46, 204, 113, 0.35) !important;
       color: #2ecc71 !important;
@@ -98,7 +96,7 @@ TrelloPowerUp.initialize({
       padding: 4px 8px !important;
       font-weight: 600 !important;
     }
-    .badge-timer {
+    .badge-timer, [data-test-id="card-badges"] .badge-timer {
       background: rgba(26, 188, 156, 0.15) !important;
       border: 1px solid rgba(26, 188, 156, 0.35) !important;
       color: #1abc9c !important;
@@ -108,28 +106,33 @@ TrelloPowerUp.initialize({
     }
   `;
 
-  var style = document.createElement("style");
-  style.innerHTML = css;
-  document.head.appendChild(style);
+    var style = document.createElement("style");
+    style.id = "progress-badge-styles";
+    style.innerHTML = css;
 
-  // now continue the normal code
-  const disabled = await t.get("board", "shared", "disabled");
-  if (disabled) return null;
+    // Remove if already exists to prevent duplicates
+    var existing = document.getElementById("progress-badge-styles");
+    if (existing) existing.remove();
 
-  const cardData = await t.get("card", "shared");
-  if (!cardData || cardData.disabledProgress === true) return null;
+    document.head.appendChild(style);
 
-  return {
-    title: "Progress",
-    icon: ICON,
-    content: {
-      type: "iframe",
-      url: t.signUrl("./card-progress.html"),
-      height: 180,
-    },
-  };
-},
+    // now continue the normal code
+    const disabled = await t.get("board", "shared", "disabled");
+    if (disabled) return null;
 
+    const cardData = await t.get("card", "shared");
+    if (!cardData || cardData.disabledProgress === true) return null;
+
+    return {
+      title: "Progress",
+      icon: ICON,
+      content: {
+        type: "iframe",
+        url: t.signUrl("./card-progress.html"),
+        height: 180,
+      },
+    };
+  },
 
   /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
@@ -165,21 +168,15 @@ TrelloPowerUp.initialize({
         const pct = computeTimerProgress(data);
         return hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`;
       })(),
-      color: null,
-cssClasses: ["badge-progress"],
-
+      color: "green",
       dynamic: function (t) {
         return t.get("card", "shared").then((cardData) => {
-          if (!cardData) return { text: "0%", color: "blue" };
-
+          if (!cardData) return { text: "0%", color: "green" };
           const pct = computeTimerProgress(cardData);
-
-        return {
-  text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-  color: null,
-  cssClasses: ["badge-progress"],
-};
-
+          return {
+            text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+            color: "green",
+          };
         });
       },
       refresh: 250,
@@ -196,8 +193,7 @@ cssClasses: ["badge-progress"],
             return {
               text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
               color: null,
-cssClasses: ["badge-timer"],
-
+              cssClasses: ["badge-timer"],
             };
           });
         },
@@ -240,12 +236,11 @@ cssClasses: ["badge-timer"],
 
             const pct = computeTimerProgress(cardData);
 
-           return {
-  text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-  color: null,
-  cssClasses: ["badge-progress"],
-};
-
+            return {
+              text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
+              color: null,
+              cssClasses: ["badge-progress"],
+            };
           });
         },
         refresh: 100,
@@ -262,8 +257,7 @@ cssClasses: ["badge-timer"],
               return {
                 text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
                 color: null,
-cssClasses: ["badge-timer"],
-
+                cssClasses: ["badge-timer"],
               };
             });
           },
