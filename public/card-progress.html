@@ -223,6 +223,21 @@
       .toggle-track-switch.active::after {
         transform: translateX(30px);
       }
+
+      .toggle-track-switch {
+        width: 60px;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: 0.25s ease;
+        flex: 1;
+      }
+
+      .toggle-track-switch.active {
+        background: var(--toggle-color, #2ec4b6);
+      }
     </style>
   </head>
 
@@ -360,6 +375,23 @@
         render();
       }
 
+      /* RANDOM COLOR GENERATOR */
+      function getRandomColor() {
+        const colors = [
+          "#2ec4b6", // Teal
+          "#a855f7", // Purple
+          "#3b82f6", // Blue
+          "#22c55e", // Green
+          "#f97316", // Orange
+          "#ec4899", // Pink
+          "#06b6d4", // Cyan
+          "#eab308", // Yellow
+          "#ef4444", // Red
+          "#8b5cf6", // Violet
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+
       function resetTimer() {
         state.elapsed = 0;
         state.running = false;
@@ -416,35 +448,51 @@
               </div>
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
-
-      <div class="toggle-track-container"
+<div class="toggle-track-container"
      style="
        display: flex;
        align-items: center;
-       justify-content: space-between;
+       gap: 12px;
        margin-top: 16px;
      ">
 
-  <!-- BOX holding text + toggle -->
+  <!-- START TRACKING BOX -->
   <div style="
+        width: 140px;    /* ⬅ SAME WIDTH */
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 80px;
+        padding: 10px 14px;
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.12);
-        padding: 10px 14px;
         border-radius: 10px;
-        flex: 1;
       ">
       
-    <span style="font-size: 17px; font-weight: 600;">
-      ${state.running ? "Stop Tracking" : "Start Tracking"}
+    <span style="font-size: 16px; font-weight: 600;">
+      ${state.running ? "Stop" : "Start"}
     </span>
 
     <div id="trackToggle"
-         class="toggle-track-switch ${state.running ? "active" : ""}">
+         class="toggle-track-switch ${state.running ? "active" : ""}"
+         style="transform: scale(0.9);">
     </div>
+  </div>
+
+  <!-- RESET (same width as above) -->
+  <button id="resetBtn"
+          class="reset-btn"
+          style="
+            width: 140px;   /* ⬅ SAME WIDTH */
+            padding: 10px 0;
+            font-size: 16px;
+            border-radius: 10px;
+          ">
+    Reset
+  </button>
+
+</div>
+
+
   </div>
 
   <!-- RESET button -->
