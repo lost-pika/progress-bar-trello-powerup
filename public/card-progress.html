@@ -445,7 +445,7 @@
      style="
        display: flex;
        align-items: center;
-       gap: 12px;
+       justify-content: space-between;
        margin-top: 16px;
        width: 100%;
      ">
@@ -454,21 +454,20 @@
   <div style="
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        width: 240px;
-        background: linear-gradient(135deg, rgba(60,130,120,0.25), rgba(60,130,120,0.15));
+        justify-content: center;
+        gap: 14px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(60,130,120,0.28), rgba(60,130,120,0.18));
         border: 1.5px solid rgba(60,130,120,0.35);
         border-radius: 10px;
-        transition: all 0.3s ease;
         cursor: pointer;
+        min-width: 180px;
       ">
-    
+
     <span style="
       font-size: 15px;
       font-weight: 600;
       color: #fff;
-      letter-spacing: 0.3px;
       white-space: nowrap;
     ">
       ${state.running ? "Stop Tracking" : "Start Tracking"}
@@ -479,17 +478,15 @@
          style="
            width: 42px;
            height: 22px;
-           flex-grow: 0;
-           flex-shrink: 0;
          ">
     </div>
   </div>
 
-  <!-- RESET BUTTON pushed RIGHT -->
+  <!-- RESET BUTTON -->
   <button id="resetBtn"
           class="reset-btn"
           style="
-            margin-left: auto;     /* ← pushes RESET to right */
+            margin-left: auto;
             width: 100px;
             padding: 12px 16px;
             font-size: 15px;
@@ -501,6 +498,7 @@
   </button>
 
 </div>
+
 
 
 
