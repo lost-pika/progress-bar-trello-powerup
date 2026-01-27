@@ -3,9 +3,6 @@
 var ICON = "https://cdn-icons-png.flaticon.com/512/992/992651.png";
 var Promise = TrelloPowerUp.Promise;
 
-// ⭐ TIMER POLLING: Force refresh on card badges
-var timerInterval = null;
-
 /* ----------------------------------------
    HELPERS
 ---------------------------------------- */
@@ -28,27 +25,62 @@ function computeElapsed(data) {
   return data.elapsed + Math.floor((now - data.startTime) / 1000);
 }
 
-// ⭐ TIMER-BASED PROGRESS
 function computeTimerProgress(data) {
   if (!data) return 0;
-
   const elapsed = computeElapsed(data);
   const estimated = data.estimated || 8 * 3600;
-
   const progress = Math.min(100, Math.round((elapsed / estimated) * 100));
   return progress;
 }
 
-// ⭐ POLLING: Removed - Trello API doesn't support t.refresh()
-// Dynamic badges automatically refresh via the refresh property
-// No polling needed - Trello handles badge updates internally
+// Inject CSS into main Trello document
+function injectBadgeStyles() {
+  try {
+    const css = `
+      .trello-card .badge[data-badge-text*="⏱"] {
+        background: rgba(52, 211, 153, 0.2) !important;
+        color: #10b981 !important;
+        border: 1px solid rgba(16, 185, 129, 0.4) !important;
+      }
+      
+      .trello-card .badge[data-badge-text*="█"],
+      .trello-card .badge[data-badge-text*="▒"] {
+        background: rgba(34, 197, 94, 0.2) !important;
+        color: #22c55e !important;
+        border: 1px solid rgba(34, 197, 94, 0.4) !important;
+      }
+      
+      .trello-card .badge[data-badge-text*="🎯"] {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.4) !important;
+      }
+    `;
+    
+    let style = document.getElementById("trello-progress-badge-styles");
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "trello-progress-badge-styles";
+      document.head.appendChild(style);
+    }
+    style.innerHTML = css;
+  } catch (e) {
+    console.log("CSS injection note:", e);
+  }
+}
+
+// Call injection when available
+if (document.head) {
+  injectBadgeStyles();
+} else {
+  document.addEventListener("DOMContentLoaded", injectBadgeStyles);
+}
 
 /* ----------------------------------------
    INITIALIZE POWER-UP
 ---------------------------------------- */
 
 TrelloPowerUp.initialize({
-  /* Board Button → Settings popup */
   "board-buttons": async function (t) {
     const disabled = await t.get("board", "shared", "disabled");
 
@@ -84,39 +116,9 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* Card Back Section → Timer iframe */
   "card-back-section": async function (t) {
-    // Inject custom CSS (badge colors) with higher specificity
-    var css = `
-    .badge-progress, [data-test-id="card-badges"] .badge-progress {
-      background: rgba(46, 204, 113, 0.15) !important;
-      border: 1px solid rgba(46, 204, 113, 0.35) !important;
-      color: #2ecc71 !important;
-      border-radius: 6px !important;
-      padding: 4px 8px !important;
-      font-weight: 600 !important;
-    }
-    .badge-timer, [data-test-id="card-badges"] .badge-timer {
-      background: rgba(26, 188, 156, 0.15) !important;
-      border: 1px solid rgba(26, 188, 156, 0.35) !important;
-      color: #1abc9c !important;
-      border-radius: 6px !important;
-      padding: 4px 8px !important;
-      font-weight: 600 !important;
-    }
-  `;
+    injectBadgeStyles();
 
-    var style = document.createElement("style");
-    style.id = "progress-badge-styles";
-    style.innerHTML = css;
-
-    // Remove if already exists to prevent duplicates
-    var existing = document.getElementById("progress-badge-styles");
-    if (existing) existing.remove();
-
-    document.head.appendChild(style);
-
-    // now continue the normal code
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return null;
 
@@ -134,8 +136,9 @@ TrelloPowerUp.initialize({
     };
   },
 
-  /* Card Badges → Timer + Progress + Focus */
   "card-badges": async function (t) {
+    injectBadgeStyles();
+
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
 
@@ -149,10 +152,8 @@ TrelloPowerUp.initialize({
     if (hideBadges || !data) return [];
     if (data.disabledProgress) return [];
 
-    // Dynamic badges handle timer updates automatically
     const badges = [];
 
-    // Focus badge
     if (data.focusMode) {
       badges.push({
         text: "🎯 Focus",
@@ -160,8 +161,6 @@ TrelloPowerUp.initialize({
       });
     }
 
-    // ⭐ TIMER-BASED PROGRESS BADGE
-    // Static + Dynamic for maximum responsiveness
     badges.push({
       title: "Progress",
       text: (() => {
@@ -182,10 +181,9 @@ TrelloPowerUp.initialize({
       refresh: 250,
     });
 
-    // Timer badge
-    // Timer badge
     if (!hideTimer) {
       badges.push({
+        text: "",
         dynamic: function (t) {
           return t.get("card", "shared").then((d) => {
             if (!d) return { text: "" };
@@ -193,7 +191,7 @@ TrelloPowerUp.initialize({
             const est = d.estimated || 8 * 3600;
             return {
               text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-              color: "cyan",
+              color: "blue",
             };
           });
         },
@@ -204,8 +202,9 @@ TrelloPowerUp.initialize({
     return badges;
   },
 
-  /* Inside card detail view */
   "card-detail-badges": async function (t) {
+    injectBadgeStyles();
+
     const disabled = await t.get("board", "shared", "disabled");
     if (disabled) return [];
 
@@ -227,16 +226,12 @@ TrelloPowerUp.initialize({
         });
       }
 
-      // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
-      // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
       badges.push({
         title: "Progress",
         dynamic: function (t) {
           return t.get("card", "shared").then((cardData) => {
             if (!cardData) return { text: "0%", color: "green" };
-
             const pct = computeTimerProgress(cardData);
-
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
               color: "green",
@@ -256,7 +251,7 @@ TrelloPowerUp.initialize({
               const est = d.estimated || 8 * 3600;
               return {
                 text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-                color: "cyan",
+                color: "blue",
               };
             });
           },
@@ -268,7 +263,6 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* Card buttons */
   "card-buttons": async function (t) {
     const data = await t.get("card", "shared");
     const isHidden = data?.disabledProgress === true;
@@ -296,7 +290,6 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  /* Auto-track on list move */
   "card-moved": function (t, opts) {
     return Promise.all([
       t.get("card", "shared"),
@@ -340,7 +333,6 @@ TrelloPowerUp.initialize({
     });
   },
 
-  /* Auth */
   "authorization-status": function (t) {
     return t
       .get("member", "private", "authorized")
