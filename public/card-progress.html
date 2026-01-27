@@ -446,22 +446,20 @@
        display: flex;
        align-items: center;
        justify-content: space-between;
-       margin-top: 16px;
+       margin-top: 14px;
        width: 100%;
      ">
 
-  <!-- START TRACKING BOX -->
+  <!-- LEFT: Start Tracking -->
   <div style="
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 14px;
-        padding: 12px 20px;
+        gap: 10px;
+        padding: 12px 18px;
         background: linear-gradient(135deg, rgba(60,130,120,0.28), rgba(60,130,120,0.18));
         border: 1.5px solid rgba(60,130,120,0.35);
         border-radius: 10px;
         cursor: pointer;
-        min-width: 180px;
       ">
 
     <span style="
@@ -475,19 +473,14 @@
 
     <div id="trackToggle"
          class="toggle-track-switch ${state.running ? "active" : ""}"
-         style="
-           width: 42px;
-           height: 22px;
-         ">
+         style="width: 42px; height: 22px;">
     </div>
   </div>
 
-  <!-- RESET BUTTON -->
+  <!-- RIGHT: Reset -->
   <button id="resetBtn"
           class="reset-btn"
           style="
-            margin-left: auto;
-            width: 100px;
             padding: 12px 16px;
             font-size: 15px;
             border-radius: 10px;
@@ -496,7 +489,6 @@
           ">
     Reset
   </button>
-
 </div>
 
 
