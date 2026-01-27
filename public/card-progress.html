@@ -418,23 +418,43 @@
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
 
-            <div class="toggle-track-container" style="margin-top: 16px; padding-top: 6px;">
-  <span class="toggle-track-label" style="font-size: 15px; font-weight: 600;">
-    ${state.running ? "Stop Tracking" : "Start Tracking"}
-  </span>
+            <div class="toggle-track-container" 
+     style="
+       margin-top: 18px; 
+       padding: 10px 0; 
+       display: flex; 
+       align-items: center; 
+       justify-content: space-between;
+       gap: 14px;
+     ">
 
-  <div id="trackToggle"
-       class="toggle-track-switch ${state.running ? "active" : ""}"
-       style="margin-left: 6px; margin-right: 6px;">
+  <div style="
+        display: flex; 
+        flex-direction: column; 
+        gap: 4px;
+      ">
+    <span class="toggle-track-label" 
+          style="font-size: 15px; font-weight: 600;">
+      ${state.running ? "Stop Tracking" : "Start Tracking"}
+    </span>
+
+    <div id="trackToggle"
+         class="toggle-track-switch ${state.running ? "active" : ""}"
+         style="margin-top: 4px;">
+    </div>
   </div>
 
   <button id="resetBtn"
           class="reset-btn"
-          style="width: 85px; padding: 10px 0; font-size: 13px;">
+          style="
+            width: 90px; 
+            padding: 10px 0; 
+            font-size: 13px;
+            margin-left: auto;
+          ">
     Reset
   </button>
 </div>
-
 
 
 
