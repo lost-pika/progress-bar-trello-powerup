@@ -6,247 +6,222 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
+      :root {
+        --primary: #2ec4b6;
+        --primary-glow: rgba(46, 196, 182, 0.4);
+        --danger: #ef476f;
+        --danger-hover: #d6335a;
+        --bg-card: #1f2329;
+        --bg-input: #2c313a;
+        --text-muted: #8b949e;
+        --text-bright: #ffffff;
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
-      html,
       body {
         background: transparent;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #e0e0e0;
-        padding: 4px 10px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--text-bright);
+        padding: 8px; /* Compact outer padding */
       }
 
-      .container {
-        width: 100%;
+      /* Main container styles */
+      .tracker-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
         gap: 16px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
       }
 
-      .header {
+      /* GLOW EFFECT when running */
+      .tracker-card.is-running {
+        border-color: rgba(46, 196, 182, 0.5);
+        box-shadow: 0 0 15px rgba(46, 196, 182, 0.15);
+      }
+
+      /* --- TIMER DISPLAY AREA --- */
+      .timer-display {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-end;
       }
 
-      .title {
-        font-size: 16px;
-        font-weight: 600;
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .percent {
-        font-size: 14px;
-        font-weight: 600;
-        color: #2ec4b6;
-      }
-
-      /* ⭐ NEW: Progress bar styles */
-      .progress-section {
+      .time-group {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 4px;
       }
 
-      .progress-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .bar-bg {
-        width: 100%;
-        height: 8px;
-        border-radius: 5px;
-        background: rgba(46, 196, 182, 0.18);
-        overflow: hidden;
-      }
-
-      .bar-fill {
-        height: 100%;
-        background: #2ec4b6;
-        transition: width 0.25s ease;
-      }
-
-      .progress-section.hidden {
-        display: none;
-      }
-
-      .time-box {
-        padding: 14px 16px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-      }
-
-      .time-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-
-      .elapsed {
-        font-size: 20px;
+      .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         font-weight: 600;
-        color: #38e1d3;
+        color: var(--text-muted);
       }
 
-      .estimated {
+      .digits {
+        font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", monospace;
+        font-variant-numeric: tabular-nums; /* Prevents jittering digits */
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      /* Elapsed Time (Hero) */
+      #elapsed {
+        font-size: 28px;
+        color: var(--text-bright);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      .tracker-card.is-running #elapsed {
+        color: var(--primary);
+      }
+
+      /* Estimated Time (Input) */
+      .estimated-input {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-muted);
+        font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", monospace;
         font-size: 16px;
-        color: #fff;
+        width: 80px;
+        padding: 4px;
+        border-radius: 6px;
+        text-align: right;
+        transition: all 0.2s;
+        cursor: text;
       }
 
+      .estimated-input:hover {
+        background: var(--bg-input);
+        color: var(--text-bright);
+      }
+
+      .estimated-input:focus {
+        background: var(--bg-input);
+        border-color: var(--primary);
+        color: var(--text-bright);
+        outline: none;
+      }
+
+      /* --- WARNING STATUS --- */
       .status-warning {
-        margin: 6px 0 10px 0;
-        padding: 8px 12px;
-        background: rgba(255, 189, 67, 0.16);
-        border-left: 3px solid #ffb84a;
-        color: #ffcb7a;
-        border-radius: 4px;
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .track-btn {
-        width: 100%;
-        padding: 12px;
-        background: #2ec4b6;
-        border: none;
+        font-size: 12px;
+        color: #ffb84a;
+        background: rgba(255, 184, 74, 0.1);
+        padding: 6px 10px;
         border-radius: 6px;
-        color: white;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-bottom: 8px;
-      }
-
-      .reset-btn {
-        width: 100%;
-        padding: 10px;
-        background: #b23838;
-        border: none;
-        border-radius: 6px;
-        color: white;
-        font-size: 13px;
-        cursor: pointer;
-      }
-
-      .auto-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-top: 14px;
-        font-size: 13px;
+        gap: 6px;
+        animation: fadeIn 0.3s ease;
       }
 
-      .toggle input {
-        display: none;
-      }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-      .toggle-slider {
-        width: 40px;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        position: relative;
-        transition: 0.25s ease;
-      }
-
-      .toggle-slider::after {
-        content: "";
-        width: 16px;
-        height: 16px;
-        background: #fff;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        border-radius: 50%;
-        transition: 0.25s ease;
-      }
-
-      input:checked + .toggle-slider {
-        background: #2ec4b6 !important;
-      }
-
-      input:checked + .toggle-slider::after {
-        transform: translateX(20px);
-      }
-
-      .toggle-track-container {
+      /* --- CONTROLS ROW --- */
+      .controls {
         display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 8px;
+        gap: 8px;
+        height: 44px; /* Fixed height for alignment */
       }
 
-      .toggle-track-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #fff;
-      }
-
-      .toggle-track-switch {
-        width: 60px;
-        height: 30px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        position: relative;
-        cursor: pointer;
-        transition: 0.25s ease;
+      /* Main Toggle Button */
+      .btn-toggle {
         flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        user-select: none;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        outline: none;
+        
+        /* Default Off State */
+        background: #2c313a; 
+        color: var(--text-bright);
+        border: 1px solid rgba(255,255,255,0.1);
       }
 
-      .toggle-track-switch::after {
-        content: "";
-        width: 16px;
-        height: 16px;
-        background: #fff;
+      .btn-toggle:hover {
+        background: #363c46;
+      }
+
+      .btn-toggle:active {
+        transform: scale(0.98);
+      }
+
+      /* Active (Running) State */
+      .btn-toggle.active {
+        background: rgba(46, 196, 182, 0.2);
+        border: 1px solid var(--primary);
+        color: var(--primary);
+      }
+
+      /* The visual slider/switch inside the button */
+      .switch-indicator {
+        width: 32px;
+        height: 18px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        position: relative;
+        transition: 0.3s;
+      }
+      .switch-indicator::after {
+        content: '';
         position: absolute;
-        top: 1px;
-        left: 1px;
+        left: 2px; top: 2px;
+        width: 14px; height: 14px;
+        background: #8b949e;
         border-radius: 50%;
-        transition: 0.25s ease;
+        transition: 0.3s;
+      }
+      .btn-toggle.active .switch-indicator {
+        background: var(--primary);
+      }
+      .btn-toggle.active .switch-indicator::after {
+        transform: translateX(14px);
+        background: #fff;
       }
 
-      .toggle-track-switch.active {
-        background: #2ec4b6;
+      /* Reset Button */
+      .btn-reset {
+        width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(239, 71, 111, 0.15);
+        color: var(--danger);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
       }
 
-      .toggle-track-switch.active::after {
-        transform: translateX(18px);
+      .btn-reset:hover {
+        background: var(--danger);
+        color: white;
       }
+      
+      /* Simple SVG icons */
+      .icon { width: 18px; height: 18px; fill: currentColor; }
 
-      /* --- Custom badge colors (Option A: Green + Teal) --- */
-
-      /* PROGRESS BADGE = Green */
-      .badge-progress {
-        background: rgba(46, 204, 113, 0.15);
-        border: 1px solid rgba(46, 204, 113, 0.35);
-        color: #2ecc71 !important;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      /* TIMER BADGE = Teal */
-      .badge-timer {
-        background: rgba(26, 188, 156, 0.15);
-        border: 1px solid rgba(26, 188, 156, 0.35);
-        color: #1abc9c !important;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-      }
     </style>
   </head>
 
@@ -275,18 +250,11 @@
         return `${h}:${m}:${sec}`;
       }
 
-      // ⭐ NEW: Listen for progress updates from main power-up
       window.addEventListener("message", async (event) => {
         if (event.data && event.data.type === "PROGRESS_UPDATED") {
           const { progress } = event.data;
-
-          // Update state with new progress
           state.progress = progress;
-
-          // Update card data
           await t.set("card", "shared", "progress", progress);
-
-          console.log("Iframe received progress update:", progress);
           render();
         }
       });
@@ -313,28 +281,15 @@
       load().then(() => {
         t.get("board", "shared", "autoTrackMode").then(async (mode) => {
           const card = await t.get("card", "shared");
-
-          // Only auto-start if:
-          // 1. auto mode is enabled
-          // 2. card has a timer (estimated time set)
-          if (
-            (mode === "open" || mode === "both") &&
-            card?.estimated > 0 &&
-            !state.running
-          ) {
+          if ((mode === "open" || mode === "both") && card?.estimated > 0 && !state.running) {
             state.running = true;
             state.startTime = Date.now();
             state.elapsed = card?.elapsed || 0;
             startTick();
             save();
-
-            // AUTO-ENABLE FOCUS MODE if autoFocus setting is ON
             t.get("board", "shared", "autoFocus").then((f) => {
-              if (f) {
-                t.set("card", "shared", "focusMode", true);
-              }
+              if (f) t.set("card", "shared", "focusMode", true);
             });
-
             render();
           }
         });
@@ -345,15 +300,15 @@
         t.set("card", "shared", state);
       }
 
-      /* TIMER */
+      /* TIMER LOGIC */
       function startTick() {
         if (timer) return;
         timer = setInterval(() => {
           if (state.running) {
             const now = Date.now();
-            const live =
-              state.elapsed + Math.floor((now - state.startTime) / 1000);
-            document.getElementById("elapsed").textContent = format(live);
+            const live = state.elapsed + Math.floor((now - state.startTime) / 1000);
+            const elDisplay = document.getElementById("elapsed");
+            if(elDisplay) elDisplay.textContent = format(live);
           }
         }, 1000);
       }
@@ -364,22 +319,15 @@
           state.elapsed += Math.floor((now - state.startTime) / 1000);
           state.running = false;
           state.startTime = null;
-
-          // DISABLE FOCUS MODE when stopping timer
           t.set("card", "shared", "focusMode", false);
         } else {
           state.running = true;
           state.startTime = Date.now();
           startTick();
-
-          // ENABLE FOCUS MODE if autoFocus setting is ON
           t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) {
-              t.set("card", "shared", "focusMode", true);
-            }
+            if (f) t.set("card", "shared", "focusMode", true);
           });
         }
-
         save();
         render();
       }
@@ -388,18 +336,9 @@
         state.elapsed = 0;
         state.running = false;
         state.startTime = null;
-
         t.set("card", "shared", "focusMode", false);
-
         save();
         render();
-      }
-
-      /* ⭐ NEW: Make bar visualization */
-      function makeBar(pct) {
-        const total = 10;
-        const filled = Math.round((pct / 100) * total);
-        return "█".repeat(filled) + "▒".repeat(total - filled);
       }
 
       /* RENDER UI */
@@ -410,115 +349,60 @@
 
         const behind = live > state.estimated;
 
+        // SVG Icons
+        const iconReset = `<svg class="icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm-4.43 1.57L6.1 7.05C4.8 8.35 4 10.08 4 12c0 4.42 3.58 8 8 8 1.61 0 3.09-.59 4.23-1.57l-1.42-1.42c-.84.6-1.84.99-2.81.99-2.76 0-5-2.24-5-5 0-1.65.8-3.16 2-4.14z"/></svg>`;
+
         document.getElementById("root").innerHTML = `
-          <div class="container">
-
-            <div class="time-box">
-              <div class="time-row">
-                <div>
-                  <div style="opacity:.6;font-size:12px">Elapsed</div>
-                  <div id="elapsed" class="elapsed">${format(live)}</div>
-                </div>
-
-                <div>
-                  <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
-                  <input id="estimatedInput"
-         class="estimated"
-         value="${format(state.estimated)}"
-         style="
-           background: rgba(255,255,255,0.05);
-           border: 1px solid rgba(255,255,255,0.12);
-           border-radius: 6px;
-           padding: 4px 6px;
-           font-size: 15px;
-           width: 90px;
-           color: #fff;
-           text-align: center;
-         ">
-
-                </div>
+          <div class="tracker-card ${state.running ? 'is-running' : ''}">
+            
+            <div class="timer-display">
+              <div class="time-group">
+                <span class="label">Elapsed Time</span>
+                <span id="elapsed" class="digits">${format(live)}</span>
               </div>
 
-              ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+              <div class="time-group" style="align-items: flex-end;">
+                <span class="label">Estimated</span>
+                <input id="estimatedInput" class="estimated-input digits" value="${format(state.estimated)}" />
+              </div>
+            </div>
 
-    <div class="toggle-track-container"
-     style="
-       display: flex;
-       align-items: center;
-       justify-content: space-between;
-       margin-top: 14px;
-       width: 100%;
-     ">
+            ${behind ? `
+              <div class="status-warning">
+                <span>⚠</span> <strong>Overtime:</strong> You have exceeded the estimate.
+              </div>` : ""
+            }
 
-  <!-- LEFT: Start Tracking -->
-  <div style="
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 18px;
-        background: linear-gradient(135deg, rgba(60,130,120,0.28), rgba(60,130,120,0.18));
-        border: 1.5px solid rgba(60,130,120,0.35);
-        border-radius: 10px;
-        cursor: pointer;
-      ">
+            <div class="controls">
+              
+              <button id="trackToggle" class="btn-toggle ${state.running ? 'active' : ''}">
+                <div class="switch-indicator"></div>
+                <span>${state.running ? "Tracking Active" : "Start Tracking"}</span>
+              </button>
 
-    <span style="
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-      white-space: nowrap;
-    ">
-      ${state.running ? "Stop Tracking" : "Start Tracking"}
-    </span>
-
-    <div id="trackToggle"
-         class="toggle-track-switch ${state.running ? "active" : ""}"
-         style="width: 42px; height: 22px;">
-    </div>
-  </div>
-
-  <!-- RIGHT: Reset -->
-  <button id="resetBtn"
-          class="reset-btn"
-          style="
-            padding: 12px 16px;
-            font-size: 15px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #d32f2f, #b71c1c);
-            font-weight: 600;
-          ">
-    Reset
-  </button>
-</div>
-
-
-
-
-
+              <button id="resetBtn" class="btn-reset" title="Reset Timer">
+                ${iconReset}
+              </button>
 
             </div>
 
           </div>
         `;
 
+        // Event Listeners
         document.getElementById("resetBtn").onclick = resetTimer;
         document.getElementById("trackToggle").onclick = toggleTimer;
 
-        document.getElementById("estimatedInput").onchange = (e) => {
+        // Input Logic
+        const estInput = document.getElementById("estimatedInput");
+        estInput.onchange = (e) => {
           const val = e.target.value.trim();
           const parts = val.split(":").map(Number);
-
-          let h = 0,
-            m = 0,
-            s = 0;
+          let h = 0, m = 0, s = 0;
 
           if (parts.length === 3) [h, m, s] = parts;
-          else if (parts.length === 2) {
-            m = parts[0];
-            s = parts[1];
-          } else if (parts.length === 1) {
-            s = parts[0];
-          }
+          else if (parts.length === 2) { m = parts[0]; s = parts[1]; }
+          else if (parts.length === 1) { s = parts[0]; }
 
           const total = h * 3600 + m * 60 + s;
 
