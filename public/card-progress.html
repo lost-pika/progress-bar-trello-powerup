@@ -441,29 +441,28 @@
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
 
-     <div class="toggle-track-container"
+    <div class="toggle-track-container"
      style="
        display: flex;
        align-items: center;
        gap: 12px;
        margin-top: 16px;
+       width: 100%;
      ">
 
   <!-- START TRACKING BOX -->
-<div style="
-  width: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(46, 196, 182, 0.1), rgba(46, 196, 182, 0.05));
-  border: 1.5px solid rgba(46, 196, 182, 0.3);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-">
-
-
+  <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        width: 240px;
+        background: linear-gradient(135deg, rgba(60,130,120,0.25), rgba(60,130,120,0.15));
+        border: 1.5px solid rgba(60,130,120,0.35);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      ">
     
     <span style="
       font-size: 15px;
@@ -471,38 +470,32 @@
       color: #fff;
       letter-spacing: 0.3px;
       white-space: nowrap;
-      margin-right: 80px;
     ">
       ${state.running ? "Stop Tracking" : "Start Tracking"}
     </span>
 
-   <div id="trackToggle"
-     class="toggle-track-switch ${state.running ? "active" : ""}"
-     style="
-       width: 42px;
-       height: 22px;
-       flex-grow: 0;
-       flex-shrink: 0;
-       flex-basis: 42px;
-       margin: 0;
-     ">
-</div>
-
-
+    <div id="trackToggle"
+         class="toggle-track-switch ${state.running ? "active" : ""}"
+         style="
+           width: 42px;
+           height: 22px;
+           flex-grow: 0;
+           flex-shrink: 0;
+         ">
+    </div>
   </div>
 
-  <!-- RESET BUTTON -->
+  <!-- RESET BUTTON pushed RIGHT -->
   <button id="resetBtn"
           class="reset-btn"
           style="
+            margin-left: auto;     /* ← pushes RESET to right */
             width: 100px;
             padding: 12px 16px;
             font-size: 15px;
             border-radius: 10px;
             background: linear-gradient(135deg, #d32f2f, #b71c1c);
             font-weight: 600;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
           ">
     Reset
   </button>
