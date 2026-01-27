@@ -450,8 +450,8 @@
      ">
 
   <!-- START TRACKING BOX -->
- <div style="
-  width: 220px;
+<div style="
+  width: 260px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -462,6 +462,7 @@
   transition: all 0.3s ease;
   cursor: pointer;
 ">
+
 
     
     <span style="
@@ -475,17 +476,18 @@
       ${state.running ? "Stop Tracking" : "Start Tracking"}
     </span>
 
-    <div id="trackToggle"
+   <div id="trackToggle"
      class="toggle-track-switch ${state.running ? "active" : ""}"
      style="
-       width: 36px;
-       height: 18px;
+       width: 42px;
+       height: 22px;
+       flex-grow: 0;
        flex-shrink: 0;
+       flex-basis: 42px;
        margin: 0;
-       border-radius: 18px;
-       position: relative;
      ">
 </div>
+
 
   </div>
 
