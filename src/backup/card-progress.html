@@ -373,12 +373,11 @@
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
 
-              <div style="display: flex; gap: 10px;">
-                <button id="trackBtn" class="track-btn" style="flex: 1; margin-bottom: 0;">
-                  ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-                </button>
-                <button id="resetBtn" class="reset-btn" style="flex: 1;">Reset</button>
-              </div>
+              <button id="trackBtn" class="track-btn">
+                ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+              </button>
+
+              <button id="resetBtn" class="reset-btn">Reset</button>
 
             </div>
 
