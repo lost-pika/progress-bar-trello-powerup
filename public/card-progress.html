@@ -179,6 +179,59 @@
       input:checked + .toggle-slider::after {
         transform: translateX(20px);
       }
+
+      .toggle-track-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .toggle-track-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .toggle-track-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+      }
+
+      .toggle-track-switch {
+        width: 40px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: 0.25s ease;
+      }
+
+      .toggle-track-switch::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        border-radius: 50%;
+        transition: 0.25s ease;
+      }
+
+      .toggle-track-switch.active {
+        background: #2ec4b6;
+      }
+
+      .toggle-track-switch.active::after {
+        transform: translateX(20px);
+      }
     </style>
   </head>
 
@@ -373,12 +426,14 @@
 
               ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
 
-              <div style="display: flex; gap: 10px;">
-                <button id="trackBtn" class="track-btn" style="flex: 1; margin-bottom: 0;">
-                  ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
-                </button>
-                <button id="resetBtn" class="reset-btn" style="flex: 1;">Reset</button>
-              </div>
+              <div class="toggle-track-container">
+  <div class="toggle-track-wrapper">
+    <span class="toggle-track-label">Track Time</span>
+    <div id="trackToggle" class="toggle-track-switch ${state.running ? "active" : ""}"></div>
+  </div>
+  <button id="resetBtn" class="reset-btn" style="width: 80px;">Reset</button>
+</div>
+
 
             </div>
 
