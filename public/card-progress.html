@@ -47,7 +47,6 @@
         gap: 12px;
       }
 
-      /* --- Row 1: Stats --- */
       .stats-row {
         display: flex;
         justify-content: space-between;
@@ -100,20 +99,18 @@
         color: #fff;
       }
 
-      /* --- Row 2: Controls --- */
       .controls-row {
         display: flex;
         gap: 8px;
-        height: 44px; /* Big click target */
+        height: 44px;
       }
 
-      /* MAIN TOGGLE BUTTON */
       .btn-toggle {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px; /* Space between switch and text */
+        gap: 12px;
         background: linear-gradient(
           135deg,
           rgba(60, 130, 120, 0.25),
@@ -141,10 +138,9 @@
         box-shadow: 0 0 12px rgba(46, 196, 182, 0.25);
       }
 
-      /* --- THE NEW TOGGLE SWITCH --- */
       .toggle-switch {
-        width: 38px; /* Much wider */
-        height: 22px; /* Taller */
+        width: 38px;
+        height: 22px;
         background: rgba(0, 0, 0, 0.4);
         border-radius: 20px;
         position: relative;
@@ -153,7 +149,6 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      /* The sliding knob */
       .toggle-switch::after {
         content: "";
         position: absolute;
@@ -163,11 +158,10 @@
         height: 16px;
         background: #b0b0b0;
         border-radius: 50%;
-        transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy effect */
+        transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
-      /* Active State for Switch */
       .btn-toggle.active .toggle-switch {
         background: rgba(46, 196, 182, 0.6);
         border-color: var(--primary);
@@ -179,7 +173,6 @@
         box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
       }
 
-      /* RESET BUTTON */
       .btn-reset {
         width: 44px;
         background: linear-gradient(135deg, #b23838, #962e2e);
@@ -203,7 +196,6 @@
         fill: currentColor;
       }
 
-      /* WARNING */
       .status-warning {
         font-size: 11px;
         background: rgba(255, 189, 67, 0.15);
@@ -228,6 +220,7 @@
         estimated: 8 * 3600,
         running: false,
         startTime: null,
+        focusMode: false,
       };
 
       let timer = null;
@@ -253,13 +246,13 @@
         state.estimated = card.estimated || 8 * 3600;
         state.running = card.running || false;
         state.startTime = card.startTime || null;
+        state.focusMode = card.focusMode || false;
 
         render();
         if (state.running) startTick();
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       }
 
-      // 1. Logic for Auto-Start + Focus Mode on Load
       load().then(() => {
         t.get("board", "shared", "autoTrackMode").then(async (mode) => {
           const card = await t.get("card", "shared");
@@ -274,9 +267,12 @@
             startTick();
             save();
 
-            // ⭐ RESTORED: Auto-enable Focus Mode if setting is ON
+            // AUTO-ENABLE FOCUS MODE if autoFocus setting is ON
             t.get("board", "shared", "autoFocus").then((f) => {
-              if (f) t.set("card", "shared", "focusMode", true);
+              if (f) {
+                state.focusMode = true;
+                t.set("card", "shared", "focusMode", true);
+              }
             });
 
             render();
@@ -303,23 +299,25 @@
 
       function toggleTimer() {
         if (state.running) {
-          // STOPPING
           const now = Date.now();
           state.elapsed += Math.floor((now - state.startTime) / 1000);
           state.running = false;
           state.startTime = null;
 
-          // ⭐ RESTORED: Disable Focus Mode when stopping
+          // DISABLE FOCUS MODE when stopping timer
+          state.focusMode = false;
           t.set("card", "shared", "focusMode", false);
         } else {
-          // STARTING
           state.running = true;
           state.startTime = Date.now();
           startTick();
 
-          // ⭐ RESTORED: Enable Focus Mode if autoFocus setting is ON
+          // ENABLE FOCUS MODE if autoFocus setting is ON
           t.get("board", "shared", "autoFocus").then((f) => {
-            if (f) t.set("card", "shared", "focusMode", true);
+            if (f) {
+              state.focusMode = true;
+              t.set("card", "shared", "focusMode", true);
+            }
           });
         }
         save();
@@ -331,7 +329,8 @@
         state.running = false;
         state.startTime = null;
 
-        // ⭐ RESTORED: Disable Focus Mode on Reset
+        // DISABLE FOCUS MODE when resetting
+        state.focusMode = false;
         t.set("card", "shared", "focusMode", false);
 
         save();
