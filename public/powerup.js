@@ -183,6 +183,7 @@ TrelloPowerUp.initialize({
     });
 
     // Timer badge
+    // Timer badge
     if (!hideTimer) {
       badges.push({
         dynamic: function (t) {
@@ -192,8 +193,7 @@ TrelloPowerUp.initialize({
             const est = d.estimated || 8 * 3600;
             return {
               text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-              color: null,
-              cssClasses: ["badge-timer"],
+              color: "cyan",
             };
           });
         },
@@ -228,18 +228,18 @@ TrelloPowerUp.initialize({
       }
 
       // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
+      // ⭐ TIMER-BASED PROGRESS BADGE (card detail)
       badges.push({
         title: "Progress",
         dynamic: function (t) {
           return t.get("card", "shared").then((cardData) => {
-            if (!cardData) return { text: "0%", color: "blue" };
+            if (!cardData) return { text: "0%", color: "green" };
 
             const pct = computeTimerProgress(cardData);
 
             return {
               text: hideBars ? pct + "%" : `${makeBar(pct)} ${pct}%`,
-              color: null,
-              cssClasses: ["badge-progress"],
+              color: "green",
             };
           });
         },
@@ -256,8 +256,7 @@ TrelloPowerUp.initialize({
               const est = d.estimated || 8 * 3600;
               return {
                 text: `⏱ ${formatHM(el)} | Est ${formatHM(est)}`,
-                color: null,
-                cssClasses: ["badge-timer"],
+                color: "cyan",
               };
             });
           },
