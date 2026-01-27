@@ -259,6 +259,7 @@
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       }
 
+      // 1. Logic for Auto-Start + Focus Mode on Load
       load().then(() => {
         t.get("board", "shared", "autoTrackMode").then(async (mode) => {
           const card = await t.get("card", "shared");
@@ -272,6 +273,12 @@
             state.elapsed = card?.elapsed || 0;
             startTick();
             save();
+
+            // ⭐ RESTORED: Auto-enable Focus Mode if setting is ON
+            t.get("board", "shared", "autoFocus").then((f) => {
+              if (f) t.set("card", "shared", "focusMode", true);
+            });
+
             render();
           }
         });
@@ -296,14 +303,24 @@
 
       function toggleTimer() {
         if (state.running) {
+          // STOPPING
           const now = Date.now();
           state.elapsed += Math.floor((now - state.startTime) / 1000);
           state.running = false;
           state.startTime = null;
+
+          // ⭐ RESTORED: Disable Focus Mode when stopping
+          t.set("card", "shared", "focusMode", false);
         } else {
+          // STARTING
           state.running = true;
           state.startTime = Date.now();
           startTick();
+
+          // ⭐ RESTORED: Enable Focus Mode if autoFocus setting is ON
+          t.get("board", "shared", "autoFocus").then((f) => {
+            if (f) t.set("card", "shared", "focusMode", true);
+          });
         }
         save();
         render();
@@ -313,6 +330,10 @@
         state.elapsed = 0;
         state.running = false;
         state.startTime = null;
+
+        // ⭐ RESTORED: Disable Focus Mode on Reset
+        t.set("card", "shared", "focusMode", false);
+
         save();
         render();
       }
