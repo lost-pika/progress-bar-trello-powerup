@@ -6,14 +6,13 @@ const DEFAULTS = {
   hideBadges: false,
   hideTimerBadges: false,
   hideDetailBadges: false,
-  hideProgressProgressBars: false, // not used; kept to avoid typos
   hideProgressBars: false,
   autoFocus: false,
   autoTrackMode: "off",
 };
 
 let boardState = {};
-let saveQueue = Promise.resolve(); // serialize shared writes [page:56]
+let saveQueue = Promise.resolve();
 
 function qs(id) {
   const el = document.getElementById(id);
@@ -40,7 +39,6 @@ function setDisabledUI(disabled, reason) {
 }
 
 async function getBoardShared() {
-  // bulk read in context [page:56]
   const all = await t.getAll();
   return all?.board?.shared || {};
 }
@@ -60,14 +58,13 @@ async function loadUI() {
 }
 
 function queueBoardSave(patch) {
-  // Shared writes are not atomic; serialize and write the whole object to avoid clobbering. [page:56]
   saveQueue = saveQueue
     .then(async () => {
       boardState = { ...boardState, ...patch };
 
       setDisabledUI(false, "Saving…");
-      await t.set("board", "shared", boardState); // set whole blob [page:56]
-      t.refresh();
+      // Just write the data. Trello detects the change and updates badges automatically.
+      await t.set("board", "shared", boardState);
       setDisabledUI(false, "Saved");
     })
     .catch((err) => {
@@ -107,9 +104,7 @@ function renderAuthorize() {
     msg.textContent = "Enabling…";
 
     try {
-      // Write must finish BEFORE closing popup. [page:56]
       await t.set("board", "shared", "disabled", false);
-      t.refresh();
       msg.textContent = "Enabled. Closing…";
       t.closePopup();
     } catch (e) {
@@ -148,7 +143,6 @@ function bind() {
     const ok = confirm("Remove and clear all saved data?");
     if (!ok) return;
 
-    // Only set disabled flag; don’t wipe everything here (wipes can race and look “broken”). [page:56]
     await queueBoardSave({ disabled: true });
     alert("Power-Up disabled. Re-open Settings to authorize again.");
     t.closePopup();
@@ -156,12 +150,11 @@ function bind() {
 }
 
 (async function init() {
-  // Permission guard: shared board writes can fail if member doesn’t have board write access. [page:56]
   const ctx = t.getContext();
   const canWriteBoard = ctx?.permissions?.board === "write";
 
   if (!canWriteBoard) {
-    setDisabledUI(true, "You don’t have board write access, so settings can’t be saved.");
+    setDisabledUI(true, "You don’t have board write access.");
   }
 
   const board = await getBoardShared();
