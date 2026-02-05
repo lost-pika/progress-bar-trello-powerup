@@ -17,7 +17,7 @@ function qs(id) {
 }
 
 async function getBoardShared() {
-  const all = await t.getAll(); // recommended bulk read [web:45]
+  const all = await t.getAll(); // bulk read [web:45]
   return all?.board?.shared || {};
 }
 
@@ -35,34 +35,73 @@ async function loadUI() {
 }
 
 async function setBoard(key, value) {
-  await t.set("board", "shared", key, value); // t.set mirrors t.get [web:45]
-  t.refresh();
+  await t.set("board", "shared", key, value); // persist [web:45]
+  await t.refresh();
+}
+
+function renderAuthorize() {
+  document.body.innerHTML = `
+    <div style="padding: 40px 20px; text-align:center;">
+      <h2 style="margin-bottom: 10px; font-size: 18px;">Power-Up Disabled</h2>
+      <p style="margin-bottom: 18px; opacity: 0.75;">Click below to re-enable</p>
+      <button id="authBtn" style="
+        padding: 12px 18px;
+        background: #0079bf;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        max-width: 260px;
+      ">Authorize Power-Up</button>
+      <div id="authMsg" style="margin-top: 12px; font-size: 12px; opacity: .75;"></div>
+    </div>
+  `;
+
+  setTimeout(() => t.sizeTo(document.body).done(), 40);
+
+  document.getElementById("authBtn").addEventListener("click", async () => {
+    const msg = document.getElementById("authMsg");
+    msg.textContent = "Enabling…";
+
+    try {
+      await t.set("board", "shared", "disabled", false); // persist [web:45]
+      await t.refresh();
+      msg.textContent = "Enabled. Closing…";
+      t.closePopup();
+    } catch (e) {
+      console.error(e);
+      msg.textContent = "Failed to enable. Check console.";
+    }
+  });
 }
 
 function bind() {
-  qs("hideBadges").addEventListener("change", (e) =>
-    setBoard("hideBadges", e.target.checked)
-  );
+  qs("hideBadges").addEventListener("change", async (e) => {
+    await setBoard("hideBadges", e.target.checked);
+  });
 
-  qs("hideTimer").addEventListener("change", (e) =>
-    setBoard("hideTimerBadges", e.target.checked)
-  );
+  qs("hideTimer").addEventListener("change", async (e) => {
+    await setBoard("hideTimerBadges", e.target.checked);
+  });
 
-  qs("hideDetail").addEventListener("change", (e) =>
-    setBoard("hideDetailBadges", e.target.checked)
-  );
+  qs("hideDetail").addEventListener("change", async (e) => {
+    await setBoard("hideDetailBadges", e.target.checked);
+  });
 
-  qs("hideBars").addEventListener("change", (e) =>
-    setBoard("hideProgressBars", e.target.checked)
-  );
+  qs("hideBars").addEventListener("change", async (e) => {
+    await setBoard("hideProgressBars", e.target.checked);
+  });
 
-  qs("focusMode").addEventListener("change", (e) =>
-    setBoard("autoFocus", e.target.checked)
-  );
+  qs("focusMode").addEventListener("change", async (e) => {
+    await setBoard("autoFocus", e.target.checked);
+  });
 
-  qs("autoTrackMode").addEventListener("change", (e) =>
-    setBoard("autoTrackMode", e.target.value)
-  );
+  qs("autoTrackMode").addEventListener("change", async (e) => {
+    await setBoard("autoTrackMode", e.target.value);
+  });
 
   qs("unauthBtn").addEventListener("click", async () => {
     const ok = confirm("Remove and clear all saved data?");
@@ -71,58 +110,28 @@ function bind() {
     const all = await t.getAll(); // [web:45]
 
     const boardShared = all?.board?.shared || {};
-    for (const key of Object.keys(boardShared)) await t.remove("board", "shared", key);
+    for (const key of Object.keys(boardShared)) {
+      await t.remove("board", "shared", key);
+    }
 
-    const cardShared = all?.card?.shared || {};
-    for (const key of Object.keys(cardShared)) await t.remove("card", "shared", key);
+    // Mark disabled after clearing
+    await t.set("board", "shared", "disabled", true); // [web:45]
+    await t.refresh();
 
-    const memPrivate = all?.member?.private || {};
-    for (const key of Object.keys(memPrivate)) await t.remove("member", "private", key);
-
-    await t.set("board", "shared", "disabled", true);
-    alert("Power-Up data cleared.");
+    alert("Power-Up disabled. Re-open Settings to authorize again.");
     t.closePopup();
   });
 }
 
 (async function init() {
-  // Check if Power-Up is disabled
-  const all = await t.getAll();
-  const disabled = all?.board?.shared?.disabled;
+  const board = await getBoardShared();
+  const disabled = board.disabled === true;
 
   if (disabled) {
-    // Replace entire UI with authorize button
-    document.body.innerHTML = `
-      <div style="padding: 40px 20px; text-align: center;">
-        <h2 style="margin-bottom: 16px; font-size: 18px;">Power-Up Disabled</h2>
-        <p style="margin-bottom: 20px; opacity: 0.7;">Click below to re-enable</p>
-        <button id="authBtn" style="
-          padding: 12px 24px;
-          background: #0079bf;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-        ">
-          Authorize Power-Up
-        </button>
-      </div>
-    `;
-
-    setTimeout(() => t.sizeTo(document.body).done(), 40);
-
-    document.getElementById("authBtn").addEventListener("click", async () => {
-      await t.set("board", "shared", "disabled", false);
-      t.closePopup();
-      window.location.reload(); // or just close and let user reopen
-    });
-
-    return; // Stop here, don't bind normal UI
+    renderAuthorize();
+    return;
   }
 
-  // Normal flow if not disabled
   bind();
   await loadUI();
 })();
