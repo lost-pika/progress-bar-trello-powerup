@@ -32,28 +32,28 @@
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", sans-serif;
         background: transparent !important;
-        color: var(--text-main);
+        color: inherit;
       }
 
       html,
-body {
-  height: 100%;
-}
+      body {
+        height: 100%;
+      }
 
-.settings-wrapper {
-  min-height: 100vh;
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
+      .settings-wrapper {
+        padding: 20px;
+        width: 360px;
+        max-width: 100%;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+      }
 
-  background: var(--bg-glass);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
+      @media (prefers-color-scheme: dark) {
+        .settings-wrapper {
+          background: rgba(15, 23, 42, 0.96);
+        }
+      }
 
       /* HEADER */
       .settings-header {
@@ -76,7 +76,12 @@ body {
       .section {
         margin-top: 18px;
         padding-top: 4px;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      @media (prefers-color-scheme: dark) {
+        .section {
+          border-top-color: rgba(255, 255, 255, 0.12);
+        }
       }
 
       /* ITEM */
@@ -103,7 +108,7 @@ body {
       .desc {
         font-size: 13px;
         opacity: 0.75;
-        color: var(--text-muted);
+        /* color: var(--text-muted); */
       }
 
       /* TOGGLE */
@@ -121,7 +126,7 @@ body {
       .toggle-slider {
         width: 46px;
         height: 24px;
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(15, 23, 42, 0.12);
         border-radius: 24px;
         position: relative;
         transition: 0.2s ease;
@@ -143,6 +148,11 @@ body {
       .toggle input:checked + .toggle-slider {
         background: #00c2ff;
       }
+      @media (prefers-color-scheme: dark) {
+        .toggle-slider {
+          background: rgba(255, 255, 255, 0.16);
+        }
+      }
 
       .toggle input:checked + .toggle-slider::after {
         transform: translateX(22px);
@@ -150,11 +160,18 @@ body {
 
       select {
         padding: 10px;
-        background: transparent;
-        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(15, 23, 42, 0.16);
         border-radius: 6px;
-        color: var(--text-main);
+        color: inherit;
         font-size: 15px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        select {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
       }
 
       /* REMOVE BUTTON */
@@ -277,6 +294,7 @@ body {
         </button>
       </div>
     `;
+          setTimeout(() => t.sizeTo(document.body).done(), 40);
 
           document.getElementById("authBtn").onclick = function () {
             t.set("board", "shared", "disabled", false).then(() => {
