@@ -44,15 +44,6 @@
         padding: 20px;
         width: 360px;
         max-width: 100%;
-        background: rgba(255, 255, 255, 0.96);
-        border-radius: 8px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .settings-wrapper {
-          background: rgba(15, 23, 42, 0.96);
-        }
       }
 
       /* HEADER */
@@ -108,7 +99,6 @@
       .desc {
         font-size: 13px;
         opacity: 0.75;
-        /* color: var(--text-muted); */
       }
 
       /* TOGGLE */
@@ -277,7 +267,6 @@
       (async function checkDisabled() {
         const disabled = await t.get("board", "shared", "disabled");
         if (disabled) {
-          // Replace the whole UI with only an authorize button
           document.body.innerHTML = `
       <div style="padding:20px;text-align:center">
         <h3>Power-Up disabled</h3>
@@ -305,7 +294,6 @@
         }
       })();
 
-      /* LOAD SETTINGS */
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
 
@@ -325,18 +313,16 @@
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
 
-      /* SAVE FUNCTIONS */
       function saveBoard(k, v) {
         return t.set("board", "shared", k, v);
       }
 
-      /* EVENTS */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
 
       document.getElementById("hideTimer").onchange = async (e) => {
         await t.set("board", "shared", "hideTimerBadges", e.target.checked);
-        t.refresh(); // ← REQUIRED
+        t.refresh();
       };
 
       document.getElementById("hideDetail").onchange = (e) =>
@@ -351,30 +337,25 @@
       document.getElementById("autoTrackMode").onchange = (e) =>
         saveBoard("autoTrackMode", e.target.value);
 
-      /* REMOVE POWER-UP */
       document.getElementById("unauthBtn").onclick = async () => {
         const ok = confirm("Remove and clear all saved data?");
         if (!ok) return;
 
-        // 1️⃣ REMOVE BOARD DATA
         const board = (await t.get("board", "shared")) || {};
         for (const key of Object.keys(board)) {
           await t.remove("board", "shared", key);
         }
 
-        // 2️⃣ REMOVE CARD DATA (only keys for current card)
         const card = (await t.get("card", "shared")) || {};
         for (const key of Object.keys(card)) {
           await t.remove("card", "shared", key);
         }
 
-        // 3️⃣ REMOVE MEMBER PRIVATE DATA
         const mem = (await t.get("member", "private")) || {};
         for (const key of Object.keys(mem)) {
           await t.remove("member", "private", key);
         }
 
-        // 4️⃣ SET DISABLED FLAG  ← ← ADD THIS
         await t.set("board", "shared", "disabled", true);
 
         alert("Power-Up data cleared. UI will disappear now.");
@@ -384,4 +365,3 @@
     </script>
   </body>
 </html>
-
