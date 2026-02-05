@@ -5,22 +5,6 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      :root {
-        --bg-glass: rgba(255, 255, 255, 0.65);
-        --border: rgba(0, 0, 0, 0.12);
-        --text-main: #172b4d;
-        --text-muted: #6b778c;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-glass: rgba(255, 255, 255, 0.06);
-          --border: rgba(255, 255, 255, 0.12);
-          --text-main: #e6e6e6;
-          --text-muted: rgba(255, 255, 255, 0.55);
-        }
-      }
-
       * {
         margin: 0;
         padding: 0;
@@ -28,22 +12,9 @@
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", sans-serif;
-        background: transparent !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        padding: 16px;
         color: inherit;
-      }
-
-      html,
-      body {
-        height: 100%;
-      }
-
-      .settings-wrapper {
-        padding: 20px;
-        width: 360px;
-        max-width: 100%;
       }
 
       /* HEADER */
@@ -51,7 +22,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-bottom: 22px;
+        margin-bottom: 20px;
       }
 
       .settings-header .icon {
@@ -65,13 +36,15 @@
 
       /* SECTION DIVIDER */
       .section {
-        margin-top: 18px;
-        padding-top: 4px;
-        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid;
+        border-top-color: rgba(9, 30, 66, 0.13);
       }
+
       @media (prefers-color-scheme: dark) {
         .section {
-          border-top-color: rgba(255, 255, 255, 0.12);
+          border-top-color: rgba(255, 255, 255, 0.16);
         }
       }
 
@@ -81,24 +54,24 @@
         justify-content: space-between;
         align-items: flex-start;
         gap: 12px;
-        padding: 15px 0;
+        padding: 12px 0;
       }
 
       .item > div {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 4px;
         flex: 1;
       }
 
       .label {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 500;
       }
 
       .desc {
-        font-size: 13px;
-        opacity: 0.75;
+        font-size: 12px;
+        opacity: 0.7;
       }
 
       /* TOGGLE */
@@ -114,12 +87,18 @@
       }
 
       .toggle-slider {
-        width: 46px;
+        width: 44px;
         height: 24px;
-        background: rgba(15, 23, 42, 0.12);
+        background: rgba(9, 30, 66, 0.13);
         border-radius: 24px;
         position: relative;
         transition: 0.2s ease;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .toggle-slider {
+          background: rgba(255, 255, 255, 0.2);
+        }
       }
 
       .toggle-slider::after {
@@ -132,34 +111,29 @@
         top: 2px;
         left: 2px;
         transition: 0.25s ease;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }
 
       .toggle input:checked + .toggle-slider {
-        background: #00c2ff;
-      }
-      @media (prefers-color-scheme: dark) {
-        .toggle-slider {
-          background: rgba(255, 255, 255, 0.16);
-        }
+        background: #0079bf;
       }
 
       .toggle input:checked + .toggle-slider::after {
-        transform: translateX(22px);
+        transform: translateX(20px);
       }
 
       select {
-        padding: 10px;
-        background: rgba(15, 23, 42, 0.04);
-        border: 1px solid rgba(15, 23, 42, 0.16);
-        border-radius: 6px;
+        padding: 8px 10px;
+        background: transparent;
+        border: 2px solid rgba(9, 30, 66, 0.13);
+        border-radius: 3px;
         color: inherit;
-        font-size: 15px;
+        font-size: 14px;
+        cursor: pointer;
       }
 
       @media (prefers-color-scheme: dark) {
         select {
-          background: rgba(255, 255, 255, 0.06);
           border-color: rgba(255, 255, 255, 0.2);
         }
       }
@@ -167,99 +141,102 @@
       /* REMOVE BUTTON */
       .remove-btn {
         width: 100%;
-        padding: 14px;
-        margin-top: 26px;
+        padding: 12px;
+        margin-top: 20px;
         background: transparent;
-        border: 2px solid #ff6b6b;
-        color: #ff6b6b;
-        border-radius: 6px;
-        font-size: 15px;
+        border: 2px solid #cf513d;
+        color: #cf513d;
+        border-radius: 3px;
+        font-size: 14px;
         font-weight: 600;
+        cursor: pointer;
+      }
+
+      .remove-btn:hover {
+        background: rgba(207, 81, 61, 0.1);
       }
     </style>
   </head>
 
   <body>
-    <div class="settings-wrapper">
-      <!-- HEADER -->
-      <div class="settings-header">
-        <div class="icon">⚙️</div>
-        <h1>Customize your task card display</h1>
-      </div>
-
-      <!-- BOARD SETTINGS -->
-      <div class="section">
-        <div class="item">
-          <div>
-            <div class="label">Hide card badges</div>
-            <div class="desc">Remove from card front</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideBadges" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="item">
-          <div>
-            <div class="label">Hide timer badges</div>
-            <div class="desc">Hide ⏱ timer from card</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideTimer" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="item">
-          <div>
-            <div class="label">Hide card detail badges</div>
-            <div class="desc">In detailed card view</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideDetail" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="item">
-          <div>
-            <div class="label">Hide progress bars</div>
-            <div class="desc">Show % only</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideBars" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="item">
-          <div>
-            <div class="label">Auto-enable Focus Mode</div>
-            <div class="desc">Start focus when tracking begins</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="focusMode" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="item">
-          <div>
-            <div class="label">Auto Tracking Mode</div>
-            <div class="desc">Choose when timer auto-starts</div>
-          </div>
-
-          <select id="autoTrackMode">
-            <option value="off">Off</option>
-            <option value="open">On card open</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- REMOVE -->
-      <button class="remove-btn" id="unauthBtn">⚠️ Remove Power-Up</button>
+    <!-- HEADER -->
+    <div class="settings-header">
+      <div class="icon">⚙️</div>
+      <h1>Customize your task card display</h1>
     </div>
+
+    <!-- BOARD SETTINGS -->
+    <div class="section">
+      <div class="item">
+        <div>
+          <div class="label">Hide card badges</div>
+          <div class="desc">Remove from card front</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="hideBadges" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="item">
+        <div>
+          <div class="label">Hide timer badges</div>
+          <div class="desc">Hide ⏱ timer from card</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="hideTimer" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="item">
+        <div>
+          <div class="label">Hide card detail badges</div>
+          <div class="desc">In detailed card view</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="hideDetail" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="item">
+        <div>
+          <div class="label">Hide progress bars</div>
+          <div class="desc">Show % only</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="hideBars" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="item">
+        <div>
+          <div class="label">Auto-enable Focus Mode</div>
+          <div class="desc">Start focus when tracking begins</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="focusMode" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="item">
+        <div>
+          <div class="label">Auto Tracking Mode</div>
+          <div class="desc">Choose when timer auto-starts</div>
+        </div>
+
+        <select id="autoTrackMode">
+          <option value="off">Off</option>
+          <option value="open">On card open</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- REMOVE -->
+    <button class="remove-btn" id="unauthBtn">⚠️ Remove Power-Up</button>
 
     <script>
       const t = TrelloPowerUp.iframe();
@@ -268,21 +245,21 @@
         const disabled = await t.get("board", "shared", "disabled");
         if (disabled) {
           document.body.innerHTML = `
-      <div style="padding:20px;text-align:center">
-        <h3>Power-Up disabled</h3>
-        <button id="authBtn" style="
-          padding:12px 18px;
-          margin-top:20px;
-          border:none;
-          background:#00c2ff;
-          color:#fff;
-          border-radius:6px;
-          font-size:15px;
-          cursor:pointer;">
-          Click to Authorize
-        </button>
-      </div>
-    `;
+            <div style="padding:20px;text-align:center">
+              <h3>Power-Up disabled</h3>
+              <button id="authBtn" style="
+                padding:12px 18px;
+                margin-top:20px;
+                border:none;
+                background:#0079bf;
+                color:#fff;
+                border-radius:3px;
+                font-size:14px;
+                cursor:pointer;">
+                Click to Authorize
+              </button>
+            </div>
+          `;
           setTimeout(() => t.sizeTo(document.body).done(), 40);
 
           document.getElementById("authBtn").onclick = function () {
@@ -297,18 +274,12 @@
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
 
-        document.getElementById("hideBadges").checked =
-          board.hideBadges || false;
-        document.getElementById("hideDetail").checked =
-          board.hideDetailBadges || false;
-        document.getElementById("hideBars").checked =
-          board.hideProgressBars || false;
+        document.getElementById("hideBadges").checked = board.hideBadges || false;
+        document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+        document.getElementById("hideBars").checked = board.hideProgressBars || false;
         document.getElementById("focusMode").checked = board.autoFocus || false;
-        document.getElementById("autoTrackMode").value =
-          board.autoTrackMode || "off";
-
-        document.getElementById("hideTimer").checked =
-          board.hideTimerBadges || false;
+        document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+        document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
 
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
