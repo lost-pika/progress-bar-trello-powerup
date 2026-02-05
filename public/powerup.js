@@ -131,7 +131,7 @@ TrelloPowerUp.initialize({
       content: {
         type: "iframe",
         url: t.signUrl("./card-progress.html"),
-        height: 1,
+        height: 180,
       },
     };
   },

@@ -35,16 +35,25 @@
         color: var(--text-main);
       }
 
-      .settings-wrapper {
-        padding: 20px;
-        width: 360px;
-        max-width: 100%;
-        background: var(--bg-glass);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
+      html,
+body {
+  height: 100%;
+}
+
+.settings-wrapper {
+  min-height: 100vh;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 
       /* HEADER */
       .settings-header {
