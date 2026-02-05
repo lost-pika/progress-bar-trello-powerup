@@ -1,205 +1,246 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+const t = TrelloPowerUp.iframe();
 
-    <style>
-      /* 🎨 CSS VARIABLES FOR THEMING */
-      :root {
-        /* Default (Dark Mode) */
-        --bg-panel: rgba(255, 255, 255, 0.05);
-        --border-panel: rgba(255, 255, 255, 0.1);
-        --text-main: #e0e0e0;
-        --text-muted: rgba(255, 255, 255, 0.5);
-        --primary: #2ec4b6;
-        --btn-hover-bg: rgba(255, 255, 255, 0.1);
-        --toggle-bg: rgba(0, 0, 0, 0.4);
-        --toggle-knob: #b0b0b0;
-        --warning-bg: rgba(255, 189, 67, 0.15);
-        --warning-text: #ffcb7a;
-        --warning-border: #ffb84a;
-      }
+/* ----------------------------------------
+   STATE
+---------------------------------------- */
+let state = {
+  progress: 0,
+  elapsed: 0,
+  estimated: 8 * 3600,
+  running: false,
+  startTime: null,
+  hideProgressBars: false,
+};
 
-      /* ☀️ Light Mode Overrides */
-      body.light-theme {
-        --bg-panel: #f4f5f7; /* Trello Light Gray */
-        --border-panel: #dfe1e6;
-        --text-main: #172b4d; /* Trello Dark Blue */
-        --text-muted: #5e6c84;
-        --primary: #0079bf; /* Trello Blue */
-        --btn-hover-bg: rgba(9, 30, 66, 0.08);
-        --toggle-bg: rgba(9, 30, 66, 0.1);
-        --toggle-knob: #ffffff;
-        --warning-bg: #fff7d6;
-        --warning-text: #976700;
-        --warning-border: #ffab00;
-      }
+let timer = null;
 
-      * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ----------------------------------------
+   HELPERS
+---------------------------------------- */
+function format(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+  const s = String(sec % 60).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
 
-      body {
-        background: transparent; /* ✅ Transparent background */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: var(--text-main);
-        padding: 0 4px;
-      }
+async function computeProgress() {
+  const card = await t.card("checklists");
 
-      .compact-container {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-      }
+  let total = 0;
+  let done = 0;
 
-      .time-panel {
-        background: var(--bg-panel); /* Uses variable */
-        border: 1px solid var(--border-panel);
-        border-radius: 8px;
-        padding: 10px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
+  card.checklists.forEach((cl) => {
+    cl.checkItems.forEach((item) => {
+      total++;
+      if (item.state === "complete") done++;
+    });
+  });
 
-      .stats-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-      }
+  if (total === 0) return 0;
 
-      .stat-group {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
+  return Math.round((done / total) * 100);
+}
 
-      .label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
+function save() {
+  return t.set("card", "shared", state);
+}
 
-      .elapsed-time {
-        font-family: "SF Mono", "Monaco", monospace;
-        font-variant-numeric: tabular-nums;
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--primary);
-        line-height: 1.1;
-      }
+/* ----------------------------------------
+   LOAD
+---------------------------------------- */
+async function load() {
+  const card = (await t.get("card", "shared")) || {};
+  const hideBars = await t.get("board", "shared", "hideProgressBars");
 
-      .estimated-input {
-        background: transparent;
-        border: 1px solid transparent;
-        color: var(--text-main);
-        font-family: "SF Mono", "Monaco", monospace;
-        font-size: 14px;
-        width: 70px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        text-align: right;
-        transition: 0.2s;
-      }
-      .estimated-input:hover { background: var(--btn-hover-bg); }
-      .estimated-input:focus {
-        background: var(--btn-hover-bg);
-        border-color: var(--primary);
-        outline: none;
-      }
+  state.elapsed = card.elapsed || 0;
+  state.estimated = card.estimated || 8 * 3600;
+  state.running = card.running || false;
+  state.startTime = card.startTime || null;
+  state.hideProgressBars = hideBars || false;
 
-      .controls-row { display: flex; gap: 8px; height: 44px; }
+  // Always sync progress with checklist
+  state.progress = await computeProgress();
+  t.refresh(); // 🔥 forces card-badges to re-render immediately
+  render();
 
-      .btn-toggle {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        background: var(--btn-hover-bg);
-        border: 1px solid var(--border-panel);
-        border-radius: 8px;
-        cursor: pointer;
-        color: var(--text-main);
-        font-size: 14px;
-        font-weight: 700;
-        transition: all 0.2s;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .btn-toggle:hover { border-color: var(--primary); }
+  if (state.running) startTick();
 
-      .btn-toggle.active {
-        background: rgba(46, 196, 182, 0.15);
-        border-color: var(--primary);
-        color: var(--primary);
-      }
-      /* Light mode specific override for active state */
-      body.light-theme .btn-toggle.active {
-        background: #e6fcff;
-        color: #0079bf;
-      }
+  setTimeout(() => t.sizeTo(document.body).done(), 40);
+}
 
-      .toggle-switch {
-        width: 38px; height: 22px;
-        background: var(--toggle-bg);
-        border-radius: 20px;
-        position: relative;
-        transition: 0.3s ease;
-        flex-shrink: 0;
-        border: 1px solid var(--border-panel);
-      }
+/* ----------------------------------------
+   TIMER
+---------------------------------------- */
+function startTick() {
+  if (timer) return;
 
-      .toggle-switch::after {
-        content: ""; position: absolute; top: 2px; left: 2px;
-        width: 16px; height: 16px;
-        background: var(--toggle-knob);
-        border-radius: 50%;
-        transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      }
+  timer = setInterval(() => {
+    if (!state.running) return;
 
-      .btn-toggle.active .toggle-switch { background: var(--primary); }
-      .btn-toggle.active .toggle-switch::after {
-        transform: translateX(16px);
-        background: #ffffff;
-      }
+    const live =
+      state.elapsed + Math.floor((Date.now() - state.startTime) / 1000);
 
-      .btn-reset {
-        width: 44px;
-        background: #b23838;
-        border: none; border-radius: 8px;
-        cursor: pointer; color: white;
-        display: flex; align-items: center; justify-content: center;
-        transition: 0.2s;
-      }
-      .btn-reset:hover { filter: brightness(1.1); }
-      .icon-svg { width: 20px; height: 20px; fill: currentColor; }
+    const el = document.getElementById("elapsed");
+    if (el) el.textContent = format(live);
+  }, 1000);
+}
 
-      .status-warning {
-        font-size: 11px;
-        background: var(--warning-bg);
-        border-left: 2px solid var(--warning-border);
-        color: var(--warning-text);
-        padding: 6px 10px;
-        margin-top: -6px;
-        border-radius: 0 4px 4px 0;
-      }
-    </style>
-  </head>
+function toggleTimer() {
+  if (state.running) {
+    // STOP
+    const now = Date.now();
+    state.elapsed += Math.floor((now - state.startTime) / 1000);
+    state.running = false;
+    state.startTime = null;
 
-  <body>
-    <div id="root"></div>
+    // REMOVE focusMode on stop
+    t.set("card", "shared", "focusMode", false).then(() => t.refresh());
+  } else {
+    // START
+    state.running = true;
+    state.startTime = Date.now();
+    startTick();
 
-    <script src="./card-progress.js"></script>
-    <script>
-      const t_theme = TrelloPowerUp.iframe();
-      if (t_theme.getContext().theme === 'light') {
-        document.body.classList.add('light-theme');
-      }
-    </script>
-  </body>
-</html>
+    // auto focus mode
+    t.get("board", "shared", "autoFocus").then((f) => {
+      if (f) t.set("card", "shared", "focusMode", true);
+    });
+
+    t.refresh(); // update badges immediately
+  }
+
+  save();
+  render();
+}
+
+function resetTimer() {
+  state.elapsed = 0;
+  state.running = false;
+  state.startTime = null;
+
+  // also remove focus
+  t.set("card", "shared", "focusMode", false).then(() => t.refresh());
+
+  save();
+  render();
+}
+
+/* ----------------------------------------
+   RENDER
+---------------------------------------- */
+function render() {
+  const live = state.running
+    ? state.elapsed + Math.floor((Date.now() - state.startTime) / 1000)
+    : state.elapsed;
+
+  const behind = live > state.estimated;
+
+  document.getElementById("root").innerHTML = `
+    <div class="container">
+
+      <div class="header">
+        <div class="title">⚡ Progress</div>
+        <div class="percent">${state.progress}%</div>
+      </div>
+
+      <div class="progress-section ${state.hideProgressBars ? "hidden" : ""}">
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${state.progress}%"></div>
+        </div>
+        <div class="manual-progress">Progress: ${state.progress}%</div>
+      </div>
+
+      <div class="time-box">
+        <div class="time-row">
+          <div>
+            <div style="opacity:.6;font-size:12px">Elapsed</div>
+            <div id="elapsed" class="elapsed">${format(live)}</div>
+          </div>
+
+          <div>
+            <div style="opacity:.6;font-size:12px;text-align:right;">Estimated</div>
+            <input id="estimatedInput"
+              class="estimated"
+              value="${format(state.estimated)}"
+              style="
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 6px;
+                padding: 4px 6px;
+                font-size: 15px;
+                width: 90px;
+                color: #fff;
+                text-align: center;">
+          </div>
+        </div>
+
+        ${behind ? `<div class="status-warning">⚠ Behind schedule</div>` : ""}
+
+        <button id="trackBtn" class="track-btn">
+          ${state.running ? "⏸ Stop Tracking" : "▶ Start Tracking"}
+        </button>
+
+        <button id="resetBtn" class="reset-btn">Reset</button>
+      </div>
+
+    </div>
+  `;
+
+  document.getElementById("trackBtn").onclick = toggleTimer;
+  document.getElementById("resetBtn").onclick = resetTimer;
+
+  document.getElementById("estimatedInput").onchange = (e) => {
+    const parts = e.target.value.split(":").map(Number);
+
+    let h = 0,
+      m = 0,
+      s = 0;
+    if (parts.length === 3) [h, m, s] = parts;
+    else if (parts.length === 2) {
+      m = parts[0];
+      s = parts[1];
+    } else if (parts.length === 1) s = parts[0];
+
+    const total = h * 3600 + m * 60 + s;
+
+    if (isNaN(total) || total <= 0) {
+      e.target.value = format(state.estimated);
+      return;
+    }
+
+    state.estimated = total;
+    save();
+    render();
+  };
+}
+
+/* ----------------------------------------
+   AUTO REFRESH OF PROGRESS ON CHECKLIST CHANGE
+---------------------------------------- */
+t.render(async function () {
+  const pct = await computeProgress();
+
+  if (pct !== state.progress) {
+    state.progress = pct;
+
+    await save(); // ← required!
+    t.refresh(); // ← force Trello to re-render badges
+
+    render();
+  }
+});
+
+/* INIT */
+load();
+
+// Prevent timer stop when card is closed
+window.addEventListener("beforeunload", () => {
+  if (state.running) {
+    const now = Date.now();
+    state.elapsed += Math.floor((now - state.startTime) / 1000);
+    state.startTime = Date.now();
+    save();
+  }
+});
+
