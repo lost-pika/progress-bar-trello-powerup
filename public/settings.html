@@ -2,88 +2,112 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
+      /* Trello sets data-color-mode on the root <html> for Power-Up iframes */
+      html[data-color-mode="light"] {
+        --surface: #ffffff;
+        --text: #172b4d;
+        --muted: rgba(23, 43, 77, 0.72);
+        --divider: rgba(9, 30, 66, 0.13);
+        --toggle-off: rgba(9, 30, 66, 0.18);
+        --focus: #0c66e4;
+        --danger: #cf513d;
+      }
+      html[data-color-mode="dark"] {
+        --surface: #2b2d33; /* dark panel like competitor */
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.62);
+        --divider: rgba(255, 255, 255, 0.12);
+        --toggle-off: rgba(255, 255, 255, 0.22);
+        --focus: #579dff;
+        --danger: #f87168;
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
-      html {
-        background: transparent !important;
-      }
-
+      html,
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        padding: 16px;
-        background: transparent !important;
-        color: inherit;
+        height: 100%;
       }
 
-      /* HEADER */
+      /* IMPORTANT: don’t try to “inherit” Trello; paint your own surface per mode */
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", sans-serif;
+        padding: 16px;
+      }
+
       .settings-header {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 14px;
       }
 
       .settings-header .icon {
-        font-size: 24px;
+        font-size: 22px;
+        opacity: 0.9;
       }
 
       .settings-header h1 {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 650;
+        line-height: 1.2;
       }
 
-      /* SECTION DIVIDER */
       .section {
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(9, 30, 66, 0.13);
+        border-top: 1px solid var(--divider);
+        padding-top: 10px;
+        margin-top: 10px;
       }
 
-      @media (prefers-color-scheme: dark) {
-        .section {
-          border-top-color: rgba(255, 255, 255, 0.16);
-        }
-      }
-
-      /* ITEM */
       .item {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 12px;
         padding: 12px 0;
+        border-bottom: 1px solid var(--divider);
+      }
+
+      .item:last-child {
+        border-bottom: none;
       }
 
       .item > div {
+        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 4px;
-        flex: 1;
       }
 
       .label {
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 550;
       }
 
       .desc {
         font-size: 12px;
-        opacity: 0.7;
+        color: var(--muted);
       }
 
-      /* TOGGLE */
+      /* Toggle */
       .toggle {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         flex-shrink: 0;
-        margin-top: 3px;
+        margin-top: 2px;
+        user-select: none;
       }
 
       .toggle input {
@@ -93,33 +117,27 @@
       .toggle-slider {
         width: 44px;
         height: 24px;
-        background: rgba(9, 30, 66, 0.13);
-        border-radius: 24px;
+        background: var(--toggle-off);
+        border-radius: 999px;
         position: relative;
         transition: 0.2s ease;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .toggle-slider {
-          background: rgba(255, 255, 255, 0.2);
-        }
       }
 
       .toggle-slider::after {
         content: "";
         width: 20px;
         height: 20px;
-        background: white;
         border-radius: 50%;
         position: absolute;
         top: 2px;
         left: 2px;
-        transition: 0.25s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        background: #ffffff;
+        transition: 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
       }
 
       .toggle input:checked + .toggle-slider {
-        background: #0079bf;
+        background: #22c55e;
       }
 
       .toggle input:checked + .toggle-slider::after {
@@ -129,47 +147,43 @@
       select {
         padding: 8px 10px;
         background: transparent;
-        border: 2px solid rgba(9, 30, 66, 0.13);
-        border-radius: 3px;
+        border: 1px solid var(--divider);
+        border-radius: 6px;
         color: inherit;
         font-size: 14px;
-        cursor: pointer;
+        min-width: 130px;
+        outline: none;
       }
 
-      @media (prefers-color-scheme: dark) {
-        select {
-          border-color: rgba(255, 255, 255, 0.2);
-        }
+      select:focus {
+        border-color: var(--focus);
       }
 
-      /* REMOVE BUTTON */
       .remove-btn {
         width: 100%;
         padding: 12px;
-        margin-top: 20px;
+        margin-top: 16px;
         background: transparent;
-        border: 2px solid #cf513d;
-        color: #cf513d;
-        border-radius: 3px;
+        border: 2px solid var(--danger);
+        color: var(--danger);
+        border-radius: 8px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
       }
 
       .remove-btn:hover {
-        background: rgba(207, 81, 61, 0.1);
+        background: rgba(207, 81, 61, 0.12);
       }
     </style>
   </head>
 
   <body>
-    <!-- HEADER -->
     <div class="settings-header">
       <div class="icon">⚙️</div>
       <h1>Customize your task card display</h1>
     </div>
 
-    <!-- BOARD SETTINGS -->
     <div class="section">
       <div class="item">
         <div>
@@ -239,51 +253,25 @@
       </div>
     </div>
 
-    <!-- REMOVE -->
     <button class="remove-btn" id="unauthBtn">⚠️ Remove Power-Up</button>
 
     <script>
       const t = TrelloPowerUp.iframe();
 
-      (async function checkDisabled() {
-        const disabled = await t.get("board", "shared", "disabled");
-        if (disabled) {
-          document.body.innerHTML = `
-            <div style="padding:20px;text-align:center">
-              <h3>Power-Up disabled</h3>
-              <button id="authBtn" style="
-                padding:12px 18px;
-                margin-top:20px;
-                border:none;
-                background:#0079bf;
-                color:#fff;
-                border-radius:3px;
-                font-size:14px;
-                cursor:pointer;">
-                Click to Authorize
-              </button>
-            </div>
-          `;
-          setTimeout(() => t.sizeTo(document.body).done(), 40);
-
-          document.getElementById("authBtn").onclick = function () {
-            t.set("board", "shared", "disabled", false).then(() => {
-              t.refresh();
-              t.closePopup();
-            });
-          };
-        }
-      })();
-
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
 
-        document.getElementById("hideBadges").checked = board.hideBadges || false;
-        document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
-        document.getElementById("hideBars").checked = board.hideProgressBars || false;
+        document.getElementById("hideBadges").checked =
+          board.hideBadges || false;
+        document.getElementById("hideDetail").checked =
+          board.hideDetailBadges || false;
+        document.getElementById("hideBars").checked =
+          board.hideProgressBars || false;
         document.getElementById("focusMode").checked = board.autoFocus || false;
-        document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
-        document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
+        document.getElementById("autoTrackMode").value =
+          board.autoTrackMode || "off";
+        document.getElementById("hideTimer").checked =
+          board.hideTimerBadges || false;
 
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
@@ -317,24 +305,19 @@
         if (!ok) return;
 
         const board = (await t.get("board", "shared")) || {};
-        for (const key of Object.keys(board)) {
+        for (const key of Object.keys(board))
           await t.remove("board", "shared", key);
-        }
 
         const card = (await t.get("card", "shared")) || {};
-        for (const key of Object.keys(card)) {
+        for (const key of Object.keys(card))
           await t.remove("card", "shared", key);
-        }
 
         const mem = (await t.get("member", "private")) || {};
-        for (const key of Object.keys(mem)) {
+        for (const key of Object.keys(mem))
           await t.remove("member", "private", key);
-        }
 
         await t.set("board", "shared", "disabled", true);
-
-        alert("Power-Up data cleared. UI will disappear now.");
-
+        alert("Power-Up data cleared.");
         t.closePopup();
       };
     </script>
