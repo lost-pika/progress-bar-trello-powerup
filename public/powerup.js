@@ -56,7 +56,7 @@ function injectBadgeStyles() {
         border: 1px solid rgba(239, 68, 68, 0.4) !important;
       }
     `;
-
+    
     let style = document.getElementById("trello-progress-badge-styles");
     if (!style) {
       style = document.createElement("style");
