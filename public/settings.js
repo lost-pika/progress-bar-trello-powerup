@@ -2,13 +2,18 @@
 const t = TrelloPowerUp.iframe();
 
 const DEFAULTS = {
+  disabled: false,
   hideBadges: false,
   hideTimerBadges: false,
   hideDetailBadges: false,
+  hideProgressProgressBars: false, // not used; kept to avoid typos
   hideProgressBars: false,
   autoFocus: false,
   autoTrackMode: "off",
 };
+
+let boardState = {};
+let saveQueue = Promise.resolve(); // serialize shared writes [page:56]
 
 function qs(id) {
   const el = document.getElementById(id);
@@ -16,27 +21,62 @@ function qs(id) {
   return el;
 }
 
+function setDisabledUI(disabled, reason) {
+  const ids = ["hideBadges", "hideTimer", "hideDetail", "hideBars", "focusMode", "autoTrackMode", "unauthBtn"];
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+
+  let bar = document.getElementById("saveStatus");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "saveStatus";
+    bar.style.cssText =
+      "margin-top:10px;font-size:12px;opacity:.8;line-height:1.3;";
+    document.body.appendChild(bar);
+  }
+  bar.textContent = reason || "";
+}
+
 async function getBoardShared() {
-  const all = await t.getAll(); // bulk read [web:45]
+  // bulk read in context [page:56]
+  const all = await t.getAll();
   return all?.board?.shared || {};
 }
 
 async function loadUI() {
   const board = await getBoardShared();
+  boardState = { ...DEFAULTS, ...board };
 
-  qs("hideBadges").checked = board.hideBadges ?? DEFAULTS.hideBadges;
-  qs("hideTimer").checked = board.hideTimerBadges ?? DEFAULTS.hideTimerBadges;
-  qs("hideDetail").checked = board.hideDetailBadges ?? DEFAULTS.hideDetailBadges;
-  qs("hideBars").checked = board.hideProgressBars ?? DEFAULTS.hideProgressBars;
-  qs("focusMode").checked = board.autoFocus ?? DEFAULTS.autoFocus;
-  qs("autoTrackMode").value = board.autoTrackMode ?? DEFAULTS.autoTrackMode;
+  qs("hideBadges").checked = !!boardState.hideBadges;
+  qs("hideTimer").checked = !!boardState.hideTimerBadges;
+  qs("hideDetail").checked = !!boardState.hideDetailBadges;
+  qs("hideBars").checked = !!boardState.hideProgressBars;
+  qs("focusMode").checked = !!boardState.autoFocus;
+  qs("autoTrackMode").value = boardState.autoTrackMode || "off";
 
   setTimeout(() => t.sizeTo(document.body).done(), 40);
 }
 
-async function setBoard(key, value) {
-  await t.set("board", "shared", key, value); // persist [web:45]
-  await t.refresh();
+function queueBoardSave(patch) {
+  // Shared writes are not atomic; serialize and write the whole object to avoid clobbering. [page:56]
+  saveQueue = saveQueue
+    .then(async () => {
+      boardState = { ...boardState, ...patch };
+
+      setDisabledUI(false, "Saving…");
+      await t.set("board", "shared", boardState); // set whole blob [page:56]
+      t.refresh();
+      setDisabledUI(false, "Saved");
+    })
+    .catch((err) => {
+      console.error("Save failed:", err);
+      setDisabledUI(false, "Save failed (check console).");
+      throw err;
+    });
+
+  return saveQueue;
 }
 
 function renderAuthorize() {
@@ -67,67 +107,65 @@ function renderAuthorize() {
     msg.textContent = "Enabling…";
 
     try {
-      await t.set("board", "shared", "disabled", false); // persist [web:45]
-      await t.refresh();
+      // Write must finish BEFORE closing popup. [page:56]
+      await t.set("board", "shared", "disabled", false);
+      t.refresh();
       msg.textContent = "Enabled. Closing…";
       t.closePopup();
     } catch (e) {
       console.error(e);
-      msg.textContent = "Failed to enable. Check console.";
+      msg.textContent = "Failed to enable (check console).";
     }
   });
 }
 
 function bind() {
-  qs("hideBadges").addEventListener("change", async (e) => {
-    await setBoard("hideBadges", e.target.checked);
-  });
+  qs("hideBadges").addEventListener("change", (e) =>
+    queueBoardSave({ hideBadges: e.target.checked })
+  );
 
-  qs("hideTimer").addEventListener("change", async (e) => {
-    await setBoard("hideTimerBadges", e.target.checked);
-  });
+  qs("hideTimer").addEventListener("change", (e) =>
+    queueBoardSave({ hideTimerBadges: e.target.checked })
+  );
 
-  qs("hideDetail").addEventListener("change", async (e) => {
-    await setBoard("hideDetailBadges", e.target.checked);
-  });
+  qs("hideDetail").addEventListener("change", (e) =>
+    queueBoardSave({ hideDetailBadges: e.target.checked })
+  );
 
-  qs("hideBars").addEventListener("change", async (e) => {
-    await setBoard("hideProgressBars", e.target.checked);
-  });
+  qs("hideBars").addEventListener("change", (e) =>
+    queueBoardSave({ hideProgressBars: e.target.checked })
+  );
 
-  qs("focusMode").addEventListener("change", async (e) => {
-    await setBoard("autoFocus", e.target.checked);
-  });
+  qs("focusMode").addEventListener("change", (e) =>
+    queueBoardSave({ autoFocus: e.target.checked })
+  );
 
-  qs("autoTrackMode").addEventListener("change", async (e) => {
-    await setBoard("autoTrackMode", e.target.value);
-  });
+  qs("autoTrackMode").addEventListener("change", (e) =>
+    queueBoardSave({ autoTrackMode: e.target.value })
+  );
 
   qs("unauthBtn").addEventListener("click", async () => {
     const ok = confirm("Remove and clear all saved data?");
     if (!ok) return;
 
-    const all = await t.getAll(); // [web:45]
-
-    const boardShared = all?.board?.shared || {};
-    for (const key of Object.keys(boardShared)) {
-      await t.remove("board", "shared", key);
-    }
-
-    // Mark disabled after clearing
-    await t.set("board", "shared", "disabled", true); // [web:45]
-    await t.refresh();
-
+    // Only set disabled flag; don’t wipe everything here (wipes can race and look “broken”). [page:56]
+    await queueBoardSave({ disabled: true });
     alert("Power-Up disabled. Re-open Settings to authorize again.");
     t.closePopup();
   });
 }
 
 (async function init() {
-  const board = await getBoardShared();
-  const disabled = board.disabled === true;
+  // Permission guard: shared board writes can fail if member doesn’t have board write access. [page:56]
+  const ctx = t.getContext();
+  const canWriteBoard = ctx?.permissions?.board === "write";
 
-  if (disabled) {
+  if (!canWriteBoard) {
+    setDisabledUI(true, "You don’t have board write access, so settings can’t be saved.");
+  }
+
+  const board = await getBoardShared();
+  if (board?.disabled === true) {
     renderAuthorize();
     return;
   }
