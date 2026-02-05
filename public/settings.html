@@ -5,157 +5,162 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        padding: 16px;
-        color: inherit;
-      }
+  html, body {
+    background: transparent !important;
+    color: inherit;
+  }
 
-      /* HEADER */
-      .settings-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    padding: 16px;
+  }
 
-      .settings-header .icon {
-        font-size: 24px;
-      }
+  /* HEADER */
+  .settings-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
 
-      .settings-header h1 {
-        font-size: 18px;
-        font-weight: 600;
-      }
+  .settings-header .icon {
+    font-size: 24px;
+  }
 
-      /* SECTION DIVIDER */
-      .section {
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid;
-        border-top-color: rgba(9, 30, 66, 0.13);
-      }
+  .settings-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+  }
 
-      @media (prefers-color-scheme: dark) {
-        .section {
-          border-top-color: rgba(255, 255, 255, 0.16);
-        }
-      }
+  /* SECTION DIVIDER */
+  .section {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid;
+    border-top-color: rgba(9, 30, 66, 0.13);
+  }
 
-      /* ITEM */
-      .item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 12px 0;
-      }
+  @media (prefers-color-scheme: dark) {
+    .section {
+      border-top-color: rgba(255, 255, 255, 0.16);
+    }
+  }
 
-      .item > div {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        flex: 1;
-      }
+  /* ITEM */
+  .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+  }
 
-      .label {
-        font-size: 14px;
-        font-weight: 500;
-      }
+  .item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
 
-      .desc {
-        font-size: 12px;
-        opacity: 0.7;
-      }
+  .label {
+    font-size: 14px;
+    font-weight: 500;
+  }
 
-      /* TOGGLE */
-      .toggle {
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-        margin-top: 3px;
-      }
+  .desc {
+    font-size: 12px;
+    opacity: 0.7;
+  }
 
-      .toggle input {
-        display: none;
-      }
+  /* TOGGLE */
+  .toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
 
-      .toggle-slider {
-        width: 44px;
-        height: 24px;
-        background: rgba(9, 30, 66, 0.13);
-        border-radius: 24px;
-        position: relative;
-        transition: 0.2s ease;
-      }
+  .toggle input {
+    display: none;
+  }
 
-      @media (prefers-color-scheme: dark) {
-        .toggle-slider {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      }
+  .toggle-slider {
+    width: 44px;
+    height: 24px;
+    background: rgba(9, 30, 66, 0.13);
+    border-radius: 24px;
+    position: relative;
+    transition: 0.2s ease;
+  }
 
-      .toggle-slider::after {
-        content: "";
-        width: 20px;
-        height: 20px;
-        background: white;
-        border-radius: 50%;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        transition: 0.25s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-      }
+  @media (prefers-color-scheme: dark) {
+    .toggle-slider {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
 
-      .toggle input:checked + .toggle-slider {
-        background: #0079bf;
-      }
+  .toggle-slider::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: 0.25s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
 
-      .toggle input:checked + .toggle-slider::after {
-        transform: translateX(20px);
-      }
+  .toggle input:checked + .toggle-slider {
+    background: #0079bf;
+  }
 
-      select {
-        padding: 8px 10px;
-        background: transparent;
-        border: 2px solid rgba(9, 30, 66, 0.13);
-        border-radius: 3px;
-        color: inherit;
-        font-size: 14px;
-        cursor: pointer;
-      }
+  .toggle input:checked + .toggle-slider::after {
+    transform: translateX(20px);
+  }
 
-      @media (prefers-color-scheme: dark) {
-        select {
-          border-color: rgba(255, 255, 255, 0.2);
-        }
-      }
+  select {
+    padding: 8px 10px;
+    background: transparent;
+    border: 2px solid rgba(9, 30, 66, 0.13);
+    border-radius: 3px;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
 
-      /* REMOVE BUTTON */
-      .remove-btn {
-        width: 100%;
-        padding: 12px;
-        margin-top: 20px;
-        background: transparent;
-        border: 2px solid #cf513d;
-        color: #cf513d;
-        border-radius: 3px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-      }
+  @media (prefers-color-scheme: dark) {
+    select {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+  }
 
-      .remove-btn:hover {
-        background: rgba(207, 81, 61, 0.1);
-      }
-    </style>
+  /* REMOVE BUTTON */
+  .remove-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: transparent;
+    border: 2px solid #cf513d;
+    color: #cf513d;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .remove-btn:hover {
+    background: rgba(207, 81, 61, 0.1);
+  }
+</style>
+
   </head>
 
   <body>
@@ -274,12 +279,17 @@
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
 
-        document.getElementById("hideBadges").checked = board.hideBadges || false;
-        document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
-        document.getElementById("hideBars").checked = board.hideProgressBars || false;
+        document.getElementById("hideBadges").checked =
+          board.hideBadges || false;
+        document.getElementById("hideDetail").checked =
+          board.hideDetailBadges || false;
+        document.getElementById("hideBars").checked =
+          board.hideProgressBars || false;
         document.getElementById("focusMode").checked = board.autoFocus || false;
-        document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
-        document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
+        document.getElementById("autoTrackMode").value =
+          board.autoTrackMode || "off";
+        document.getElementById("hideTimer").checked =
+          board.hideTimerBadges || false;
 
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
