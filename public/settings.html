@@ -5,6 +5,29 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
+      /* 🎨 THEME VARIABLES */
+      :root {
+        /* Dark Mode Default */
+        --bg-body: #1d2125;
+        --text-main: #ffffff;
+        --text-desc: rgba(255, 255, 255, 0.6);
+        --border-color: rgba(255, 255, 255, 0.1);
+        --toggle-bg: #bfbfbf;
+        --select-bg: #3a3a3a;
+        --select-border: #555;
+      }
+
+      /* ☀️ LIGHT MODE OVERRIDES */
+      body.light-theme {
+        --bg-body: #ffffff;
+        --text-main: #172b4d;
+        --text-desc: #5e6c84;
+        --border-color: #ebecf0;
+        --toggle-bg: #ebecf0;
+        --select-bg: #ffffff;
+        --select-border: #dfe1e6;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -12,11 +35,14 @@
       }
 
       body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  /* CHANGE THIS: Force a dark background so white text is always readable */
-  background: #2d2d2d !important; 
-  color: #ffffff;
-}
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg-body);
+        color: var(--text-main);
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
 
       .settings-wrapper {
         padding: 20px;
@@ -31,24 +57,21 @@
         gap: 10px;
         margin-bottom: 22px;
       }
-
       .settings-header .icon {
         font-size: 24px;
       }
-
       .settings-header h1 {
         font-size: 18px;
         font-weight: 600;
       }
 
-      /* SECTION DIVIDER */
+      /* SECTIONS */
       .section {
         margin-top: 18px;
         padding-top: 4px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid var(--border-color);
       }
 
-      /* ITEM */
       .item {
         display: flex;
         justify-content: space-between;
@@ -56,7 +79,6 @@
         gap: 12px;
         padding: 15px 0;
       }
-
       .item > div {
         display: flex;
         flex-direction: column;
@@ -68,10 +90,9 @@
         font-size: 15px;
         font-weight: 500;
       }
-
       .desc {
         font-size: 13px;
-        opacity: 0.75;
+        color: var(--text-desc);
       }
 
       /* TOGGLE */
@@ -81,7 +102,6 @@
         flex-shrink: 0;
         margin-top: 3px;
       }
-
       .toggle input {
         display: none;
       }
@@ -89,10 +109,14 @@
       .toggle-slider {
         width: 46px;
         height: 24px;
-        background: #bfbfbf;
+        background: var(--toggle-bg);
         border-radius: 24px;
         position: relative;
         transition: 0.2s ease;
+      }
+      /* Darker track in light mode for visibility */
+      body.light-theme .toggle-slider {
+        background: #dfe1e6;
       }
 
       .toggle-slider::after {
@@ -109,108 +133,107 @@
       }
 
       .toggle input:checked + .toggle-slider {
-        background: #00c2ff;
+        background: #0079bf;
       }
-
       .toggle input:checked + .toggle-slider::after {
         transform: translateX(22px);
       }
 
       select {
-        padding: 10px;
-        background: #3a3a3a;
-        border: 1px solid #555;
-        border-radius: 6px;
-        color: white;
-        font-size: 15px;
+        padding: 8px;
+        background: var(--select-bg);
+        border: 1px solid var(--select-border);
+        border-radius: 4px;
+        color: var(--text-main);
+        font-size: 14px;
       }
 
-      /* REMOVE BUTTON */
       .remove-btn {
         width: 100%;
-        padding: 14px;
+        padding: 12px;
         margin-top: 26px;
         background: transparent;
-        border: 2px solid #ff6b6b;
-        color: #ff6b6b;
-        border-radius: 6px;
-        font-size: 15px;
+        border: 2px solid #ff5630;
+        color: #ff5630;
+        border-radius: 4px;
+        font-size: 14px;
         font-weight: 600;
+        cursor: pointer;
+      }
+      .remove-btn:hover {
+        background: rgba(255, 86, 48, 0.1);
       }
     </style>
   </head>
 
   <body>
     <div class="settings-wrapper">
-      <!-- HEADER -->
       <div class="settings-header">
         <div class="icon">⚙️</div>
         <h1>Customize your task card display</h1>
       </div>
 
-      <!-- BOARD SETTINGS -->
       <div class="section">
         <div class="item">
           <div>
             <div class="label">Hide card badges</div>
             <div class="desc">Remove from card front</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideBadges" />
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"
+            ><input type="checkbox" id="hideBadges" /><span
+              class="toggle-slider"
+            ></span
+          ></label>
         </div>
-
         <div class="item">
           <div>
             <div class="label">Hide timer badges</div>
             <div class="desc">Hide ⏱ timer from card</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideTimer" />
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"
+            ><input type="checkbox" id="hideTimer" /><span
+              class="toggle-slider"
+            ></span
+          ></label>
         </div>
-
         <div class="item">
           <div>
             <div class="label">Hide card detail badges</div>
             <div class="desc">In detailed card view</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideDetail" />
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"
+            ><input type="checkbox" id="hideDetail" /><span
+              class="toggle-slider"
+            ></span
+          ></label>
         </div>
-
         <div class="item">
           <div>
             <div class="label">Hide progress bars</div>
             <div class="desc">Show % only</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="hideBars" />
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"
+            ><input type="checkbox" id="hideBars" /><span
+              class="toggle-slider"
+            ></span
+          ></label>
         </div>
-
         <div class="item">
           <div>
             <div class="label">Auto-enable Focus Mode</div>
             <div class="desc">Start focus when tracking begins</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="focusMode" />
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"
+            ><input type="checkbox" id="focusMode" /><span
+              class="toggle-slider"
+            ></span
+          ></label>
         </div>
-
         <div class="item">
           <div>
             <div class="label">Auto Tracking Mode</div>
             <div class="desc">Choose when timer auto-starts</div>
           </div>
-
           <select id="autoTrackMode">
             <option value="off">Off</option>
             <option value="open">On card open</option>
@@ -218,34 +241,31 @@
         </div>
       </div>
 
-      <!-- REMOVE -->
       <button class="remove-btn" id="unauthBtn">⚠️ Remove Power-Up</button>
     </div>
 
     <script>
       const t = TrelloPowerUp.iframe();
 
+      // 🎨 THEME DETECTION
+      function applyTheme() {
+        if (t.getContext().theme === "light") {
+          document.body.classList.add("light-theme");
+        } else {
+          document.body.classList.remove("light-theme");
+        }
+      }
+      applyTheme(); // Run once on load
+
+      // EXISTING LOGIC ...
       (async function checkDisabled() {
         const disabled = await t.get("board", "shared", "disabled");
         if (disabled) {
-          // Replace the whole UI with only an authorize button
           document.body.innerHTML = `
-      <div style="padding:20px;text-align:center">
-        <h3>Power-Up disabled</h3>
-        <button id="authBtn" style="
-          padding:12px 18px;
-          margin-top:20px;
-          border:none;
-          background:#00c2ff;
-          color:#fff;
-          border-radius:6px;
-          font-size:15px;
-          cursor:pointer;">
-          Click to Authorize
-        </button>
-      </div>
-    `;
-
+            <div style="padding:40px 20px;text-align:center;color:var(--text-main);">
+              <h3 style="margin-bottom:15px">Power-Up disabled</h3>
+              <button id="authBtn" style="padding:10px 20px;border:none;background:#0079bf;color:#fff;border-radius:4px;cursor:pointer;">Click to Authorize</button>
+            </div>`;
           document.getElementById("authBtn").onclick = function () {
             t.set("board", "shared", "disabled", false).then(() => {
               t.refresh();
@@ -255,10 +275,8 @@
         }
       })();
 
-      /* LOAD SETTINGS */
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
-
         document.getElementById("hideBadges").checked =
           board.hideBadges || false;
         document.getElementById("hideDetail").checked =
@@ -268,67 +286,43 @@
         document.getElementById("focusMode").checked = board.autoFocus || false;
         document.getElementById("autoTrackMode").value =
           board.autoTrackMode || "off";
-
         document.getElementById("hideTimer").checked =
           board.hideTimerBadges || false;
-
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
 
-      /* SAVE FUNCTIONS */
       function saveBoard(k, v) {
         return t.set("board", "shared", k, v);
       }
 
-      /* EVENTS */
       document.getElementById("hideBadges").onchange = (e) =>
         saveBoard("hideBadges", e.target.checked);
-        
       document.getElementById("hideTimer").onchange = async (e) => {
         await t.set("board", "shared", "hideTimerBadges", e.target.checked);
-        t.refresh(); // ← REQUIRED
+        t.refresh();
       };
-
       document.getElementById("hideDetail").onchange = (e) =>
         saveBoard("hideDetailBadges", e.target.checked);
-
       document.getElementById("hideBars").onchange = (e) =>
         saveBoard("hideProgressBars", e.target.checked);
-
       document.getElementById("focusMode").onchange = (e) =>
         saveBoard("autoFocus", e.target.checked);
-
       document.getElementById("autoTrackMode").onchange = (e) =>
         saveBoard("autoTrackMode", e.target.value);
 
-      /* REMOVE POWER-UP */
       document.getElementById("unauthBtn").onclick = async () => {
-        const ok = confirm("Remove and clear all saved data?");
-        if (!ok) return;
-
-        // 1️⃣ REMOVE BOARD DATA
+        if (!confirm("Remove and clear all saved data?")) return;
         const board = (await t.get("board", "shared")) || {};
-        for (const key of Object.keys(board)) {
+        for (const key of Object.keys(board))
           await t.remove("board", "shared", key);
-        }
-
-        // 2️⃣ REMOVE CARD DATA (only keys for current card)
         const card = (await t.get("card", "shared")) || {};
-        for (const key of Object.keys(card)) {
+        for (const key of Object.keys(card))
           await t.remove("card", "shared", key);
-        }
-
-        // 3️⃣ REMOVE MEMBER PRIVATE DATA
         const mem = (await t.get("member", "private")) || {};
-        for (const key of Object.keys(mem)) {
+        for (const key of Object.keys(mem))
           await t.remove("member", "private", key);
-        }
-
-        // 4️⃣ SET DISABLED FLAG  ← ← ADD THIS
         await t.set("board", "shared", "disabled", true);
-
         alert("Power-Up data cleared. UI will disappear now.");
-
         t.closePopup();
       };
     </script>

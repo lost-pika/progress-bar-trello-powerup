@@ -27,12 +27,14 @@ function format(sec) {
 
   document.getElementById("elapsed").textContent = format(elapsed);
   document.getElementById("trackerElapsed").textContent = format(elapsed);
-  document.getElementById("estimatedDisplay").textContent = format(estimated) + " ✏️";
+  document.getElementById("estimatedDisplay").textContent =
+    format(estimated) + " ✏️";
   document.getElementById("autoTrack").checked = auto;
 
   // BOARD SETTINGS
   document.getElementById("hideBadges").checked = board.hideBadges || false;
-  document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+  document.getElementById("hideDetail").checked =
+    board.hideDetailBadges || false;
   document.getElementById("hideBars").checked = board.hideProgressBars || false;
   document.getElementById("focusMode").checked = board.autoFocus || false;
   document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
@@ -44,7 +46,13 @@ function format(sec) {
 
 /* SAVE FUNCTIONS */
 function saveCard() {
-  return t.set("card", "shared", { elapsed, estimated, running, startTime, auto });
+  return t.set("card", "shared", {
+    elapsed,
+    estimated,
+    running,
+    startTime,
+    auto,
+  });
 }
 function saveBoard(key, val) {
   return t.set("board", "shared", key, val);
@@ -128,7 +136,7 @@ document.getElementById("estimatedInput").onblur = () => {
   const disp = document.getElementById("estimatedDisplay");
   const [h, m, s] = inp.value.split(":").map(Number);
 
-  estimated = (h * 3600) + (m * 60) + (s || 0);
+  estimated = h * 3600 + m * 60 + (s || 0);
   saveCard();
 
   disp.textContent = inp.value + " ✏️";
@@ -159,7 +167,7 @@ document.getElementById("autoTrackMode").onchange = async (e) => {
     t.popup({
       title: "Select Lists",
       url: "./auto-track-lists.html",
-      height: 350
+      height: 350,
     });
   }
 };
@@ -199,4 +207,3 @@ document.getElementById("removeBtn").onclick = async () => {
   alert("Power-Up removed. Now UI will disappear.");
   t.closePopup();
 };
-
