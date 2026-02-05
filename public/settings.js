@@ -1,209 +1,91 @@
+/* global TrelloPowerUp */
 const t = TrelloPowerUp.iframe();
 
-/* INTERNAL STATE */
-let elapsed = 0;
-let estimated = 8 * 3600;
-let running = false;
-let startTime = null;
-let auto = false;
-let interval = null;
+const DEFAULTS = {
+  hideBadges: false,
+  hideTimerBadges: false,
+  hideDetailBadges: false,
+  hideProgressBars: false,
+  autoFocus: false,
+  autoTrackMode: "off",
+};
 
-function format(sec) {
-  const h = String(Math.floor(sec / 3600)).padStart(2, "0");
-  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
-  const s = String(sec % 60).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+function qs(id) {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`Missing element #${id}`);
+  return el;
 }
 
-(async function load() {
-  const card = (await t.get("card", "shared")) || {};
-  const board = (await t.get("board", "shared")) || {};
+async function getBoardShared() {
+  const all = await t.getAll(); // recommended bulk read [web:45]
+  return all?.board?.shared || {};
+}
 
-  elapsed = card.elapsed || 0;
-  estimated = card.estimated || 8 * 3600;
-  running = card.running || false;
-  startTime = card.startTime || null;
-  auto = card.auto || false;
+async function loadUI() {
+  const board = await getBoardShared();
 
-  document.getElementById("elapsed").textContent = format(elapsed);
-  document.getElementById("trackerElapsed").textContent = format(elapsed);
-  document.getElementById("estimatedDisplay").textContent =
-    format(estimated) + " ✏️";
-  document.getElementById("autoTrack").checked = auto;
+  qs("hideBadges").checked = board.hideBadges ?? DEFAULTS.hideBadges;
+  qs("hideTimer").checked = board.hideTimerBadges ?? DEFAULTS.hideTimerBadges;
+  qs("hideDetail").checked = board.hideDetailBadges ?? DEFAULTS.hideDetailBadges;
+  qs("hideBars").checked = board.hideProgressBars ?? DEFAULTS.hideProgressBars;
+  qs("focusMode").checked = board.autoFocus ?? DEFAULTS.autoFocus;
+  qs("autoTrackMode").value = board.autoTrackMode ?? DEFAULTS.autoTrackMode;
 
-  // BOARD SETTINGS
-  document.getElementById("hideBadges").checked = board.hideBadges || false;
-  document.getElementById("hideDetail").checked =
-    board.hideDetailBadges || false;
-  document.getElementById("hideBars").checked = board.hideProgressBars || false;
-  document.getElementById("focusMode").checked = board.autoFocus || false;
-  document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+  setTimeout(() => t.sizeTo(document.body).done(), 40);
+}
 
-  if (running) startTick();
+async function setBoard(key, value) {
+  await t.set("board", "shared", key, value); // t.set mirrors t.get [web:45]
+  t.refresh();
+}
 
-  setTimeout(() => t.sizeTo(document.body).done(), 80);
-})();
+function bind() {
+  qs("hideBadges").addEventListener("change", (e) =>
+    setBoard("hideBadges", e.target.checked)
+  );
 
-/* SAVE FUNCTIONS */
-function saveCard() {
-  return t.set("card", "shared", {
-    elapsed,
-    estimated,
-    running,
-    startTime,
-    auto,
+  qs("hideTimer").addEventListener("change", (e) =>
+    setBoard("hideTimerBadges", e.target.checked)
+  );
+
+  qs("hideDetail").addEventListener("change", (e) =>
+    setBoard("hideDetailBadges", e.target.checked)
+  );
+
+  qs("hideBars").addEventListener("change", (e) =>
+    setBoard("hideProgressBars", e.target.checked)
+  );
+
+  qs("focusMode").addEventListener("change", (e) =>
+    setBoard("autoFocus", e.target.checked)
+  );
+
+  qs("autoTrackMode").addEventListener("change", (e) =>
+    setBoard("autoTrackMode", e.target.value)
+  );
+
+  qs("unauthBtn").addEventListener("click", async () => {
+    const ok = confirm("Remove and clear all saved data?");
+    if (!ok) return;
+
+    const all = await t.getAll(); // [web:45]
+
+    const boardShared = all?.board?.shared || {};
+    for (const key of Object.keys(boardShared)) await t.remove("board", "shared", key);
+
+    const cardShared = all?.card?.shared || {};
+    for (const key of Object.keys(cardShared)) await t.remove("card", "shared", key);
+
+    const memPrivate = all?.member?.private || {};
+    for (const key of Object.keys(memPrivate)) await t.remove("member", "private", key);
+
+    await t.set("board", "shared", "disabled", true);
+    alert("Power-Up data cleared.");
+    t.closePopup();
   });
 }
-function saveBoard(key, val) {
-  return t.set("board", "shared", key, val);
-}
 
-/* TIMER */
-function startTick() {
-  if (interval) return;
-  interval = setInterval(() => {
-    if (running) {
-      const now = Date.now();
-      const live = elapsed + Math.floor((now - startTime) / 1000);
-      document.getElementById("elapsed").textContent = format(live);
-      document.getElementById("trackerElapsed").textContent = format(live);
-    }
-  }, 1000);
-}
-
-/* COLLAPSIBLE */
-document.getElementById("trackerHeader").onclick = () => {
-  const box = document.getElementById("trackerBox");
-  const arrow = document.getElementById("arrow");
-
-  const open = box.style.display === "block";
-  box.style.display = open ? "none" : "block";
-  arrow.textContent = open ? "⯈" : "⯆";
-
-  setTimeout(() => t.sizeTo(document.body).done(), 80);
-};
-
-/* TRACK BUTTON */
-document.getElementById("trackBtn").onclick = () => {
-  if (running) {
-    const now = Date.now();
-    elapsed += Math.floor((now - startTime) / 1000);
-    running = false;
-    startTime = null;
-    t.set("card", "shared", "focusMode", false);
-  } else {
-    running = true;
-    startTime = Date.now();
-    startTick();
-
-    t.get("board", "shared", "autoFocus").then((enabled) => {
-      if (enabled) t.set("card", "shared", "focusMode", true);
-    });
-  }
-
-  saveCard();
-  document.getElementById("trackBtn").textContent = running
-    ? "⏸ Stop Tracking"
-    : "▶ Start Tracking";
-};
-
-/* RESET BUTTON */
-document.getElementById("resetBtn").onclick = () => {
-  elapsed = 0;
-  running = false;
-  startTime = null;
-
-  saveCard();
-
-  document.getElementById("elapsed").textContent = "00:00:00";
-  document.getElementById("trackerElapsed").textContent = "00:00:00";
-  document.getElementById("trackBtn").textContent = "▶ Start Tracking";
-};
-
-/* EDIT ESTIMATED TIME */
-document.getElementById("estimatedDisplay").onclick = () => {
-  const inp = document.getElementById("estimatedInput");
-  const disp = document.getElementById("estimatedDisplay");
-
-  disp.style.display = "none";
-  inp.style.display = "block";
-  inp.value = format(estimated);
-  inp.focus();
-};
-
-document.getElementById("estimatedInput").onblur = () => {
-  const inp = document.getElementById("estimatedInput");
-  const disp = document.getElementById("estimatedDisplay");
-  const [h, m, s] = inp.value.split(":").map(Number);
-
-  estimated = h * 3600 + m * 60 + (s || 0);
-  saveCard();
-
-  disp.textContent = inp.value + " ✏️";
-  disp.style.display = "block";
-  inp.style.display = "none";
-};
-
-/* BOARD TOGGLES */
-document.getElementById("hideBadges").onchange = (e) =>
-  saveBoard("hideBadges", e.target.checked);
-
-document.getElementById("hideDetail").onchange = (e) =>
-  saveBoard("hideDetailBadges", e.target.checked);
-
-document.getElementById("hideBars").onchange = (e) =>
-  saveBoard("hideProgressBars", e.target.checked);
-
-document.getElementById("focusMode").onchange = (e) =>
-  saveBoard("autoFocus", e.target.checked);
-
-/* AUTO TRACK MODE */
-document.getElementById("autoTrackMode").onchange = async (e) => {
-  const mode = e.target.value;
-
-  await saveBoard("autoTrackMode", mode);
-
-  if (mode === "list" || mode === "both") {
-    t.popup({
-      title: "Select Lists",
-      url: "./auto-track-lists.html",
-      height: 350,
-    });
-  }
-};
-
-/* AUTO TRACK PER CARD */
-document.getElementById("autoTrack").onchange = (e) => {
-  auto = e.target.checked;
-  saveCard();
-};
-
-/* REMOVE POWER-UP */
-document.getElementById("removeBtn").onclick = async () => {
-  const ok = confirm("Remove and clear all saved data?");
-  if (!ok) return;
-
-  // 1️⃣ CLEAR BOARD DATA
-  const board = (await t.get("board", "shared")) || {};
-  for (const key of Object.keys(board)) {
-    await t.remove("board", "shared", key);
-  }
-
-  // 2️⃣ CLEAR CARD DATA
-  const card = (await t.get("card", "shared")) || {};
-  for (const key of Object.keys(card)) {
-    await t.remove("card", "shared", key);
-  }
-
-  // 3️⃣ CLEAR MEMBER DATA
-  const mem = (await t.get("member", "private")) || {};
-  for (const key of Object.keys(mem)) {
-    await t.remove("member", "private", key);
-  }
-
-  // 4️⃣ MARK POWER-UP AS DISABLED
-  await t.set("board", "shared", "disabled", true);
-
-  alert("Power-Up removed. Now UI will disappear.");
-  t.closePopup();
-};
+(async function init() {
+  bind();
+  await loadUI();
+})();
