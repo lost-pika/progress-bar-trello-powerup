@@ -10,15 +10,10 @@
         --primary: #2ec4b6;
         --primary-glow: rgba(46, 196, 182, 0.4);
         --danger: #b23838;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-glass: rgba(255, 255, 255, 0.06);
-          --border: rgba(255, 255, 255, 0.12);
-          --text-main: #e6e6e6;
-          --text-muted: rgba(255, 255, 255, 0.55);
-        }
+        --text-main: #e0e0e0;
+        --text-muted: rgba(255, 255, 255, 0.5);
+        --bg-glass: rgba(255, 255, 255, 0.05);
+        --border-glass: rgba(255, 255, 255, 0.1);
       }
 
       * {
@@ -31,7 +26,7 @@
         background: transparent;
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: inherit;
+        color: var(--text-main);
         padding: 0 4px;
       }
 
@@ -43,20 +38,13 @@
       }
 
       .time-panel {
-        background: rgba(255, 255, 255, 0.96);
+        background: var(--bg-glass);
+        border: 1px solid var(--border-glass);
         border-radius: 8px;
         padding: 10px 12px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
         display: flex;
         flex-direction: column;
         gap: 12px;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .time-panel {
-          background: rgba(15, 23, 42, 0.96);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
       }
 
       .stats-row {
@@ -76,6 +64,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
+        color: var(--text-muted);
       }
 
       .elapsed-time {
@@ -90,8 +79,8 @@
 
       .estimated-input {
         background: transparent;
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        color: inherit;
+        border: 1px solid transparent;
+        color: rgba(255, 255, 255, 0.8);
         font-family: "SF Mono", "Monaco", monospace;
         font-size: 14px;
         width: 70px;
@@ -101,15 +90,7 @@
         transition: 0.2s;
       }
       .estimated-input:hover {
-        background: rgba(0, 0, 0, 0.04);
-      }
-      @media (prefers-color-scheme: dark) {
-        .estimated-input {
-          border-color: rgba(255, 255, 255, 0.16);
-        }
-        .estimated-input:hover {
-          background: rgba(255, 255, 255, 0.06);
-        }
+        background: rgba(255, 255, 255, 0.1);
       }
       .estimated-input:focus {
         background: rgba(0, 0, 0, 0.3);
@@ -138,6 +119,7 @@
         border: 1px solid rgba(46, 196, 182, 0.4);
         border-radius: 8px;
         cursor: pointer;
+        color: #fff;
         font-size: 14px;
         font-weight: 700;
         transition: all 0.2s;
@@ -197,6 +179,7 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
+        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -423,5 +406,3 @@
     </script>
   </body>
 </html>
-
-
