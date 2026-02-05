@@ -255,62 +255,76 @@
     <button class="remove-btn" id="unauthBtn">⚠️ Remove Power-Up</button>
 
     <script>
-      const t = TrelloPowerUp.iframe();
+  const t = TrelloPowerUp.iframe();
 
-      (async function load() {
-        const board = (await t.get("board", "shared")) || {};
+  (async function load() {
+    const board = (await t.get("board", "shared")) || {};
 
-        document.getElementById("hideBadges").checked = board.hideBadges || false;
-        document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
-        document.getElementById("hideBars").checked = board.hideProgressBars || false;
-        document.getElementById("focusMode").checked = board.autoFocus || false;
-        document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
-        document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
+    document.getElementById("hideBadges").checked = board.hideBadges || false;
+    document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+    document.getElementById("hideBars").checked = board.hideProgressBars || false;
+    document.getElementById("focusMode").checked = board.autoFocus || false;
+    document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+    document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
 
-        setTimeout(() => t.sizeTo(document.body).done(), 40);
-      })();
+    setTimeout(() => t.sizeTo(document.body).done(), 40);
+  })();
 
-      function saveBoard(k, v) {
-        return t.set("board", "shared", k, v);
-      }
+  function saveBoard(k, v) {
+    return t.set("board", "shared", k, v).then(() => {
+      console.log(`Saved ${k}: ${v}`);
+      t.refresh(); // Force Trello to update badges
+    });
+  }
 
-      document.getElementById("hideBadges").onchange = (e) =>
-        saveBoard("hideBadges", e.target.checked);
+  document.getElementById("hideBadges").onchange = (e) => {
+    saveBoard("hideBadges", e.target.checked);
+  };
 
-      document.getElementById("hideTimer").onchange = async (e) => {
-        await t.set("board", "shared", "hideTimerBadges", e.target.checked);
-        t.refresh();
-      };
+  document.getElementById("hideTimer").onchange = (e) => {
+    saveBoard("hideTimerBadges", e.target.checked);
+  };
 
-      document.getElementById("hideDetail").onchange = (e) =>
-        saveBoard("hideDetailBadges", e.target.checked);
+  document.getElementById("hideDetail").onchange = (e) => {
+    saveBoard("hideDetailBadges", e.target.checked);
+  };
 
-      document.getElementById("hideBars").onchange = (e) =>
-        saveBoard("hideProgressBars", e.target.checked);
+  document.getElementById("hideBars").onchange = (e) => {
+    saveBoard("hideProgressBars", e.target.checked);
+  };
 
-      document.getElementById("focusMode").onchange = (e) =>
-        saveBoard("autoFocus", e.target.checked);
+  document.getElementById("focusMode").onchange = (e) => {
+    saveBoard("autoFocus", e.target.checked);
+  };
 
-      document.getElementById("autoTrackMode").onchange = (e) =>
-        saveBoard("autoTrackMode", e.target.value);
+  document.getElementById("autoTrackMode").onchange = (e) => {
+    saveBoard("autoTrackMode", e.target.value);
+  };
 
-      document.getElementById("unauthBtn").onclick = async () => {
-        const ok = confirm("Remove and clear all saved data?");
-        if (!ok) return;
+  document.getElementById("unauthBtn").onclick = async () => {
+    const ok = confirm("Remove and clear all saved data?");
+    if (!ok) return;
 
-        const board = (await t.get("board", "shared")) || {};
-        for (const key of Object.keys(board)) await t.remove("board", "shared", key);
+    const board = (await t.get("board", "shared")) || {};
+    for (const key of Object.keys(board)) {
+      await t.remove("board", "shared", key);
+    }
 
-        const card = (await t.get("card", "shared")) || {};
-        for (const key of Object.keys(card)) await t.remove("card", "shared", key);
+    const card = (await t.get("card", "shared")) || {};
+    for (const key of Object.keys(card)) {
+      await t.remove("card", "shared", key);
+    }
 
-        const mem = (await t.get("member", "private")) || {};
-        for (const key of Object.keys(mem)) await t.remove("member", "private", key);
+    const mem = (await t.get("member", "private")) || {};
+    for (const key of Object.keys(mem)) {
+      await t.remove("member", "private", key);
+    }
 
-        await t.set("board", "shared", "disabled", true);
-        alert("Power-Up data cleared.");
-        t.closePopup();
-      };
-    </script>
+    await t.set("board", "shared", "disabled", true);
+    alert("Power-Up data cleared.");
+    t.closePopup();
+  };
+</script>
+
   </body>
 </html>
