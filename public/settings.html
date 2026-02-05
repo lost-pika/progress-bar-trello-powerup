@@ -6,8 +6,7 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <style>
-      /* Trello sets data-color-mode on the root <html> for Power-Up iframes */
-      html[data-color-mode="light"] {
+      :root {
         --surface: #ffffff;
         --text: #172b4d;
         --muted: rgba(23, 43, 77, 0.72);
@@ -16,14 +15,17 @@
         --focus: #0c66e4;
         --danger: #cf513d;
       }
-      html[data-color-mode="dark"] {
-        --surface: #2b2d33; /* dark panel like competitor */
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.62);
-        --divider: rgba(255, 255, 255, 0.12);
-        --toggle-off: rgba(255, 255, 255, 0.22);
-        --focus: #579dff;
-        --danger: #f87168;
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --surface: #282e33;
+          --text: rgba(255, 255, 255, 0.92);
+          --muted: rgba(255, 255, 255, 0.62);
+          --divider: rgba(255, 255, 255, 0.12);
+          --toggle-off: rgba(255, 255, 255, 0.22);
+          --focus: #579dff;
+          --danger: #f87168;
+        }
       }
 
       * {
@@ -35,14 +37,12 @@
       html,
       body {
         height: 100%;
-      }
-
-      /* IMPORTANT: don’t try to “inherit” Trello; paint your own surface per mode */
-      body {
         background: var(--surface);
         color: var(--text);
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", sans-serif;
         padding: 16px;
       }
@@ -61,7 +61,7 @@
 
       .settings-header h1 {
         font-size: 18px;
-        font-weight: 650;
+        font-weight: 600;
         line-height: 1.2;
       }
 
@@ -101,7 +101,6 @@
         color: var(--muted);
       }
 
-      /* Toggle */
       .toggle {
         display: inline-flex;
         align-items: center;
@@ -146,7 +145,7 @@
 
       select {
         padding: 8px 10px;
-        background: transparent;
+        background: var(--surface);
         border: 1px solid var(--divider);
         border-radius: 6px;
         color: inherit;
@@ -261,17 +260,12 @@
       (async function load() {
         const board = (await t.get("board", "shared")) || {};
 
-        document.getElementById("hideBadges").checked =
-          board.hideBadges || false;
-        document.getElementById("hideDetail").checked =
-          board.hideDetailBadges || false;
-        document.getElementById("hideBars").checked =
-          board.hideProgressBars || false;
+        document.getElementById("hideBadges").checked = board.hideBadges || false;
+        document.getElementById("hideDetail").checked = board.hideDetailBadges || false;
+        document.getElementById("hideBars").checked = board.hideProgressBars || false;
         document.getElementById("focusMode").checked = board.autoFocus || false;
-        document.getElementById("autoTrackMode").value =
-          board.autoTrackMode || "off";
-        document.getElementById("hideTimer").checked =
-          board.hideTimerBadges || false;
+        document.getElementById("autoTrackMode").value = board.autoTrackMode || "off";
+        document.getElementById("hideTimer").checked = board.hideTimerBadges || false;
 
         setTimeout(() => t.sizeTo(document.body).done(), 40);
       })();
@@ -305,16 +299,13 @@
         if (!ok) return;
 
         const board = (await t.get("board", "shared")) || {};
-        for (const key of Object.keys(board))
-          await t.remove("board", "shared", key);
+        for (const key of Object.keys(board)) await t.remove("board", "shared", key);
 
         const card = (await t.get("card", "shared")) || {};
-        for (const key of Object.keys(card))
-          await t.remove("card", "shared", key);
+        for (const key of Object.keys(card)) await t.remove("card", "shared", key);
 
         const mem = (await t.get("member", "private")) || {};
-        for (const key of Object.keys(mem))
-          await t.remove("member", "private", key);
+        for (const key of Object.keys(mem)) await t.remove("member", "private", key);
 
         await t.set("board", "shared", "disabled", true);
         alert("Power-Up data cleared.");
