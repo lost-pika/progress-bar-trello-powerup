@@ -86,6 +86,43 @@ function bind() {
 }
 
 (async function init() {
+  // Check if Power-Up is disabled
+  const all = await t.getAll();
+  const disabled = all?.board?.shared?.disabled;
+
+  if (disabled) {
+    // Replace entire UI with authorize button
+    document.body.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center;">
+        <h2 style="margin-bottom: 16px; font-size: 18px;">Power-Up Disabled</h2>
+        <p style="margin-bottom: 20px; opacity: 0.7;">Click below to re-enable</p>
+        <button id="authBtn" style="
+          padding: 12px 24px;
+          background: #0079bf;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          Authorize Power-Up
+        </button>
+      </div>
+    `;
+
+    setTimeout(() => t.sizeTo(document.body).done(), 40);
+
+    document.getElementById("authBtn").addEventListener("click", async () => {
+      await t.set("board", "shared", "disabled", false);
+      t.closePopup();
+      window.location.reload(); // or just close and let user reopen
+    });
+
+    return; // Stop here, don't bind normal UI
+  }
+
+  // Normal flow if not disabled
   bind();
   await loadUI();
 })();
