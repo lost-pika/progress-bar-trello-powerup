@@ -17,7 +17,7 @@ function qs(id) {
 }
 
 async function getBoardShared() {
-  const all = await t.getAll(); // recommended bulk read [web:45]
+  const all = await t.getAll();
   return all?.board?.shared || {};
 }
 
@@ -34,9 +34,47 @@ async function loadUI() {
   setTimeout(() => t.sizeTo(document.body).done(), 40);
 }
 
+// ⬇️ NEW: Function to render the Authorize UI
+function renderAuthorize() {
+  document.body.innerHTML = `
+    <div class="settings-header">
+      <div class="icon">⚙️</div>
+      <h1>Authorize Progress Power-Up</h1>
+    </div>
+    <div style="padding: 20px 0; text-align: center;">
+      <p style="margin-bottom: 20px; opacity: 0.75; font-size: 14px;">
+        Click below to enable Progress features on this board.
+      </p>
+      <button id="authBtn" class="remove-btn" style="
+        border: none;
+        background: #0079bf;
+        color: white;
+        margin-top: 0;
+      ">Authorize</button>
+      <div id="authMsg" style="margin-top: 12px; font-size: 12px; opacity: .75;"></div>
+    </div>
+  `;
+
+  setTimeout(() => t.sizeTo(document.body).done(), 40);
+
+  document.getElementById("authBtn").addEventListener("click", async () => {
+    const msg = document.getElementById("authMsg");
+    msg.textContent = "Enabling…";
+
+    try {
+      await t.set("board", "shared", "disabled", false);
+      msg.textContent = "Enabled. Closing…";
+      t.closePopup();
+    } catch (e) {
+      console.error(e);
+      msg.textContent = "Failed to enable (check console).";
+    }
+  });
+}
+
 async function setBoard(key, value) {
-  await t.set("board", "shared", key, value); // t.set mirrors t.get [web:45]
-  t.refresh();
+  await t.set("board", "shared", key, value);
+  // Removed t.refresh() as it's not a function on the iframe object
 }
 
 function bind() {
@@ -68,7 +106,7 @@ function bind() {
     const ok = confirm("Remove and clear all saved data?");
     if (!ok) return;
 
-    const all = await t.getAll(); // [web:45]
+    const all = await t.getAll();
 
     const boardShared = all?.board?.shared || {};
     for (const key of Object.keys(boardShared)) await t.remove("board", "shared", key);
@@ -86,6 +124,14 @@ function bind() {
 }
 
 (async function init() {
+  // ⬇️ NEW: Check if disabled before loading UI
+  const board = await getBoardShared();
+  
+  if (board.disabled === true) {
+    renderAuthorize();
+    return;
+  }
+
   bind();
   await loadUI();
 })();
