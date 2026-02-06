@@ -17,7 +17,7 @@ function qs(id) {
 }
 
 async function getBoardShared() {
-  const all = await t.getAll();
+  const all = await t.getAll(); // recommended bulk read [web:45]
   return all?.board?.shared || {};
 }
 
@@ -34,7 +34,7 @@ async function loadUI() {
   setTimeout(() => t.sizeTo(document.body).done(), 40);
 }
 
-// ⬇️ NEW: Function to render the Authorize UI
+// ⬇️ NEW: Function to render the Authorize UI (styled)
 function renderAuthorize() {
   document.body.innerHTML = `
     <div class="settings-header">
@@ -73,8 +73,8 @@ function renderAuthorize() {
 }
 
 async function setBoard(key, value) {
-  await t.set("board", "shared", key, value);
-  // Removed t.refresh() as it's not a function on the iframe object
+  await t.set("board", "shared", key, value); // t.set mirrors t.get [web:45]
+  t.refresh();
 }
 
 function bind() {
@@ -106,7 +106,7 @@ function bind() {
     const ok = confirm("Remove and clear all saved data?");
     if (!ok) return;
 
-    const all = await t.getAll();
+    const all = await t.getAll(); // [web:45]
 
     const boardShared = all?.board?.shared || {};
     for (const key of Object.keys(boardShared)) await t.remove("board", "shared", key);
@@ -124,9 +124,8 @@ function bind() {
 }
 
 (async function init() {
-  // ⬇️ NEW: Check if disabled before loading UI
+  // ⬇️ NEW: Check if disabled before binding
   const board = await getBoardShared();
-  
   if (board.disabled === true) {
     renderAuthorize();
     return;
